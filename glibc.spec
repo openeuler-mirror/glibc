@@ -70,6 +70,7 @@ Source3:   nsswitch.conf
 Source4:   bench.mk
 Source5:   glibc-bench-compare
 Source6:   LicenseList
+Source7:   LanguageList
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -153,6 +154,16 @@ Summary: All language packs for %{name}.
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
 Provides: %{name}-langpack = %{version}-%{release}
+
+%{lua:
+-- List the Symbol provided by all-langpacks
+lang_provides = {}
+for line in io.lines(rpm.expand("%{SOURCE7}")) do
+    print(rpm.expand([[
+Provides:]]..line..[[ = %{version}-%{release}
+]]))
+end
+}
 
 %description all-langpacks
 The glibc-all-langpacks provides all the glibc-langpacks. Every entry
