@@ -3,6 +3,7 @@
 %define rpm_ver_major %(eval "echo `rpm -q rpm |cut -d '-' -f2 |cut -d. -f1`")
 %define rpm_ver_minor %(eval "echo `rpm -q rpm |cut -d '-' -f2 |cut -d. -f2`")
 %define rpm_version_ge_412 %(eval "if [ %{rpm_ver_major} -gt 4 -o %{rpm_ver_major} -eq 4 -a %{rpm_ver_minor} -ge 12 ]; then echo 1; else echo 0; fi")
+%define gcc_version %(eval "echo `gcc --version |head -1 |awk '{print $3}' |awk -F '.' '{print $1}'`")
 ##############################################################################
 # We support the following options:
 # --with/--without,
@@ -58,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	25
+Release: 	27
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -388,8 +389,10 @@ pushd $builddir
 	--build=%{target} \
 	--enable-stack-protector=strong \
 %ifarch %{x86_arches}
+%if 0%{?gcc_version} >= 8
 	--enable-static-pie \
 	--enable-cet \
+%endif
 %endif
 	--enable-tunables \
 	--enable-systemtap \
@@ -912,5 +915,11 @@ fi
 
 
 %changelog
+* Thu Nov 21 2019 mengxian <mengxian@huawei.com> - 2.28-27
+- In x86, configure static pie and cet only with gcc 8 or above
+
+* Wed Nov 13 2019 openEuler Buildteam <buildteam@openeuler.org> - 2.28-26
+- Optimized instructions for Kunpeng processor
+
 * Fri Jan 18 2019 openEuler Buildteam <buildteam@openeuler.org> - 2.28-25
 - Package init
