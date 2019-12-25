@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	27
+Release: 	29
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -523,13 +523,16 @@ touch -r %{SOURCE0} $RPM_BUILD_ROOT/etc/ld.so.conf
 touch -r sunrpc/etc.rpc $RPM_BUILD_ROOT/etc/rpc
 
 pushd build-%{target}
-%GCC -Os -g -static -o build-locale-archive %{SOURCE1} \
-	../build-%{target}/locale/locarchive.o \
-	../build-%{target}/locale/md5.o \
-	../build-%{target}/locale/record-status.o \
-	-I. -DDATADIR=\"%{_datadir}\" -DPREFIX=\"%{_prefix}\" \
-	-L../build-%{target} \
-	-B../build-%{target}/csu/ -lc -lc_nonshared
+%GCC -Os -g -o build-locale-archive %{SOURCE1} \
+    ../build-%{target}/locale/locarchive.o \
+    ../build-%{target}/locale/md5.o \
+    ../build-%{target}/locale/record-status.o \
+    -I. -DDATADIR=\"%{_datadir}\" -DPREFIX=\"%{_prefix}\" \
+    -L../build-%{target} \
+    -B../build-%{target}/csu/ -lc -lc_nonshared \
+    -Wl,-dynamic-linker=/lib64/ld-%{glibcversion}.so \
+    -Wl,-rpath-link=.:./math:./elf:./dlfcn:./nss:./rt:./resolv:./mathvec:./support:./nptl libc.so.6 libc_nonshared.a \
+    -Wl,--as-needed $olddir/build-%{target}/elf/ld.so
 install -m 700 build-locale-archive $RPM_BUILD_ROOT%{_prefix}/sbin/build-locale-archive
 popd
 
@@ -915,6 +918,31 @@ fi
 
 
 %changelog
+* Fri Dec 20 2019 liqingqing <liqingqing3@huawei.com> - 2.28-29
+- remove country selection from tzselect
+- fix some bugs https://sourceware.org/git/?p=glibc.git;a=commit;h=1df872fd74f730bcae3df201a229195445d2e18a
+                https://sourceware.org/git/?p=glibc.git;a=commit;h=823624bdc47f1f80109c9c52dee7939b9386d708
+                https://sourceware.org/git/?p=glibc.git;a=commit;h=bc10e22c90e42613bd5dafb77b80a9ea1759dd1b
+                https://sourceware.org/git/?p=glibc.git;a=commit;h=6c29942cbf059aca47fd4bbd852ea42c9d46b71f
+                https://sourceware.org/git/?p=glibc.git;a=commit;h=31effacee2fc1b327bedc9a5fcb4b83f227c6539
+                https://sourceware.org/git/?p=glibc.git;a=commit;h=5b06f538c5aee0389ed034f60d90a8884d6d54de
+                https://sourceware.org/git/?p=glibc.git;a=commit;h=57ada43c905eec7ba28fe60a08b93a52d88e26c1
+                https://sourceware.org/git/?p=glibc.git;a=commit;h=e0e4c321c3145b6ac0e8f6e894f87790cf9437ce
+                https://sourceware.org/git/?p=glibc.git;a=commit;h=182a3746b8cc28784718c8ea27346e97d1423945
+                https://sourceware.org/git/?p=glibc.git;a=commit;h=02d8b5ab1c89bcef2627d2b621bfb35b573852c2
+                https://sourceware.org/git/?p=glibc.git;a=commit;h=f59a54ab0c2dcaf9ee946df2bfee9d4be81f09b8
+                https://sourceware.org/git/?p=glibc.git;a=commit;h=fefa21790b5081e5d04662a240e2efd18603ef86
+                https://sourceware.org/git/?p=glibc.git;a=commit;h=2bd81b60d6ffdf7e0d22006d69f4b812b1c80513
+                https://sourceware.org/git/?p=glibc.git;a=commit;h=a55541fd1c4774d483c2d2b4bd17bcb9faac62e7
+                https://sourceware.org/git/?p=glibc.git;a=commit;h=b6d2c4475d5abc05dd009575b90556bdd3c78ad0
+                https://sourceware.org/git/?p=glibc.git;a=commit;h=8a80ee5e2bab17a1f8e1e78fab5c33ac7efa8b29
+                https://sourceware.org/git/?p=glibc.git;a=commit;h=c0fd3244e71db39cef1e2d1d8ba12bb8b7375ce4
+- fix CVE-2016-10739 CVE-2019-19126 CVE-2019-6488
+- add pie compile option for debug/Makefile and remove -static for build-locale-archive
+
+* Fri Dec 20 2019 liusirui <liusirui@huawei.com> - 2.28-28
+- Fix null pointer in mtrace
+
 * Thu Nov 21 2019 mengxian <mengxian@huawei.com> - 2.28-27
 - In x86, configure static pie and cet only with gcc 8 or above
 
