@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	30
+Release: 	31
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -531,7 +531,7 @@ pushd build-%{target}
     -I. -DDATADIR=\"%{_datadir}\" -DPREFIX=\"%{_prefix}\" \
     -L../build-%{target} \
     -B../build-%{target}/csu/ -lc -lc_nonshared \
-    -Wl,-dynamic-linker=/lib64/ld-%{glibcversion}.so \
+    -Wl,-dynamic-linker=/lib64/ld-%{version}.so \
     -Wl,-rpath-link=.:./math:./elf:./dlfcn:./nss:./rt:./resolv:./mathvec:./support:./nptl libc.so.6 libc_nonshared.a \
     -Wl,--as-needed $olddir/build-%{target}/elf/ld.so
 install -m 700 build-locale-archive $RPM_BUILD_ROOT%{_prefix}/sbin/build-locale-archive
@@ -919,6 +919,9 @@ fi
 
 
 %changelog
+* Tue Jan 7 2020 Wang Shuo <wangshuo47@huawei.com> - 2.28-31
+- Fix compile macro
+
 * Mon Jan 6 2020 Wang Shuo <wangshuo47@huawei.com> - 2.28-30
 - add obsoletes symbol for language
 
