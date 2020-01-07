@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	29
+Release: 	30
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -161,7 +161,8 @@ Provides: %{name}-langpack = %{version}-%{release}
 lang_provides = {}
 for line in io.lines(rpm.expand("%{SOURCE7}")) do
     print(rpm.expand([[
-Provides:]]..line..[[ = %{version}-%{release}
+Provides:]]..line..[[ = %{version}-%{release} 
+Obsoletes:]]..line..[[ 
 ]]))
 end
 }
@@ -918,6 +919,9 @@ fi
 
 
 %changelog
+* Mon Jan 6 2020 Wang Shuo <wangshuo47@huawei.com> - 2.28-30
+- add obsoletes symbol for language
+
 * Fri Dec 20 2019 liqingqing <liqingqing3@huawei.com> - 2.28-29
 - remove country selection from tzselect
 - fix some bugs https://sourceware.org/git/?p=glibc.git;a=commit;h=1df872fd74f730bcae3df201a229195445d2e18a
