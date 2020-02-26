@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	31
+Release: 	32
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -293,14 +293,7 @@ to run microbenchmark tests on the system.
 %package debugutils
 Summary: debug files for %{name}
 Requires: %{name} = %{version}-%{release}
-
 Requires: %{name}-debuginfo = %{version}-%{release}
-Requires: %{name}-common-debuginfo = %{version}-%{release}
-Requires: %{name}-devel-debuginfo = %{version}-%{release}
-Requires: nscd-debuginfo = %{version}-%{release}
-Requires: nss_modules-debuginfo = %{version}-%{release}
-Requires: libnsl-debuginfo = %{version}-%{release}
-Requires: %{name}-benchtests-debuginfo = %{version}-%{release}
 
 Provides: %{name}-debuginfo = %{version}-%{release}
 Provides: %{name}-debuginfo%{_isa} = %{version}-%{release}
@@ -919,6 +912,12 @@ fi
 
 
 %changelog
+* Wed Feb 26 2020 Wang Shuo<wangshuo47@huawei.com> - 2.28-32
+- Type:bugfix
+- ID:NA
+- SUG:NA
+- DESC: remove aditional require for debugutils package
+
 * Tue Jan 7 2020 Wang Shuo <wangshuo47@huawei.com> - 2.28-31
 - Fix compile macro
 
