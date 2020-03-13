@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	33
+Release: 	34
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -390,6 +390,7 @@ pushd $builddir
 	--enable-cet \
 %endif
 %endif
+	--enable-obsolete-rpc \
 	--enable-tunables \
 	--enable-systemtap \
 %ifarch %{ix86}
@@ -828,6 +829,7 @@ fi
 %dir %{_prefix}/include/nfs
 %dir %{_prefix}/include/protocols
 %dir %{_prefix}/include/rpc
+%dir %{_prefix}/include/rpcsvc
 %dir %{_prefix}/include/scsi
 %dir %{_prefix}/include/sys
 %{_prefix}/include/arpa/*
@@ -847,8 +849,10 @@ fi
 %{_prefix}/include/nfs/*
 %{_prefix}/include/protocols/*
 %{_prefix}/include/rpc/*
+%{_prefix}/include/rpcsvc/*
 %{_prefix}/include/scsi/*
 %{_prefix}/include/sys/*
+%{_prefix}/bin/rpcgen
 %exclude %{_libdir}/libmemusage.so
 %exclude %{_libdir}/libpcprofile.so
 %exclude %{_libdir}/libnss*
@@ -914,6 +918,9 @@ fi
 
 
 %changelog
+* Fri May 13 2020 Wang Shuo<wangshuo47@huawei.com> - 2.28-34
+- enable obsolete rpc
+
 * Tue Mar 10 2020 liqingqing<liqingqing3@huawei.com> - 2.28-33
 - fix use after free in glob when expanding user bug
 
