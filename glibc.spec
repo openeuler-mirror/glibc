@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	32
+Release: 	33
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -72,6 +72,8 @@ Source4:   bench.mk
 Source5:   glibc-bench-compare
 Source6:   LicenseList
 Source7:   LanguageList
+
+Patch0: Fix-use-after-free-in-glob-when-expanding-user-bug-2.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -912,11 +914,11 @@ fi
 
 
 %changelog
+* Tue Mar 10 2020 liqingqing<liqingqing3@huawei.com> - 2.28-33
+- fix use after free in glob when expanding user bug
+
 * Wed Feb 26 2020 Wang Shuo<wangshuo47@huawei.com> - 2.28-32
-- Type:bugfix
-- ID:NA
-- SUG:NA
-- DESC: remove aditional require for debugutils package
+- remove aditional require for debugutils package
 
 * Tue Jan 7 2020 Wang Shuo <wangshuo47@huawei.com> - 2.28-31
 - Fix compile macro
