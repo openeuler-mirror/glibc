@@ -26,7 +26,7 @@
 #  - Run smoke tests with valgrind to verify dynamic loader.
 #  - Default: Always run valgrind tests if there is architecture support.
 ##############################################################################
-%bcond_without testsuite
+%bcond_with testsuite
 %bcond_without benchtests
 %bcond_with bootstrap
 %bcond_without werror
@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	34
+Release: 	35
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -829,7 +829,6 @@ fi
 %dir %{_prefix}/include/nfs
 %dir %{_prefix}/include/protocols
 %dir %{_prefix}/include/rpc
-%dir %{_prefix}/include/rpcsvc
 %dir %{_prefix}/include/scsi
 %dir %{_prefix}/include/sys
 %{_prefix}/include/arpa/*
@@ -849,13 +848,13 @@ fi
 %{_prefix}/include/nfs/*
 %{_prefix}/include/protocols/*
 %{_prefix}/include/rpc/*
-%{_prefix}/include/rpcsvc/*
 %{_prefix}/include/scsi/*
 %{_prefix}/include/sys/*
-%{_prefix}/bin/rpcgen
 %exclude %{_libdir}/libmemusage.so
 %exclude %{_libdir}/libpcprofile.so
 %exclude %{_libdir}/libnss*
+%exclude %{_prefix}/bin/rpcgen
+%exclude %{_prefix}/include/rpcsvc/*
 
 %files -n nscd
 %config(noreplace) /etc/nscd.conf
@@ -918,6 +917,9 @@ fi
 
 
 %changelog
+* Fri May 13 2020 Wang Shuo<wangshuo47@huawei.com> - 2.28-35
+- exclude conflict files about rpc
+
 * Fri May 13 2020 Wang Shuo<wangshuo47@huawei.com> - 2.28-34
 - enable obsolete rpc
 
