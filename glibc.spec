@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	35
+Release: 	36
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -80,6 +80,7 @@ Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 BuildRequires: audit-libs-devel >= 1.1.3, sed >= 3.95, libcap-devel, gettext
 BuildRequires: procps-ng, util-linux, gawk, systemtap-sdt-devel, systemd, python3
 BuildRequires: make >= 4.0, bison >= 2.7, binutils >= 2.30-17, gcc >= 7.2.1-6
+BuildRequires: m4 gcc_secure gdb
 
 %if %{without bootstrap}
 BuildRequires: gd-devel libpng-devel zlib-devel
@@ -917,10 +918,13 @@ fi
 
 
 %changelog
-* Fri May 13 2020 Wang Shuo<wangshuo47@huawei.com> - 2.28-35
+* Thu Mar 19 2020 yuxiangyang<yuxiangyang4@huawei.com> - 2.28-36
+- fix build src.rpm error
+
+* Fri Mar 13 2020 Wang Shuo<wangshuo47@huawei.com> - 2.28-35
 - exclude conflict files about rpc
 
-* Fri May 13 2020 Wang Shuo<wangshuo47@huawei.com> - 2.28-34
+* Fri Mar 13 2020 Wang Shuo<wangshuo47@huawei.com> - 2.28-34
 - enable obsolete rpc
 
 * Tue Mar 10 2020 liqingqing<liqingqing3@huawei.com> - 2.28-33
