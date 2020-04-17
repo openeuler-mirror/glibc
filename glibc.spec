@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	36
+Release: 	37
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -74,6 +74,7 @@ Source6:   LicenseList
 Source7:   LanguageList
 
 Patch0: Fix-use-after-free-in-glob-when-expanding-user-bug-2.patch
+Patch1: backport-Kunpeng-patches.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -918,6 +919,9 @@ fi
 
 
 %changelog
+* Thu Apr 16 2020 wangbin<wangbin224@huawei.com> - 2.28-37
+- backport Kunpeng patches
+
 * Thu Mar 19 2020 yuxiangyang<yuxiangyang4@huawei.com> - 2.28-36
 - fix build src.rpm error
 
