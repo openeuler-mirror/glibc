@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	37
+Release: 	38
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -75,6 +75,7 @@ Source7:   LanguageList
 
 Patch0: Fix-use-after-free-in-glob-when-expanding-user-bug-2.patch
 Patch1: backport-Kunpeng-patches.patch
+Patch2: Avoid-ldbl-96-stack-corruption-from-range-reduction-.patch 
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -919,6 +920,9 @@ fi
 
 
 %changelog
+* Tue Apr 28 2020 liqingqing<liqignqing3@huawei.com> - 2.28-38
+- Avoid ldbl-96 stack corruption from range reduction of pseudo-zero (bug 25487)
+
 * Thu Apr 16 2020 wangbin<wangbin224@huawei.com> - 2.28-37
 - backport Kunpeng patches
 
