@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	38
+Release: 	39
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -342,7 +342,7 @@ touch locale/programs/*-kw.h
 ##############################################################################
 %build
 
-BuildFlags="-O2 -g"
+BuildFlags="-O2 -g -Wno-error"
 reference=" \
         "-Wp,-D_GLIBCXX_ASSERTIONS" \
         "-fasynchronous-unwind-tables" \
@@ -920,6 +920,9 @@ fi
 
 
 %changelog
+* Thu May 28 2020 jdkboy<guoge1@huawei.com> - 2.28-39
+- Disable compilation warnings temporarily
+
 * Tue Apr 28 2020 liqingqing<liqignqing3@huawei.com> - 2.28-38
 - Avoid ldbl-96 stack corruption from range reduction of pseudo-zero (bug 25487)
 
