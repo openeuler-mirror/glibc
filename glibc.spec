@@ -26,7 +26,7 @@
 #  - Run smoke tests with valgrind to verify dynamic loader.
 #  - Default: Always run valgrind tests if there is architecture support.
 ##############################################################################
-%bcond_with testsuite
+%bcond_without testsuite
 %bcond_without benchtests
 %bcond_with bootstrap
 %bcond_without werror
@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	36
+Release: 	39
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -74,6 +74,9 @@ Source6:   LicenseList
 Source7:   LanguageList
 
 Patch0: Fix-use-after-free-in-glob-when-expanding-user-bug-2.patch
+Patch1: backport-Kunpeng-patches.patch
+Patch2: Avoid-ldbl-96-stack-corruption-from-range-reduction-.patch 
+Patch3: backport-CVE-2020-1751-Fix-array-overflow-in-backtrace-on-PowerPC-bug-25423.patch  
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -918,6 +921,15 @@ fi
 
 
 %changelog
+* Sat May 23 2020 liqingqing<liqignqing3@huawei.com> - 2.28-39
+- Fix array overflow in backtrace on PowerPC (bug 25423) 
+
+* Tue Apr 28 2020 liqingqing<liqignqing3@huawei.com> - 2.28-38
+- Avoid ldbl-96 stack corruption from range reduction of pseudo-zero (bug 25487)
+
+* Thu Apr 16 2020 wangbin<wangbin224@huawei.com> - 2.28-37
+- backport Kunpeng patches
+
 * Thu Mar 19 2020 yuxiangyang<yuxiangyang4@huawei.com> - 2.28-36
 - fix build src.rpm error
 
