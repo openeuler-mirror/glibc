@@ -26,7 +26,7 @@
 #  - Run smoke tests with valgrind to verify dynamic loader.
 #  - Default: Always run valgrind tests if there is architecture support.
 ##############################################################################
-%bcond_with testsuite
+%bcond_without testsuite
 %bcond_without benchtests
 %bcond_with bootstrap
 %bcond_without werror
@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	39
+Release: 	40
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -76,6 +76,7 @@ Source7:   LanguageList
 Patch0: Fix-use-after-free-in-glob-when-expanding-user-bug-2.patch
 Patch1: backport-Kunpeng-patches.patch
 Patch2: Avoid-ldbl-96-stack-corruption-from-range-reduction-.patch 
+Patch3: backport-CVE-2020-1751-Fix-array-overflow-in-backtrace-on-PowerPC-bug-25423.patch  
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -920,6 +921,9 @@ fi
 
 
 %changelog
+* Sat May 23 2020 liqingqing<liqignqing3@huawei.com> - 2.28-40
+- Fix array overflow in backtrace on PowerPC (bug 25423) 
+
 * Thu May 28 2020 jdkboy<guoge1@huawei.com> - 2.28-39
 - Disable compilation warnings temporarily
 
