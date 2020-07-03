@@ -1,0 +1,62 @@
+From 359653aaacad463d916323f03c0ac3c47405aafa Mon Sep 17 00:00:00 2001
+From: Adhemerval Zanella <adhemerval.zanella@linaro.org>
+Date: Wed, 16 Jan 2019 18:10:56 +0000
+Subject: [PATCH] Do not use HP_TIMING_NOW for random bits
+
+This patch removes the HP_TIMING_BITS usage for fast random bits and replace
+with clock_gettime (CLOCK_MONOTONIC).  It has unspecified starting time and
+nano-second accuracy, so its randomness is significantly better than
+gettimeofday.
+
+Althoug it should incur in more overhead (specially for architecture that
+support hp-timing), the symbol is also common implemented as a vDSO.
+
+Checked on aarch64-linux-gnu, x86_64-linux-gnu, and i686-linux-gnu. I also
+checked on a i686-gnu build.
+
+    * include/random-bits.h: New file.
+    * resolv/res_mkquery.c [HP_TIMING_AVAIL] (RANDOM_BITS,
+    (__res_context_mkquery): Remove usage hp-timing usage and replace with
+    random_bits.
+    * resolv/res_send.c [HP_TIMING_AVAIL] (nameserver_offset): Likewise.
+    * sysdeps/posix/tempname.c [HP_TIMING_AVAIL] (__gen_tempname):
+    Likewise.
+
+note that this patch is just parts of the origin one to adapt glibc-2.28 
+	
+
+---
+ resolv/res_mkquery.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/resolv/res_mkquery.c b/resolv/res_mkquery.c
+index 213abeef..7ba40640 100644
+--- a/resolv/res_mkquery.c
++++ b/resolv/res_mkquery.c
+@@ -95,6 +95,7 @@
+ 
+ #include <hp-timing.h>
+ #include <stdint.h>
++#include <time.h>
+ #if HP_TIMING_AVAIL
+ # define RANDOM_BITS(Var) { uint64_t v64; HP_TIMING_NOW (v64); Var = v64; }
+ #endif
+@@ -124,9 +125,12 @@ __res_context_mkquery (struct resolv_context *ctx, int op, const char *dname,
+ #ifdef RANDOM_BITS
+   RANDOM_BITS (randombits);
+ #else
+-  struct timeval tv;
+-  __gettimeofday (&tv, NULL);
+-  randombits = (tv.tv_sec << 8) ^ tv.tv_usec;
++  struct timespec tv;
++  clock_gettime (CLOCK_MONOTONIC, &tv);
++  /* Shuffle the lower bits to minimize the clock bias.  */
++  uint32_t ret = tv.tv_nsec ^ tv.tv_sec;
++  ret ^= (ret << 24) | (ret >> 8);
++  randombits = ret;
+ #endif
+ 
+   hp->id = randombits;
+-- 
+2.19.1
+

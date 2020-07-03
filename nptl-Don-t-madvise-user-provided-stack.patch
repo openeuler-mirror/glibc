@@ -1,0 +1,41 @@
+From 087942251f26d5fd5802b8d14e47d460263a0c4d Mon Sep 17 00:00:00 2001
+From: Szabolcs Nagy <szabolcs.nagy@arm.com>
+Date: Wed, 24 Jun 2020 07:47:15 +0100
+Subject: [PATCH] nptl: Don't madvise user provided stack
+
+User provided stack should not be released nor madvised at
+thread exit because it's owned by the user.
+
+If the memory is shared or file based then MADV_DONTNEED
+can have unwanted effects. With memory tagging on aarch64
+linux the tags are dropped and thus it may invalidate
+pointers.
+
+Tested on aarch64-linux-gnu with MTE, it fixes
+
+FAIL: nptl/tst-stack3
+FAIL: nptl/tst-stack3-mem
+
+---
+ nptl/pthread_create.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/nptl/pthread_create.c b/nptl/pthread_create.c
+index 179f07a1..00931c19 100644
+--- a/nptl/pthread_create.c
++++ b/nptl/pthread_create.c
+@@ -573,8 +573,9 @@ START_THREAD_DEFN
+     }
+ #endif
+ 
+-  advise_stack_range (pd->stackblock, pd->stackblock_size, (uintptr_t) pd,
+-		      pd->guardsize);
++  if (!pd->user_stack)
++    advise_stack_range (pd->stackblock, pd->stackblock_size, (uintptr_t) pd,
++           pd->guardsize);
+ 
+   if (__glibc_unlikely (pd->cancelhandling & SETXID_BITMASK))
+     {
+-- 
+2.19.1
+
