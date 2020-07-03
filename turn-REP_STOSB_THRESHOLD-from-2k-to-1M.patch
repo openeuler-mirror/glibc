@@ -1,0 +1,25 @@
+From 44314a556239a7524b5a6451025737c1bdbb1cd0 Mon Sep 17 00:00:00 2001
+From: Wang Shuo <wangshuo47@huawei.com>
+Date: Thu, 21 May 2020 11:23:06 +0800
+Subject: [PATCH] turn REP_STOSB_THRESHOLD from 2k to 1M
+
+---
+ sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S b/sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S
+index dcd63c92..92c08eed 100644
+--- a/sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S
++++ b/sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S
+@@ -65,7 +65,7 @@
+    Enhanced REP STOSB.  Since the stored value is fixed, larger register
+    size has minimal impact on threshold.  */
+ #ifndef REP_STOSB_THRESHOLD
+-# define REP_STOSB_THRESHOLD		2048
++# define REP_STOSB_THRESHOLD		1048576
+ #endif
+ 
+ #ifndef SECTION
+-- 
+2.19.1
+
