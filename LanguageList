@@ -39,6 +39,7 @@ glibc-langpack-dsb
 glibc-langpack-dv
 glibc-langpack-dz
 glibc-langpack-el
+glibc-langpack-en
 glibc-langpack-eo
 glibc-langpack-es
 glibc-langpack-et
@@ -191,4 +192,5 @@ glibc-langpack-yi
 glibc-langpack-yo
 glibc-langpack-yue
 glibc-langpack-yuw
+glibc-langpack-zh
 glibc-langpack-zu
