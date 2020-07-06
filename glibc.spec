@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	41
+Release: 	42
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -1076,6 +1076,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Mon Jul 6 2020 Wang Shuo<wangshuo47@huawei.com> - 2.28-42
+- add zh and en to LanguageList
+
 * Thu Jul 2 2020 Wang Shuo<wangshuo47@huawei.com> - 2.28-41
 - add filelist to improve the scalability
 - backport many patch for bugfix
