@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	41
+Release: 	42
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -432,7 +432,6 @@ pushd $builddir
 	--enable-cet \
 %endif
 %endif
-	--enable-obsolete-rpc \
 	--enable-tunables \
 	--enable-systemtap \
 %ifarch %{ix86}
@@ -1081,6 +1080,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Mon Jul 6 2020 Wang Shuo<wangshuo47@huawei.com> - 2.28-42
+- disable rpc, it has been splited to libnss and libtirpc
+
 * Mon Jul 6 2020 Wang Shuo<wangshuo47@huawei.com> - 2.28-41
 - add zh and en to LanguageList
 
