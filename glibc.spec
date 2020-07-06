@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	42
+Release: 	43
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -432,7 +432,6 @@ pushd $builddir
 	--enable-cet \
 %endif
 %endif
-	--enable-obsolete-rpc \
 	--enable-tunables \
 	--enable-systemtap \
 %ifarch %{ix86}
@@ -470,7 +469,12 @@ done
 make -j1 install_root=$RPM_BUILD_ROOT install -C build-%{target}
 
 pushd build-%{target}
-make %{?_smp_mflags} -O install_root=$RPM_BUILD_ROOT \
+
+# notice: we can't use parallel compilation because the localedata will use "localedef" command
+# to create locales such as LC_CTYPE, LC_TIME etc, and this command will create a file,
+# or create a hard link if there already has a output file who's input is the same,
+# so when we use parallel compilation, it will lead to different results, and this will cause BEP inconsistence.
+make -j1 install_root=$RPM_BUILD_ROOT \
 	install-locales -C ../localedata objdir=`pwd`
 popd
 
@@ -1076,6 +1080,10 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Mon Jul 6 2020 Wang Shuo<wangshuo47@huawei.com> - 2.28-43
+- disable rpc, it has been splited to libnss and libtirpc
+- disable parallel compilation
+
 * Mon Jul 6 2020 Wang Shuo<wangshuo47@huawei.com> - 2.28-42
 - add zh and en to LanguageList
 
