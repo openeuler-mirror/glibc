@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	40
+Release: 	45
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -77,6 +77,14 @@ Patch0: Fix-use-after-free-in-glob-when-expanding-user-bug-2.patch
 Patch1: backport-Kunpeng-patches.patch
 Patch2: Avoid-ldbl-96-stack-corruption-from-range-reduction-.patch 
 Patch3: backport-CVE-2020-1751-Fix-array-overflow-in-backtrace-on-PowerPC-bug-25423.patch  
+Patch4: Do-not-use-gettimeofday-in-random-id.patch
+Patch5: Reset-converter-state-after-second-wchar_t-output-Bu.patch
+Patch6: Fix-avx2-strncmp-offset-compare-condition-check-BZ-2.patch
+Patch7: nptl-wait-for-pending-setxid-request-also-in-detache.patch
+Patch8: x86-64-Use-RDX_LP-on-__x86_shared_non_temporal_thres.patch
+Patch9: x86_64-Use-xmmN-with-vpxor-to-clear-a-vector-registe.patch
+Patch10: nptl-Don-t-madvise-user-provided-stack.patch
+Patch11: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -161,6 +169,7 @@ Summary: All language packs for %{name}.
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
 Provides: %{name}-langpack = %{version}-%{release}
+Obsoletes: %{name}-minimal-langpack = 2.28
 
 %{lua:
 -- List the Symbol provided by all-langpacks
@@ -168,7 +177,7 @@ lang_provides = {}
 for line in io.lines(rpm.expand("%{SOURCE7}")) do
     print(rpm.expand([[
 Provides:]]..line..[[ = %{version}-%{release} 
-Obsoletes:]]..line..[[ 
+Obsoletes:]]..line..[[ = 2.28 
 ]]))
 end
 }
@@ -212,8 +221,8 @@ Provides: %{name}-headers = %{version}-%{release}
 Provides: %{name}-headers(%{_target_cpu})
 Provides: %{name}-headers%{_isa} = %{version}-%{release}
 
-Obsoletes: %{name}-static
-Obsoletes: %{name}-headers
+Obsoletes: %{name}-static = 2.28
+Obsoletes: %{name}-headers = 2.28
 
 %description devel
 The glibc-devel package contains the object files necessary for developing
@@ -248,7 +257,7 @@ Provides: nss_db = %{version}-%{release}
 Provides: nss_db%{_isa} = %{version}-%{release}
 Provides: nss_hesiod = %{version}-%{release}
 Provides: nss_hesiod%{_isa} = %{version}-%{release}
-Obsoletes: nss_db nss_hesiod
+Obsoletes: nss_db = 2.28, nss_hesiod = 2.28
 
 %description -n nss_modules
 This package contains nss_db and nss_hesiod. The former uses hash-indexed files
@@ -299,19 +308,47 @@ to run microbenchmark tests on the system.
 %package debugutils
 Summary: debug files for %{name}
 Requires: %{name} = %{version}-%{release}
-Requires: %{name}-debuginfo = %{version}-%{release}
-
-Provides: %{name}-debuginfo = %{version}-%{release}
-Provides: %{name}-debuginfo%{_isa} = %{version}-%{release}
 Provides: %{name}-utils = %{version}-%{release}
 Provides: %{name}-utils%{_isa} = %{version}-%{release}
 
-Obsoletes: %{name}-utils
+Obsoletes: %{name}-utils = 2.28
 
 %description debugutils
-This package provides many static files for debug. Besides, It contain memusage,
-a memory usage profiler, mtrace, a memory leak tracer and xtrace, a function
-call tracer, all of which is not necessory for you.
+This package provides memusage, a memory usage profiler, mtrace, a memory leak
+tracer and xtrace, a function call tracer, all of which is not necessory for you.
+
+##############################################################################
+# glibc debuginfo sub-package
+##############################################################################
+%if 0%{?_enable_debug_packages}
+%define debug_package %{nil}
+%define __debug_install_post %{nil}
+%global __debug_package 1
+
+%undefine _debugsource_packages
+%undefine _debuginfo_subpackages
+%undefine _unique_debug_names
+%undefine _unique_debug_srcs
+
+%package debuginfo
+Summary: Debug information for %{name}
+AutoReqProv: no
+
+%description debuginfo
+This package provides debug information for package %{name}.
+Debug information is useful when developing applications that use this
+package or when debugging this package.
+
+%package debugsource
+Summary: Debug source for %{name}
+AutoReqProv: no
+
+%description debugsource
+This package provides debug sources for package %{name}.
+Debug sources are useful when developing applications that use this
+package or when debugging this package.
+
+%endif # 0%{?_enable_debug_packages}
 
 ##############################################################################
 # glibc help sub-package
@@ -344,6 +381,7 @@ touch locale/programs/*-kw.h
 %build
 
 BuildFlags="-O2 -g -Wno-error"
+BuildFlags="$BuildFlags -DNDEBUG"
 reference=" \
         "-Wp,-D_GLIBCXX_ASSERTIONS" \
         "-fasynchronous-unwind-tables" \
@@ -394,7 +432,6 @@ pushd $builddir
 	--enable-cet \
 %endif
 %endif
-	--enable-obsolete-rpc \
 	--enable-tunables \
 	--enable-systemtap \
 %ifarch %{ix86}
@@ -432,7 +469,12 @@ done
 make -j1 install_root=$RPM_BUILD_ROOT install -C build-%{target}
 
 pushd build-%{target}
-make %{?_smp_mflags} -O install_root=$RPM_BUILD_ROOT \
+
+# notice: we can't use parallel compilation because the localedata will use "localedef" command
+# to create locales such as LC_CTYPE, LC_TIME etc, and this command will create a file,
+# or create a hard link if there already has a output file who's input is the same,
+# so when we use parallel compilation, it will lead to different results, and this will cause BEP inconsistence.
+make -j1 install_root=$RPM_BUILD_ROOT \
 	install-locales -C ../localedata objdir=`pwd`
 popd
 
@@ -607,7 +649,216 @@ for i in $RPM_BUILD_ROOT%{_prefix}/bin/{xtrace,memusage}; do
       -e 's~='\''/\\\$LIB/libmemusage.so~='\''%{_prefix}/\\$LIB/libmemusage.so~' \
       -i $i
 done
+
+touch master.filelist
+touch glibc.filelist
+touch common.filelist
+touch devel.filelist
+touch nscd.filelist
+touch nss_modules.filelist
+touch nss-devel.filelist
+touch libnsl.filelist
+touch debugutils.filelist
+touch benchtests.filelist
+touch debuginfo.filelist
+
+{
+  find $RPM_BUILD_ROOT \( -type f -o -type l \) \
+       \( \
+     -name etc -printf "%%%%config " -o \
+     -name gconv-modules \
+     -printf "%%%%verify(not md5 size mtime) %%%%config(noreplace) " -o \
+     -name gconv-modules.cache \
+     -printf "%%%%verify(not md5 size mtime) " \
+     , \
+     ! -path "*/lib/debug/*" -printf "/%%P\n" \)
+
+  find $RPM_BUILD_ROOT -type d \
+       \( -path '*%{_prefix}/share/locale' -prune -o \
+       \( -path '*%{_prefix}/share/*' \
+%if %{with docs}
+    ! -path '*%{_infodir}' -o \
+%endif
+      -path "*%{_prefix}/include/*" \
+       \) -printf "%%%%dir /%%P\n" \)
+} | {
+  sed -e '\,.*/share/locale/\([^/_]\+\).*/LC_MESSAGES/.*\.mo,d' \
+      -e '\,.*/share/i18n/locales/.*,d' \
+      -e '\,.*/share/i18n/charmaps/.*,d' \
+      -e '\,.*/etc/\(localtime\|nsswitch.conf\|ld\.so\.conf\|ld\.so\.cache\|default\|rpc\|gai\.conf\),d' \
+      -e '\,.*/%{_libdir}/lib\(pcprofile\|memusage\)\.so,d' \
+      -e '\,.*/bin/\(memusage\|mtrace\|xtrace\|pcprofiledump\),d'
+} | sort > master.filelist
+
+chmod 0444 master.filelist
+
+##############################################################################
+# glibc - The GNU C Library (glibc) core package.
+##############################################################################
+cat master.filelist \
+    | grep -v \
+    -e '%{_infodir}' \
+    -e '%{_libdir}/lib.*_p.a' \
+    -e '%{_prefix}/include' \
+    -e '%{_libdir}/lib.*\.a' \
+        -e '%{_libdir}/.*\.o' \
+    -e '%{_libdir}/lib.*\.so' \
+    -e 'nscd' \
+    -e '%{_prefix}/bin' \
+    -e '%{_prefix}/lib/locale' \
+    -e '%{_prefix}/sbin/[^gi]' \
+    -e '%{_prefix}/share' \
+    -e '/var/db/Makefile' \
+    -e '/libnss_.*\.so[0-9.]*$' \
+    -e '/libnsl' \
+    -e 'glibc-benchtests' \
+    -e 'aux-cache' \
+    -e 'build-locale-archive' \
+    > glibc.filelist
+
+for module in compat files dns; do
+    cat master.filelist \
+    | grep -E \
+    -e "/libnss_$module(\.so\.[0-9.]+|-[0-9.]+\.so)$" \
+    >> glibc.filelist
+done
+grep -e "libmemusage.so" -e "libpcprofile.so" master.filelist >> glibc.filelist
+
+##############################################################################
+# glibc "common" sub-package
+##############################################################################
+grep '%{_prefix}/bin' master.filelist > common.filelist
+grep '%{_prefix}/sbin/[^gi]' master.filelist \
+	| grep -v 'nscd' >> common.filelist
+
+grep '%{_prefix}/share' master.filelist \
+	| grep -v \
+	-e '%{_prefix}/share/info/libc.info.*' \
+	-e '%%dir %{prefix}/share/info' \
+	-e '%%dir %{prefix}/share' \
+	>> common.filelist
+
+echo '%{_prefix}/sbin/build-locale-archive' >> common.filelist
+
+###############################################################################
+# glibc "devel" sub-package
+###############################################################################
+%if %{with docs}
+grep '%{_infodir}' master.filelist | grep -v '%{_infodir}/dir' > devel.filelist
+%endif
+
+grep '%{_libdir}/lib.*\.a' master.filelist \
+  | grep '/lib\(\(c\|pthread\|nldbl\|mvec\)_nonshared\|g\|ieee\|mcheck\)\.a$' \
+  >> devel.filelist
+
+grep '%{_libdir}/.*\.o' < master.filelist >> devel.filelist
+grep '%{_libdir}/lib.*\.so' < master.filelist >> devel.filelist
+
+sed -i -e '\,libmemusage.so,d' \
+    -e '\,libpcprofile.so,d' \
+    -e '\,/libnss_[a-z]*\.so$,d' \
+    devel.filelist
+
+grep '%{_prefix}/include' < master.filelist >> devel.filelist
+
+grep '%{_libdir}/lib.*\.a' < master.filelist \
+  | grep -v '/lib\(\(c\|pthread\|nldbl\|mvec\)_nonshared\|g\|ieee\|mcheck\)\.a$' \
+  >> devel.filelist
+
+
+##############################################################################
+# glibc "nscd" sub-package
+##############################################################################
+echo '%{_prefix}/sbin/nscd' > nscd.filelist
+
+##############################################################################
+# nss modules sub-package
+##############################################################################
+grep -E "/libnss_(db|hesiod)(\.so\.[0-9.]+|-[0-9.]+\.so)$" \
+master.filelist > nss_modules.filelist
+
+##############################################################################
+# nss-devel sub-package
+##############################################################################
+grep '/libnss_[a-z]*\.so$' master.filelist > nss-devel.filelist
+
+##############################################################################
+# libnsl subpackage
+##############################################################################
+grep '/libnsl-[0-9.]*.so$' master.filelist > libnsl.filelist
+test $(wc -l < libnsl.filelist) -eq 1
+
+##############################################################################
+# glibc debugutils sub-package
+##############################################################################
+cat > debugutils.filelist <<EOF
+%if %{without bootstrap}
+%{_prefix}/bin/memusage
+%{_prefix}/bin/memusagestat
+%endif
+%{_prefix}/bin/mtrace
+%{_prefix}/bin/pcprofiledump
+%{_prefix}/bin/xtrace
+EOF
+
+##############################################################################
+# glibc benchtests sub-package
+##############################################################################
+find build-%{target}/benchtests -type f -executable | while read b; do
+    echo "%{_prefix}/libexec/glibc-benchtests/$(basename $b)"
+done > benchtests.filelist
+# ... and the makefile.
+for b in %{SOURCE4} %{SOURCE5}; do
+    echo "%{_prefix}/libexec/glibc-benchtests/$(basename $b)" >> benchtests.filelist
+done
+# ... and finally, the comparison scripts.
+echo "%{_prefix}/libexec/glibc-benchtests/benchout.schema.json" >> benchtests.filelist
+echo "%{_prefix}/libexec/glibc-benchtests/compare_bench.py*" >> benchtests.filelist
+echo "%{_prefix}/libexec/glibc-benchtests/import_bench.py*" >> benchtests.filelist
+echo "%{_prefix}/libexec/glibc-benchtests/validate_benchout.py*" >> benchtests.filelist
 %endif # 0%{?_enable_debug_packages}
+
+##############################################################################
+# glibc debuginfo sub-package
+##############################################################################
+touch debuginfo_additional.filelist
+find_debuginfo_args='--strict-build-id -i'
+%ifarch %{x86_arches}
+find_debuginfo_args="$find_debuginfo_args \
+    -l common.filelist \
+    -l debugutils.filelist \
+    -l nscd.filelist \
+    -p '.*/(sbin|libexec)/.*' \
+    -o debuginfo_additional.filelist \
+    -l nss_modules.filelist \
+    -l libnsl.filelist \
+    -l glibc.filelist \
+%if %{with benchtests}
+    -l benchtests.filelist
+%endif
+    "
+%endif
+
+/usr/lib/rpm/find-debuginfo.sh $find_debuginfo_args -o debuginfo.filelist
+
+%ifarch %{x86_arches}
+sed -i '\#^$RPM_BUILD_ROOT%{_prefix}/src/debug/#d' debuginfo_additional.filelist
+cat debuginfo_additional.filelist >> debuginfo.filelist
+find $RPM_BUILD_ROOT%{_prefix}/src/debug \
+     \( -type d -printf '%%%%dir ' \) , \
+     -printf '%{_prefix}/src/debug/%%P\n' >> debuginfo.filelist
+
+add_dir=%{_prefix}/lib/debug%{_libdir}
+find $RPM_BUILD_ROOT$add_dir -name "*.a" -printf "$add_dir/%%P\n" >> debuginfo.filelist
+%endif # %{x86_arches}
+
+remove_dir="%{_prefix}/src/debug"
+remove_dir="$remove_dir $(echo %{_prefix}/lib/debug{,/%{_lib},/bin,/sbin})"
+remove_dir="$remove_dir $(echo %{_prefix}/lib/debug%{_prefix}{,/%{_lib},/libexec,/bin,/sbin})"
+
+for d in $(echo $remove_dir | sed 's/ /\n/g'); do
+    sed -i "\|^%%dir $d/\?$|d" debuginfo.filelist
+done
 %endif # %{with benchtests}
 ##############################################################################
 # Run the glibc testsuite
@@ -734,68 +985,35 @@ fi
 ##############################################################################
 # Files list
 ##############################################################################
-%files
+%files -f glibc.filelist
+%dir %{_prefix}/%{_lib}/audit
 %verify(not md5 size mtime) %config(noreplace) /etc/nsswitch.conf
 %verify(not md5 size mtime) %config(noreplace) /etc/ld.so.conf
 %verify(not md5 size mtime) %config(noreplace) /etc/rpc
-%verify(not md5 size mtime) %config(noreplace) /usr/lib64/gconv/gconv-modules
-%verify(not md5 size mtime) /usr/lib64/gconv/gconv-modules.cache
 %dir /etc/ld.so.conf.d
 %dir %{_prefix}/libexec/getconf
-%{_prefix}/libexec/getconf/*
 %dir %{_libdir}/gconv
-%{_libdir}/gconv/*.so
-%dir %{_libdir}/audit
-%{_libdir}/audit/*
 %dir %attr(0700,root,root) /var/cache/ldconfig
 %attr(0600,root,root) %verify(not md5 size mtime) %ghost %config(missingok,noreplace) /var/cache/ldconfig/aux-cache
 %attr(0644,root,root) %verify(not md5 size mtime) %ghost %config(missingok,noreplace) /etc/ld.so.cache
 %attr(0644,root,root) %verify(not md5 size mtime) %ghost %config(missingok,noreplace) /etc/gai.conf
-%{_sbindir}/glibc*
-%{_sbindir}/iconvconfig
-/lib/*
-%{_libdir}/libmemusage.so
-%{_libdir}/libpcprofile.so
-/sbin/ldconfig
-/%{_lib}/*.*
-%exclude /%{_lib}/libnss_db*
-%exclude /%{_lib}/libnss_hesiod*
-%exclude /%{_lib}/libnsl*
-%exclude /lib/systemd
+%{!?_licensedir:%global license %%doc}
 %license COPYING COPYING.LIB LICENSES
 
-%files common
-%dir %{_prefix}/share/i18n
-%dir %{_prefix}/share/i18n/charmaps
-%dir %{_prefix}/share/i18n/locales
+%files -f common.filelist common
 %attr(0644,root,root) %verify(not md5 size mtime) %{_prefix}/lib/locale/locale-archive.tmpl
 %attr(0644,root,root) %verify(not md5 size mtime mode) %ghost %config(missingok,noreplace) %{_prefix}/lib/locale/locale-archive
-%{_prefix}/lib/locale/C.utf8
+%dir %{_prefix}/lib/locale
+%dir %{_prefix}/lib/locale/C.utf8
+%{_prefix}/lib/locale/C.utf8/*
 %{_prefix}/lib/locale/zh_CN.utf8
 %{_prefix}/lib/locale/en_US.utf8
 %{_prefix}/share/locale/zh_CN
 %{_prefix}/share/locale/en_GB
-%{_prefix}/bin/catchsegv
-%{_prefix}/bin/gencat
-%{_prefix}/bin/getconf
-%{_prefix}/bin/getent
-%{_prefix}/bin/iconv
-%{_prefix}/bin/ldd
-%{_prefix}/bin/locale
-%{_prefix}/bin/localedef
-%{_prefix}/bin/makedb
-%{_prefix}/bin/pldd
-%{_prefix}/bin/sotruss
-%{_prefix}/bin/sprof
-%{_prefix}/bin/tzselect
 %dir %attr(755,root,root) /etc/default
 %verify(not md5 size mtime) %config(noreplace) /etc/default/nss
-%{_prefix}/share/locale/locale.alias
-%{_sbindir}/build-locale-archive
-%{_sbindir}/zdump
-%{_sbindir}/zic
 
-%files all-langpacks -f libc.lang
+%files -f libc.lang all-langpacks
 %{_prefix}/lib/locale
 %exclude %{_prefix}/lib/locale/locale-archive
 %exclude %{_prefix}/lib/locale/locale-archive.tmpl
@@ -806,61 +1024,14 @@ fi
 %exclude %{_prefix}/share/locale/en_GB
 
 %files locale-source
+%dir %{_prefix}/share/i18n/locales
 %{_prefix}/share/i18n/locales/*
+%dir %{_prefix}/share/i18n/charmaps
 %{_prefix}/share/i18n/charmaps/*
 
-%files devel
-%{_infodir}/*
-%{_libdir}/*.a
-%{_libdir}/*.o
-%{_libdir}/*.so
-%{_prefix}/include/*.h
-%dir %{_prefix}/include/arpa
-%dir %{_prefix}/include/bits
-%dir %{_prefix}/include/bits/types
-%dir %{_prefix}/include/gnu
-%dir %{_prefix}/include/net
-%dir %{_prefix}/include/netash
-%dir %{_prefix}/include/netatalk
-%dir %{_prefix}/include/netax25
-%dir %{_prefix}/include/neteconet
-%dir %{_prefix}/include/netinet
-%dir %{_prefix}/include/netipx
-%dir %{_prefix}/include/netiucv
-%dir %{_prefix}/include/netpacket
-%dir %{_prefix}/include/netrom
-%dir %{_prefix}/include/netrose
-%dir %{_prefix}/include/nfs
-%dir %{_prefix}/include/protocols
-%dir %{_prefix}/include/rpc
-%dir %{_prefix}/include/scsi
-%dir %{_prefix}/include/sys
-%{_prefix}/include/arpa/*
-%{_prefix}/include/bits/*
-%{_prefix}/include/gnu/*
-%{_prefix}/include/net/*
-%{_prefix}/include/netash/*
-%{_prefix}/include/netatalk/*
-%{_prefix}/include/netax25/*
-%{_prefix}/include/neteconet/*
-%{_prefix}/include/netinet/*
-%{_prefix}/include/netipx/*
-%{_prefix}/include/netiucv/*
-%{_prefix}/include/netpacket/*
-%{_prefix}/include/netrom/*
-%{_prefix}/include/netrose/*
-%{_prefix}/include/nfs/*
-%{_prefix}/include/protocols/*
-%{_prefix}/include/rpc/*
-%{_prefix}/include/scsi/*
-%{_prefix}/include/sys/*
-%exclude %{_libdir}/libmemusage.so
-%exclude %{_libdir}/libpcprofile.so
-%exclude %{_libdir}/libnss*
-%exclude %{_prefix}/bin/rpcgen
-%exclude %{_prefix}/include/rpcsvc/*
+%files -f devel.filelist devel
 
-%files -n nscd
+%files -f nscd.filelist -n nscd
 %config(noreplace) /etc/nscd.conf
 %dir %attr(0755,root,root) /var/run/nscd
 %dir %attr(0755,root,root) /var/db/nscd
@@ -878,50 +1049,41 @@ fi
 %attr(0600,root,root) %verify(not md5 size mtime) %ghost %config(missingok,noreplace) /var/db/nscd/hosts
 %attr(0600,root,root) %verify(not md5 size mtime) %ghost %config(missingok,noreplace) /var/db/nscd/services
 %ghost %config(missingok,noreplace) /etc/sysconfig/nscd
-%{_sbindir}/nscd
 
-%files -n nss_modules
+%files -f nss_modules.filelist -n nss_modules
 /var/db/Makefile
-/%{_lib}/libnss_db*
-/%{_lib}/libnss_hesiod*
 
-%files nss-devel
-%{_libdir}/libnss*
+%files -f nss-devel.filelist nss-devel
 
-%files -n libnsl
-/%{_lib}/libnsl*
+%files -f libnsl.filelist -n libnsl
+/%{_lib}/libnsl.so.1
+
+%files -f debugutils.filelist debugutils
 
 %if %{with benchtests}
-%files benchtests
-%{_prefix}/libexec/glibc-benchtests/*
+%files -f benchtests.filelist benchtests
 %endif
 
-%files debugutils
-%if %{without bootstrap}
-%{_prefix}/bin/memusage
-%{_prefix}/bin/memusagestat
-%endif
-%{_prefix}/bin/mtrace
-%{_prefix}/bin/pcprofiledump
-%{_prefix}/bin/xtrace
-%{_prefix}/lib/debug/usr/bin/*.debug
-%{_prefix}/lib/debug/usr/lib64/*.a
+%if 0%{?_enable_debug_packages}
+%files -f debuginfo.filelist debuginfo
 
+%files debugsource
+%endif
 
 %files help
 #Doc of glibc package
 %doc README NEWS INSTALL elf/rtld-debugger-interface.txt
-
 #Doc of common sub-package
 %doc documentation/README.timezone
 %doc documentation/gai.conf
-
 #Doc of nss_modules sub-package
 %doc hesiod/README.hesiod
 
-
-
 %changelog
+* Tue Jul 7 2020 Wang Shuo<wangshuo47@huawei.com> - 2.28-45
+- disable rpc, it has been splited to libnss and libtirpc
+- disable parallel compilation
+
 * Tue Jul 7 2020 Wang Shuo<wangshuo47@huawei.com> - 2.28-44
 - backup to version 40
 
