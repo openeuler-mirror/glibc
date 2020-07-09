@@ -1,4 +1,4 @@
-From 9333498794cde1d5cca518badf79533a24114b6f Mon Sep 17 00:00:00 2001
+From 9f997ceca28f0634ad78a1ca95b84265f7801ff4 Mon Sep 17 00:00:00 2001
 From: Joseph Myers <joseph@codesourcery.com>
 Date: Wed, 12 Feb 2020 23:31:56 +0000
 Subject: [PATCH] Avoid ldbl-96 stack corruption from range reduction of
@@ -31,37 +31,20 @@ since that is not a form of input expected by __kernel_rem_pio2.
 
 Tested for x86_64.
 
-backport to openeuler.
-
+(cherry picked from commit 9333498794cde1d5cca518badf79533a24114b6f)
 ---
- NEWS                                       |  4 +++
- sysdeps/ieee754/ldbl-96/Makefile           |  3 +-
- sysdeps/ieee754/ldbl-96/e_rem_pio2l.c      | 12 +++++++
- sysdeps/ieee754/ldbl-96/test-sinl-pseudo.c | 41 ++++++++++++++++++++++
- 4 files changed, 59 insertions(+), 1 deletion(-)
+ sysdeps/ieee754/ldbl-96/Makefile           |  3 ++-
+ sysdeps/ieee754/ldbl-96/e_rem_pio2l.c      | 12 +++++++++
+ sysdeps/ieee754/ldbl-96/test-sinl-pseudo.c | 41 ++++++++++++++++++++++++++++++
+ 4 files changed, 60 insertions(+), 1 deletion(-)
  create mode 100644 sysdeps/ieee754/ldbl-96/test-sinl-pseudo.c
 
-diff --git a/NEWS b/NEWS
-index 2b681ed7..eb31aca6 100644
---- a/NEWS
-+++ b/NEWS
-@@ -246,6 +246,10 @@ Security related changes:
-   addresses for loaded libraries and thus bypass ASLR for a setuid
-   program.  Reported by Marcin Kościelnicki.
- 
-+  CVE-2020-10029: Trigonometric functions on x86 targets suffered from stack
-+  corruption when they were passed a pseudo-zero argument.  Reported by Guido
-+  Vranken / ForAllSecure Mayhem.
-+
- The following bugs are resolved with this release:
- 
-   [1190] stdio: fgetc()/fread() behaviour is not POSIX compliant
 diff --git a/sysdeps/ieee754/ldbl-96/Makefile b/sysdeps/ieee754/ldbl-96/Makefile
-index 790f670e..99c596e3 100644
+index 995e90d..318628a 100644
 --- a/sysdeps/ieee754/ldbl-96/Makefile
 +++ b/sysdeps/ieee754/ldbl-96/Makefile
 @@ -17,5 +17,6 @@
- # <http://www.gnu.org/licenses/>.
+ # <https://www.gnu.org/licenses/>.
  
  ifeq ($(subdir),math)
 -tests += test-canonical-ldbl-96 test-totalorderl-ldbl-96
@@ -69,7 +52,7 @@ index 790f670e..99c596e3 100644
 +CFLAGS-test-sinl-pseudo.c += -fstack-protector-all
  endif
 diff --git a/sysdeps/ieee754/ldbl-96/e_rem_pio2l.c b/sysdeps/ieee754/ldbl-96/e_rem_pio2l.c
-index f67805f2..b0b899bc 100644
+index 5f74232..bcdf201 100644
 --- a/sysdeps/ieee754/ldbl-96/e_rem_pio2l.c
 +++ b/sysdeps/ieee754/ldbl-96/e_rem_pio2l.c
 @@ -210,6 +210,18 @@ __ieee754_rem_pio2l (long double x, long double *y)
@@ -79,11 +62,11 @@ index f67805f2..b0b899bc 100644
 +  if ((i0 & 0x80000000) == 0)
 +    {
 +      /* Pseudo-zero and unnormal representations are not valid
-+        representations of long double.  We need to avoid stack
-+        corruption in __kernel_rem_pio2, which expects input in a
-+        particular normal form, but those representations do not need
-+        to be consistently handled like any particular floating-point
-+        value.  */
++	 representations of long double.  We need to avoid stack
++	 corruption in __kernel_rem_pio2, which expects input in a
++	 particular normal form, but those representations do not need
++	 to be consistently handled like any particular floating-point
++	 value.  */
 +      y[1] = y[0] = __builtin_nanl ("");
 +      return 0;
 +    }
@@ -93,7 +76,7 @@ index f67805f2..b0b899bc 100644
    exp = j0 - 23;
 diff --git a/sysdeps/ieee754/ldbl-96/test-sinl-pseudo.c b/sysdeps/ieee754/ldbl-96/test-sinl-pseudo.c
 new file mode 100644
-index 00000000..abbce861
+index 0000000..f59b977
 --- /dev/null
 +++ b/sysdeps/ieee754/ldbl-96/test-sinl-pseudo.c
 @@ -0,0 +1,41 @@
@@ -127,9 +110,9 @@ index 00000000..abbce861
 +      uint64_t sig = i == 63 ? 0 : 1ULL << i;
 +      long double ld;
 +      SET_LDOUBLE_WORDS (ld, 0x4141,
-+                         sig >> 32, sig & 0xffffffffULL);
++			 sig >> 32, sig & 0xffffffffULL);
 +      /* The requirement is that no stack overflow occurs when the
-+         pseudo-zero or unnormal goes through range reduction.  */
++	 pseudo-zero or unnormal goes through range reduction.  */
 +      volatile long double ldr;
 +      ldr = sinl (ld);
 +      (void) ldr;
@@ -139,5 +122,5 @@ index 00000000..abbce861
 +
 +#include <support/test-driver.c>
 -- 
-2.19.1
+2.7.4
 

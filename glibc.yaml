@@ -1,4 +1,4 @@
 version_control: git
 src_repo: git://sourceware.org/git/glibc.git
-tag_prefix: "glibc-"
+tag_prefix: glibc-
 seperator: "."

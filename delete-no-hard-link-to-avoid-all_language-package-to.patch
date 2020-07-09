@@ -1,0 +1,26 @@
+From ba6891f0633d394a59d14f0a54090fa1b6260c16 Mon Sep 17 00:00:00 2001
+From: buque <wuxu.wu@hotmail.com>
+Date: Wed, 15 Jul 2020 15:09:54 +0800
+Subject: [PATCH] delete --no-hard-link to avoid all_language package too
+ large.
+
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/localedata/Makefile b/localedata/Makefile
+index b8a3b67..c78d0fe 100644
+--- a/localedata/Makefile
++++ b/localedata/Makefile
+@@ -444,7 +444,7 @@ $(INSTALL-SUPPORTED-LOCALE-ARCHIVE): install-locales-dir
+ 	$(build-one-locale)
+ 
+ $(INSTALL-SUPPORTED-LOCALE-FILES): install-locales-dir
+-	@flags="-c --no-archive --no-hard-links"; \
++	@flags="-c --no-archive"; \
+ 	$(build-one-locale)
+ 
+ tst-setlocale-ENV = LC_ALL=ja_JP.EUC-JP
+-- 
+2.25.1
+

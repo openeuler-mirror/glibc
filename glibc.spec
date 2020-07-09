@@ -58,33 +58,34 @@
 # glibc - The GNU C Library (glibc) core package.
 ##############################################################################
 Name: 	 	glibc
-Version: 	2.28
-Release: 	45
+Version: 	2.31
+Release: 	1
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
 
 Source0:   https://ftp.gnu.org/gnu/glibc/%{name}-%{version}.tar.xz
-Source1:   build-locale-archive.c
-Source2:   nscd.conf
-Source3:   nsswitch.conf
-Source4:   bench.mk
-Source5:   glibc-bench-compare
+Source1:   nscd.conf
+Source2:   nsswitch.conf
+Source3:   bench.mk
+Source4:   glibc-bench-compare
+Source5:   LanguageList
 Source6:   LicenseList
-Source7:   LanguageList
 
-Patch0: Fix-use-after-free-in-glob-when-expanding-user-bug-2.patch
-Patch1: backport-Kunpeng-patches.patch
-Patch2: Avoid-ldbl-96-stack-corruption-from-range-reduction-.patch 
-Patch3: backport-CVE-2020-1751-Fix-array-overflow-in-backtrace-on-PowerPC-bug-25423.patch  
-Patch4: Do-not-use-gettimeofday-in-random-id.patch
-Patch5: Reset-converter-state-after-second-wchar_t-output-Bu.patch
-Patch6: Fix-avx2-strncmp-offset-compare-condition-check-BZ-2.patch
-Patch7: nptl-wait-for-pending-setxid-request-also-in-detache.patch
-Patch8: x86-64-Use-RDX_LP-on-__x86_shared_non_temporal_thres.patch
-Patch9: x86_64-Use-xmmN-with-vpxor-to-clear-a-vector-registe.patch
-Patch10: nptl-Don-t-madvise-user-provided-stack.patch
-Patch11: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
+Patch0: glibc-1070416.patch
+Patch1: glibc-c-utf8-locale.patch
+
+Patch6000: Fix-use-after-free-in-glob-when-expanding-user-bug-2.patch
+Patch6001: Avoid-ldbl-96-stack-corruption-from-range-reduction-.patch
+Patch6002: Reset-converter-state-after-second-wchar_t-output-Bu.patch
+Patch6003: Fix-avx2-strncmp-offset-compare-condition-check-BZ-2.patch
+Patch6004: nptl-wait-for-pending-setxid-request-also-in-detache.patch
+Patch6005: x86-64-Use-RDX_LP-on-__x86_shared_non_temporal_thres.patch
+Patch6006: x86_64-Use-xmmN-with-vpxor-to-clear-a-vector-registe.patch
+Patch6007: nptl-Don-t-madvise-user-provided-stack.patch
+Patch6008: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
+
+Patch9000: delete-no-hard-link-to-avoid-all_language-package-to.patch 
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -121,7 +122,7 @@ BuildRequires: gcc-c++ libstdc++-static glibc-devel libidn2
 
 Requires: glibc-common = %{version}-%{release}
 Requires: glibc-langpack = %{version}-%{release}
-Requires(pre): basesystem
+Requires: basesystem
 
 %description
 The GNU C Library project provides the core libraries for the GNU system and
@@ -174,7 +175,7 @@ Obsoletes: %{name}-minimal-langpack = 2.28
 %{lua:
 -- List the Symbol provided by all-langpacks
 lang_provides = {}
-for line in io.lines(rpm.expand("%{SOURCE7}")) do
+for line in io.lines(rpm.expand("%{SOURCE5}")) do
     print(rpm.expand([[
 Provides:]]..line..[[ = %{version}-%{release} 
 Obsoletes:]]..line..[[ = 2.28 
@@ -208,7 +209,8 @@ Requires: %{name} = %{version}-%{release}
 Requires: libgcc%{_isa}
 Requires(pre): info
 Requires(pre): kernel-headers
-Requires: kernel-headers >= 2.2.1
+Requires(pre): coreutils
+Requires: kernel-headers >= 3.2
 %if 0%{rpm_version_ge_412}
 Requires: libxcrypt-devel%{_isa} >= 4.0.0
 Requires: libxcrypt-static%{?_isa} >= 4.0.0
@@ -380,7 +382,7 @@ touch locale/programs/*-kw.h
 ##############################################################################
 %build
 
-BuildFlags="-O2 -g -Wno-error"
+BuildFlags="-O2 -g"
 BuildFlags="$BuildFlags -DNDEBUG"
 reference=" \
         "-Wp,-D_GLIBCXX_ASSERTIONS" \
@@ -390,6 +392,7 @@ reference=" \
         "-m31" \
         "-m32" \
         "-m64" \
+        "-march=haswell" \
         "-march=i686" \
         "-march=x86-64" \
         "-march=z13" \
@@ -475,7 +478,7 @@ pushd build-%{target}
 # or create a hard link if there already has a output file who's input is the same,
 # so when we use parallel compilation, it will lead to different results, and this will cause BEP inconsistence.
 make -j1 install_root=$RPM_BUILD_ROOT \
-	install-locales -C ../localedata objdir=`pwd`
+	install-locale-files -C ../localedata objdir=`pwd`
 popd
 
 rm -f $RPM_BUILD_ROOT/%{_libdir}/libNoVersion*
@@ -513,16 +516,15 @@ rm -f locale-archive
 $olddir/build-%{target}/elf/ld.so \
         --library-path $olddir/build-%{target}/ \
         $olddir/build-%{target}/locale/localedef \
+        --alias-file=$olddir/intl/locale.alias	\
         --prefix $RPM_BUILD_ROOT --add-to-archive \
-        *_*
-# Setup the locale-archive template for use by glibc-all-langpacks.
-mv locale-archive{,.tmpl}
+        eo *_*
 %{find_lang} libc
 popd
 mv  $RPM_BUILD_ROOT%{_prefix}/lib/locale/libc.lang .
 
 # Install configuration files for services
-install -p -m 644 %{SOURCE3} $RPM_BUILD_ROOT/etc/nsswitch.conf
+install -p -m 644 %{SOURCE2} $RPM_BUILD_ROOT/etc/nsswitch.conf
 
 mkdir -p $RPM_BUILD_ROOT/etc/default
 install -p -m 644 nis/nss $RPM_BUILD_ROOT/etc/default/nss
@@ -530,7 +532,7 @@ install -p -m 644 nis/nss $RPM_BUILD_ROOT/etc/default/nss
 # This is for ncsd - in glibc 2.2
 install -m 644 nscd/nscd.conf $RPM_BUILD_ROOT/etc
 mkdir -p $RPM_BUILD_ROOT%{_tmpfilesdir}
-install -m 644 %{SOURCE2} %{buildroot}%{_tmpfilesdir}
+install -m 644 %{SOURCE1} %{buildroot}%{_tmpfilesdir}
 mkdir -p $RPM_BUILD_ROOT/lib/systemd/system
 install -m 644 nscd/nscd.service nscd/nscd.socket $RPM_BUILD_ROOT/lib/systemd/system
 
@@ -547,10 +549,6 @@ truncate -s 0 $RPM_BUILD_ROOT/etc/gai.conf
 truncate -s 0 $RPM_BUILD_ROOT%{_libdir}/gconv/gconv-modules.cache
 chmod 644 $RPM_BUILD_ROOT%{_libdir}/gconv/gconv-modules.cache
 
-# Install the upgrade program
-install -m 700 build-%{target}/elf/glibc_post_upgrade \
-  $RPM_BUILD_ROOT%{_prefix}/sbin/glibc_post_upgrade.%{_target_cpu}
-
 # Install debug copies of unstripped static libraries
 %if 0%{?_enable_debug_packages}
 mkdir -p $RPM_BUILD_ROOT%{_prefix}/lib/debug%{_libdir}
@@ -564,20 +562,6 @@ rm -rf $RPM_BUILD_ROOT%{_prefix}/share/zoneinfo
 
 touch -r %{SOURCE0} $RPM_BUILD_ROOT/etc/ld.so.conf
 touch -r sunrpc/etc.rpc $RPM_BUILD_ROOT/etc/rpc
-
-pushd build-%{target}
-%GCC -Os -g -o build-locale-archive %{SOURCE1} \
-    ../build-%{target}/locale/locarchive.o \
-    ../build-%{target}/locale/md5.o \
-    ../build-%{target}/locale/record-status.o \
-    -I. -DDATADIR=\"%{_datadir}\" -DPREFIX=\"%{_prefix}\" \
-    -L../build-%{target} \
-    -B../build-%{target}/csu/ -lc -lc_nonshared \
-    -Wl,-dynamic-linker=/lib64/ld-%{version}.so \
-    -Wl,-rpath-link=.:./math:./elf:./dlfcn:./nss:./rt:./resolv:./mathvec:./support:./nptl libc.so.6 libc_nonshared.a \
-    -Wl,--as-needed $olddir/build-%{target}/elf/ld.so
-install -m 700 build-locale-archive $RPM_BUILD_ROOT%{_prefix}/sbin/build-locale-archive
-popd
 
 # Lastly copy some additional documentation for the packages.
 rm -rf documentation
@@ -596,7 +580,7 @@ mkdir -p $RPM_BUILD_ROOT%{_prefix}/libexec/glibc-benchtests
 cp $(find build-%{target}/benchtests -type f -executable) $RPM_BUILD_ROOT%{_prefix}/libexec/glibc-benchtests/
 
 #makefile.
-for b in %{SOURCE4} %{SOURCE5}; do
+for b in %{SOURCE3} %{SOURCE4}; do
 	cp $b $RPM_BUILD_ROOT%{_prefix}/libexec/glibc-benchtests/
 done
 
@@ -618,7 +602,6 @@ popd
 rm -f $RPM_BUILD_ROOT%{_infodir}/dir
 %endif
 
-truncate -s 0 $RPM_BUILD_ROOT/%{_prefix}/lib/locale/locale-archive
 mkdir -p $RPM_BUILD_ROOT/var/{db,run}/nscd
 touch $RPM_BUILD_ROOT/var/{db,run}/nscd/{passwd,group,hosts,services}
 touch $RPM_BUILD_ROOT/var/run/nscd/{socket,nscd.pid}
@@ -706,14 +689,13 @@ cat master.filelist \
     -e 'nscd' \
     -e '%{_prefix}/bin' \
     -e '%{_prefix}/lib/locale' \
-    -e '%{_prefix}/sbin/[^gi]' \
+    -e '%{_prefix}/sbin/[^i]' \
     -e '%{_prefix}/share' \
     -e '/var/db/Makefile' \
     -e '/libnss_.*\.so[0-9.]*$' \
     -e '/libnsl' \
     -e 'glibc-benchtests' \
     -e 'aux-cache' \
-    -e 'build-locale-archive' \
     > glibc.filelist
 
 for module in compat files dns; do
@@ -728,7 +710,8 @@ grep -e "libmemusage.so" -e "libpcprofile.so" master.filelist >> glibc.filelist
 # glibc "common" sub-package
 ##############################################################################
 grep '%{_prefix}/bin' master.filelist > common.filelist
-grep '%{_prefix}/sbin/[^gi]' master.filelist \
+grep '%{_prefix}/sbin' master.filelist \
+       | grep -v '%{_prefix}/sbin/iconvconfig' \
 	| grep -v 'nscd' >> common.filelist
 
 grep '%{_prefix}/share' master.filelist \
@@ -737,8 +720,6 @@ grep '%{_prefix}/share' master.filelist \
 	-e '%%dir %{prefix}/share/info' \
 	-e '%%dir %{prefix}/share' \
 	>> common.filelist
-
-echo '%{_prefix}/sbin/build-locale-archive' >> common.filelist
 
 ###############################################################################
 # glibc "devel" sub-package
@@ -808,7 +789,7 @@ find build-%{target}/benchtests -type f -executable | while read b; do
     echo "%{_prefix}/libexec/glibc-benchtests/$(basename $b)"
 done > benchtests.filelist
 # ... and the makefile.
-for b in %{SOURCE4} %{SOURCE5}; do
+for b in %{SOURCE3} %{SOURCE4}; do
     echo "%{_prefix}/libexec/glibc-benchtests/$(basename $b)" >> benchtests.filelist
 done
 # ... and finally, the comparison scripts.
@@ -859,6 +840,7 @@ remove_dir="$remove_dir $(echo %{_prefix}/lib/debug%{_prefix}{,/%{_lib},/libexec
 for d in $(echo $remove_dir | sed 's/ /\n/g'); do
     sed -i "\|^%%dir $d/\?$|d" debuginfo.filelist
 done
+
 %endif # %{with benchtests}
 ##############################################################################
 # Run the glibc testsuite
@@ -933,36 +915,137 @@ if rpm.vercmp(rel, required) < 0 then
   error("FATAL: kernel too old", 0)
 end
 
-%post -p %{_prefix}/sbin/glibc_post_upgrade.%{_target_cpu}
-
-%posttrans common -e -p <lua>
-if posix.stat("%{_prefix}/lib/locale/locale-archive.tmpl", "size") > 0 then
-  pid = posix.fork()
+%post -p <lua>
+-- We use lua's posix.exec because there may be no shell that we can
+-- run during glibc upgrade.
+function post_exec (program, ...)
+  local pid = posix.fork ()
   if pid == 0 then
-    posix.exec("%{_prefix}/sbin/build-locale-archive", "--install-langs", "%%{_install_langs}")
+    assert (posix.exec (program, ...))
   elseif pid > 0 then
-    posix.wait(pid)
+    posix.wait (pid)
   end
 end
 
-%postun common -p <lua>
-os.remove("%{_prefix}/lib/locale/locale-archive")
+-- (1) Remove multilib libraries from previous installs.
+-- In order to support in-place upgrades, we must immediately remove
+-- obsolete platform directories after installing a new glibc
+-- version.  RPM only deletes files removed by updates near the end
+-- of the transaction.  If we did not remove the obsolete platform
+-- directories here, they may be preferred by the dynamic linker
+-- during the execution of subsequent RPM scriptlets, likely
+-- resulting in process startup failures.
+
+-- Full set of libraries glibc may install.
+install_libs = { "anl", "BrokenLocale", "c", "dl", "m", "mvec",
+                "nss_compat", "nss_db", "nss_dns", "nss_files",
+                "nss_hesiod", "pthread", "resolv", "rt", "SegFault",
+                "thread_db", "util" }
+
+-- We are going to remove these libraries. Generally speaking we remove
+-- all core libraries in the multilib directory.
+-- We employ a tight match where X.Y is in [2.0,9.9*], so we would 
+-- match "libc-2.0.so" and so on up to "libc-9.9*".
+remove_regexps = {}
+for i = 1, #install_libs do
+  remove_regexps[i] = ("lib" .. install_libs[i]
+                       .. "%%-[2-9]%%.[0-9]+%%.so$")
+end
+
+-- Two exceptions:
+remove_regexps[#install_libs + 1] = "libthread_db%%-1%%.0%%.so"
+remove_regexps[#install_libs + 2] = "libSegFault%%.so"
+
+-- We are going to search these directories.
+local remove_dirs = { "%{_libdir}/i686",
+                     "%{_libdir}/i686/nosegneg" }
+
+-- Walk all the directories with files we need to remove...
+for _, rdir in ipairs (remove_dirs) do
+  if posix.access (rdir) then
+    -- If the directory exists we look at all the files...
+    local remove_files = posix.files (rdir)
+    for rfile in remove_files do
+      for _, rregexp in ipairs (remove_regexps) do
+       -- Does it match the regexp?
+       local dso = string.match (rfile, rregexp)
+        if (dso ~= nil) then
+         -- Removing file...
+         os.remove (rdir .. '/' .. rfile)
+       end
+      end
+    end
+  end
+end
+
+-- (2) Update /etc/ld.so.conf
+-- Next we update /etc/ld.so.conf to ensure that it starts with
+-- a literal "include ld.so.conf.d/*.conf".
+
+local ldsoconf = "/etc/ld.so.conf"
+local ldsoconf_tmp = "/etc/glibc_post_upgrade.ld.so.conf"
+
+if posix.access (ldsoconf) then
+
+  -- We must have a "include ld.so.conf.d/*.conf" line.
+  local have_include = false
+  for line in io.lines (ldsoconf) do
+    -- This must match, and we don't ignore whitespace.
+    if string.match (line, "^include ld.so.conf.d/%%*%%.conf$") ~= nil then
+      have_include = true
+    end
+  end
+
+  if not have_include then
+    -- Insert "include ld.so.conf.d/*.conf" line at the start of the
+    -- file. We only support one of these post upgrades running at
+    -- a time (temporary file name is fixed).
+    local tmp_fd = io.open (ldsoconf_tmp, "w")
+    if tmp_fd ~= nil then
+      tmp_fd:write ("include ld.so.conf.d/*.conf\n")
+      for line in io.lines (ldsoconf) do
+        tmp_fd:write (line .. "\n")
+      end
+      tmp_fd:close ()
+      local res = os.rename (ldsoconf_tmp, ldsoconf)
+      if res == nil then
+        io.stdout:write ("Error: Unable to update configuration file (rename).\n")
+      end
+    else
+      io.stdout:write ("Error: Unable to update configuration file (open).\n")
+    end
+  end
+end
+
+-- (3) Rebuild ld.so.cache early.
+-- If the format of the cache changes then we need to rebuild
+-- the cache early to avoid any problems running binaries with
+-- the new glibc.
+
+-- Note: We use _prefix because Fedora's UsrMove says so.
+post_exec ("%{_prefix}/sbin/ldconfig")
+
+-- (4) Update gconv modules cache.
+-- If the /usr/lib/gconv/gconv-modules.cache exists, then update it
+-- with the latest set of modules that were just installed.
+-- We assume that the cache is in _libdir/gconv and called
+-- "gconv-modules.cache".
+local iconv_dir = "%{_libdir}/gconv"
+local iconv_cache = iconv_dir .. "/gconv-modules.cache"
+if (posix.utime (iconv_cache) == 0) then
+  post_exec ("%{_prefix}/sbin/iconvconfig",
+            "-o", iconv_cache,
+            "--nostdlib",
+            iconv_dir)
+else
+  io.stdout:write ("Error: Missing " .. iconv_cache .. " file.\n")
+end
 
 %pre devel
 # this used to be a link and it is causing nightmares now
 if [ -L %{_prefix}/include/scsi ] ; then
   rm -f %{_prefix}/include/scsi
 fi
-
-%if %{with docs}
-%post devel
-/sbin/install-info %{_infodir}/libc.info.gz %{_infodir}/dir > /dev/null 2>&1 || :
-
-%preun devel
-if [ "$1" = 0 ]; then
-  /sbin/install-info --delete %{_infodir}/libc.info.gz %{_infodir}/dir > /dev/null 2>&1 || :
-fi
-%endif
 
 %pre -n nscd
 getent group nscd >/dev/null || /usr/sbin/groupadd -g 28 -r nscd
@@ -1001,7 +1084,6 @@ fi
 %license COPYING COPYING.LIB LICENSES
 
 %files -f common.filelist common
-%attr(0644,root,root) %verify(not md5 size mtime) %{_prefix}/lib/locale/locale-archive.tmpl
 %attr(0644,root,root) %verify(not md5 size mtime mode) %ghost %config(missingok,noreplace) %{_prefix}/lib/locale/locale-archive
 %dir %{_prefix}/lib/locale
 %dir %{_prefix}/lib/locale/C.utf8
@@ -1016,7 +1098,6 @@ fi
 %files -f libc.lang all-langpacks
 %{_prefix}/lib/locale
 %exclude %{_prefix}/lib/locale/locale-archive
-%exclude %{_prefix}/lib/locale/locale-archive.tmpl
 %exclude %{_prefix}/lib/locale/C.utf8
 %exclude %{_prefix}/lib/locale/zh_CN.utf8
 %exclude %{_prefix}/lib/locale/en_US.utf8
@@ -1066,9 +1147,10 @@ fi
 
 %if 0%{?_enable_debug_packages}
 %files -f debuginfo.filelist debuginfo
-
+ 
 %files debugsource
 %endif
+
 
 %files help
 #Doc of glibc package
@@ -1080,6 +1162,14 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Thu Jul 9 2020 wuxu<wuxu.wu@hotmail.com> - 2.31-1
+- upgrade glibc to 2.31-1 
+- delete build-locale-archive command
+- delete nsswitch.conf file
+- replace glibc_post_upgrade function with lua
+- remove sys/sysctl.h header file
+- delete stime, ftime function
+
 * Tue Jul 7 2020 Wang Shuo<wangshuo47@huawei.com> - 2.28-45
 - disable rpc, it has been splited to libnss and libtirpc
 - disable parallel compilation
