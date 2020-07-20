@@ -24,7 +24,7 @@ diff --git a/nptl/pthread_create.c b/nptl/pthread_create.c
 index 179f07a1..00931c19 100644
 --- a/nptl/pthread_create.c
 +++ b/nptl/pthread_create.c
-@@ -573,8 +573,9 @@ START_THREAD_DEFN
+@@ -564,8 +564,9 @@ START_THREAD_DEFN
      }
  #endif
  

@@ -22,7 +22,7 @@ diff --git a/nptl/pthread_create.c b/nptl/pthread_create.c
 index afd379e89a..a43089065c 100644
 --- a/nptl/pthread_create.c
 +++ b/nptl/pthread_create.c
-@@ -552,11 +552,7 @@ START_THREAD_DEFN
+@@ -567,11 +567,7 @@ START_THREAD_DEFN
    advise_stack_range (pd->stackblock, pd->stackblock_size, (uintptr_t) pd,
  		      pd->guardsize);
  
@@ -35,7 +35,7 @@ index afd379e89a..a43089065c 100644
      {
        /* Some other thread might call any of the setXid functions and expect
  	 us to reply.  In this case wait until we did that.  */
-@@ -572,6 +568,11 @@ START_THREAD_DEFN
+@@ -587,6 +583,11 @@ START_THREAD_DEFN
        pd->setxid_futex = 0;
      }
  
