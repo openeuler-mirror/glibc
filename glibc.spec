@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	42
+Release: 	43
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -84,7 +84,12 @@ Patch7: nptl-wait-for-pending-setxid-request-also-in-detache.patch
 Patch8: x86-64-Use-RDX_LP-on-__x86_shared_non_temporal_thres.patch
 Patch9: x86_64-Use-xmmN-with-vpxor-to-clear-a-vector-registe.patch
 Patch10: nptl-Don-t-madvise-user-provided-stack.patch
-Patch11: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch 
+Patch11: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
+Patch12: Fix-strtod-multiple-precision-division-bug-bug-26137.patch
+Patch13: Fix-double-free-in-__printf_fp_l-bug-26214.patch
+Patch14: Fix-memory-leak-in-__printf_fp_l-bug-26215.patch
+Patch15: Fix-CVE-2020-6096-001.patch
+Patch16: Fix-CVE-2020-6096-002.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1080,6 +1085,10 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Mon Jul 20 2020 liqingqing<liqingqing3@huawei.com> - 2.28-43
+- fix CVE-2020-6096
+- fix bugzilla 26137, 26214, 26215
+
 * Mon Jul 6 2020 Wang Shuo<wangshuo47@huawei.com> - 2.28-42
 - disable rpc, it has been splited to libnss and libtirpc
 

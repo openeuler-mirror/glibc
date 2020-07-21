@@ -1,0 +1,36 @@
+From ede56038e50235cd1ca7de3602c9491d3b84b49b Mon Sep 17 00:00:00 2001
+From: Joseph Myers <joseph@codesourcery.com>
+Date: Thu, 9 Jul 2020 21:51:49 +0000
+Subject: [PATCH] Fix double free in __printf_fp_l (bug 26214).
+
+__printf_fp_l has a double free bug in the case where it allocates
+memory with malloc internally, then has an I/O error while outputting
+trailing padding and tries to free that already-freed memory when the
+error occurs.  This patch fixes this by setting the relevant pointer
+to NULL after the first free (the only free of this pointer that isn't
+immediately followed by returning from the function).
+
+note that this patch is parts of the origin one.
+
+Tested for x86_64 and x86.
+---
+ stdio-common/printf_fp.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/stdio-common/printf_fp.c b/stdio-common/printf_fp.c
+index 66ab59ba..c310eb8e 100644
+--- a/stdio-common/printf_fp.c
++++ b/stdio-common/printf_fp.c
+@@ -1250,6 +1250,9 @@ __printf_fp_l (FILE *fp, locale_t loc,
+ 	{
+ 	  free (buffer);
+ 	  free (wbuffer);
++	  /* Avoid a double free if the subsequent PADN encounters an
++	     I/O error.  */
++	  wbuffer = NULL;
+ 	}
+     }
+ 
+-- 
+2.23.0
+
