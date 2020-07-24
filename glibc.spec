@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.31
-Release: 	1
+Release: 	2
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -84,6 +84,11 @@ Patch6005: x86-64-Use-RDX_LP-on-__x86_shared_non_temporal_thres.patch
 Patch6006: x86_64-Use-xmmN-with-vpxor-to-clear-a-vector-registe.patch
 Patch6007: nptl-Don-t-madvise-user-provided-stack.patch
 Patch6008: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
+Patch6009: Fix-strtod-multiple-precision-division-bug-bug-26137.patch
+Patch6010: Fix-double-free-in-__printf_fp_l-bug-26214.patch
+Patch6011: Fix-memory-leak-in-__printf_fp_l-bug-26215.patch
+Patch6012: Fix-CVE-2020-6096-001.patch
+Patch6013: Fix-CVE-2020-6096-002.patch
 
 Patch9000: delete-no-hard-link-to-avoid-all_language-package-to.patch 
 
@@ -1162,6 +1167,10 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Fri Jul 24 2020 Wang Shuo<wangshuo_1994@foxmail.com> - 2.31-2
+- fix CVE-2020-6096
+- fix bugzilla 26137, 26214 and 26215
+
 * Thu Jul 9 2020 wuxu<wuxu.wu@hotmail.com> - 2.31-1
 - upgrade glibc to 2.31-1 
 - delete build-locale-archive command
