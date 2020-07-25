@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.31
-Release: 	2
+Release: 	3
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -89,6 +89,7 @@ Patch6010: Fix-double-free-in-__printf_fp_l-bug-26214.patch
 Patch6011: Fix-memory-leak-in-__printf_fp_l-bug-26215.patch
 Patch6012: Fix-CVE-2020-6096-001.patch
 Patch6013: Fix-CVE-2020-6096-002.patch
+Patch6014: Disable-warnings-due-to-deprecated-libselinux-symbol.patch
 
 Patch9000: delete-no-hard-link-to-avoid-all_language-package-to.patch 
 
@@ -1167,6 +1168,10 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Fri Jul 24 2020 Wang Shuo<wangshuo_1994@foxmail.com> - 2.31-3
+- backport patch to disable warnings due to deprecated libselinux
+- symbols used by nss and nscd
+
 * Fri Jul 24 2020 Wang Shuo<wangshuo_1994@foxmail.com> - 2.31-2
 - fix CVE-2020-6096
 - fix bugzilla 26137, 26214 and 26215
