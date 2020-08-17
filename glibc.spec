@@ -31,6 +31,7 @@
 %bcond_with bootstrap
 %bcond_without werror
 %bcond_without docs
+%bcond_with libpthreadcond
 
 %ifarch %{valgrind_arches}
 %bcond_without valgrind
@@ -59,7 +60,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.31
-Release: 	3
+Release: 	4	
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -92,6 +93,7 @@ Patch6013: Fix-CVE-2020-6096-002.patch
 Patch6014: Disable-warnings-due-to-deprecated-libselinux-symbol.patch
 
 Patch9000: delete-no-hard-link-to-avoid-all_language-package-to.patch 
+Patch9001: build-extra-libpthreadcond-so.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -463,6 +465,15 @@ make %{?_smp_mflags} -O -r %{glibc_make_flags}
 popd
 
 ##############################################################################
+# Build libpthreadcond
+##############################################################################
+%if %{with libpthreadcond}
+	cd nptl_2_17
+	sh build_libpthreadcondso.sh %{_target_cpu} $builddir
+	cd ..
+%endif
+
+##############################################################################
 # Install glibc...
 ##############################################################################
 %install
@@ -476,6 +487,10 @@ done
 %endif
 
 make -j1 install_root=$RPM_BUILD_ROOT install -C build-%{target}
+
+%if %{with libpthreadcond}
+	cp build-%{target}/nptl/libpthreadcond.so $RPM_BUILD_ROOT%{_libdir}
+%endif
 
 pushd build-%{target}
 
@@ -711,6 +726,10 @@ for module in compat files dns; do
     >> glibc.filelist
 done
 grep -e "libmemusage.so" -e "libpcprofile.so" master.filelist >> glibc.filelist
+
+%if %{with libpthreadcond}
+	echo "%{_libdir}/libpthreadcond.so" >> glibc.filelist
+%endif
 
 ##############################################################################
 # glibc "common" sub-package
@@ -1168,6 +1187,18 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Fri Aug 14 2020 Xu Huijie<546391727@qq.com> - 2.31-4
+- since the new version of the pthread_cond_wait() 
+  function has performance degradation in multi-core 
+  scenarios, here is an extra libpthreadcond.so using 
+  old version of the function. you can use it by adding 
+  LD_PRELOAD=./libpthreadcond.so in front of your program
+  (eg: LD_PRELOAD=./libpthreadcond.so ./test). 
+  use with-libpthreadcond to compile it.
+  warning:2.17 version pthread_cond_wait() does not meet
+  the posix standard, you should pay attention when using
+  it. 
+
 * Fri Jul 24 2020 Wang Shuo<wangshuo_1994@foxmail.com> - 2.31-3
 - backport patch to disable warnings due to deprecated libselinux
 - symbols used by nss and nscd
