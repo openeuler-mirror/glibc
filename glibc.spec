@@ -60,7 +60,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.31
-Release: 	4	
+Release: 	5
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -94,6 +94,7 @@ Patch6014: Disable-warnings-due-to-deprecated-libselinux-symbol.patch
 
 Patch9000: delete-no-hard-link-to-avoid-all_language-package-to.patch 
 Patch9001: build-extra-libpthreadcond-so.patch
+Patch9002: remove-country-selection-from-tzselect.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1187,6 +1188,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Fri Sep 4 2020 MarsChan<chenmingmin@huawei.com> - 2.31-5
+- For political reasons, remove country selection from tzselect.ksh
+
 * Fri Aug 14 2020 Xu Huijie<546391727@qq.com> - 2.31-4
 - since the new version of the pthread_cond_wait() 
   function has performance degradation in multi-core 
