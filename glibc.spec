@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	43
+Release: 	44
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -90,6 +90,7 @@ Patch13: Fix-double-free-in-__printf_fp_l-bug-26214.patch
 Patch14: Fix-memory-leak-in-__printf_fp_l-bug-26215.patch
 Patch15: Fix-CVE-2020-6096-001.patch
 Patch16: Fix-CVE-2020-6096-002.patch
+Patch17: backport-Correct-locking-and-cancellation-cleanup-in-syslog-functions.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1085,6 +1086,10 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Tue Sep 12 2020 liqingqing_1229<liqingqing3@huawei.com> - 2.28-44
+- fix bug 26100: correct locking and cancellation cleanup in syslog functions. 
+- origin bugzilla link is https://sourceware.org/bugzilla/show_bug.cgi?id=26100
+
 * Mon Jul 20 2020 liqingqing<liqingqing3@huawei.com> - 2.28-43
 - fix CVE-2020-6096
 - fix bugzilla 26137, 26214, 26215
