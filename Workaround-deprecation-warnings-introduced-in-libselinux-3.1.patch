@@ -1,0 +1,126 @@
+From: Aurelien Jarno <aurelien@aurel32.net>
+To: libc-alpha@sourceware.org
+Subject: [PATCH] Workaround deprecation warnings introduced in libselinux >= 3.1
+Date: Tue, 21 Jul 2020 22:21:18 +0200
+Message-Id: <20200721202118.300350-1-aurelien@aurel32.net>
+
+------------------------------------------
+glibc doesn't build with libselinux 3.1 that has been released recently
+due to new deprecations introduced in that version and the fact that
+glibc is built with -Werror by default:
+
+| makedb.c: In function ‘set_file_creation_context’:
+| makedb.c:849:3: error: ‘security_context_t’ is deprecated [-Werror=deprecated-declarations]
+|   849 |   security_context_t ctx;
+|       |   ^~~~~~~~~~~~~~~~~~
+| makedb.c:863:3: error: ‘matchpathcon’ is deprecated: Use selabel_lookup instead [-Werror=deprecated-declarations]
+|   863 |   if (matchpathcon (outname, S_IFREG | mode, &ctx) == 0 && ctx != NULL)
+|       |   ^~
+| In file included from makedb.c:50:
+| /usr/include/selinux/selinux.h:500:12: note: declared here
+|   500 | extern int matchpathcon(const char *path,
+|       |            ^~~~~~~~~~~~
+| cc1: all warnings being treated as errors
+
+and
+
+| selinux.c: In function ‘nscd_avc_init’:
+| selinux.c:330:3: error: ‘avc_init’ is deprecated: Use avc_open and selinux_set_callback [-Werror=deprecated-declarations]
+|   330 |   if (avc_init ("avc", NULL, &log_cb, &thread_cb, &lock_cb) < 0)
+|       |   ^~
+| In file included from selinux.c:31:
+| /usr/include/selinux/avc.h:199:12: note: declared here
+|   199 | extern int avc_init(const char *msgprefix,
+|       |            ^~~~~~~~
+| selinux.c: In function ‘nscd_request_avc_has_perm’:
+| selinux.c:355:3: error: ‘security_context_t’ is deprecated [-Werror=deprecated-declarations]
+|   355 |   security_context_t scon = NULL;
+|       |   ^~~~~~~~~~~~~~~~~~
+| selinux.c:356:3: error: ‘security_context_t’ is deprecated [-Werror=deprecated-declarations]
+|   356 |   security_context_t tcon = NULL;
+|       |   ^~~~~~~~~~~~~~~~~~
+| selinux.c:419:5: error: ‘sidput’ is deprecated [-Werror=deprecated-declarations]
+|   419 |     sidput (ssid);
+|       |     ^~~~~~
+| In file included from selinux.c:31:
+| /usr/include/selinux/avc.h:83:12: note: declared here
+|    83 | extern int sidput(security_id_t sid)
+|       |            ^~~~~~
+| selinux.c:421:5: error: ‘sidput’ is deprecated [-Werror=deprecated-declarations]
+|   421 |     sidput (tsid);
+|       |     ^~~~~~
+| In file included from selinux.c:31:
+| /usr/include/selinux/avc.h:83:12: note: declared here
+|    83 | extern int sidput(security_id_t sid)
+|       |            ^~~~~~
+| cc1: all warnings being treated as errors
+
+This patch workarounds the issue until the deprecated code is
+rewritten. #pragma GCC diagnostic annotations are used to disable
+-Wdeprecated-declarations warning in the problematic functions. This is
+probably the safest option for stable releases to avoid introducing
+regressions.
+---
+ nscd/selinux.c | 6 ++++++
+ nss/makedb.c   | 3 +++
+ 2 files changed, 9 insertions(+)
+
+diff --git a/nscd/selinux.c b/nscd/selinux.c
+index a4ea8008e20..0411e0f7fdf 100644
+--- a/nscd/selinux.c
++++ b/nscd/selinux.c
+@@ -322,6 +322,8 @@ avc_free_lock (void *lock)
+ 
+ /* Initialize the user space access vector cache (AVC) for NSCD along with
+    log/thread/lock callbacks.  */
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+ void
+ nscd_avc_init (void)
+ {
+@@ -335,6 +337,7 @@ nscd_avc_init (void)
+   audit_init ();
+ #endif
+ }
++#pragma GCC diagnostic pop
+ 
+ 
+ /* Check the permission from the caller (via getpeercon) to nscd.
+@@ -348,6 +351,8 @@ nscd_avc_init (void)
+    use security_deny_unknown to determine what to do if selinux-policy* doesn't
+    have a definition for the the permission or object class we are looking
+    up.  */
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+ int
+ nscd_request_avc_has_perm (int fd, request_type req)
+ {
+@@ -422,6 +427,7 @@ out:
+ 
+   return rc;
+ }
++#pragma GCC diagnostic pop
+ 
+ 
+ /* Wrapper to get AVC statistics.  */
+diff --git a/nss/makedb.c b/nss/makedb.c
+index 8e389a16837..7a365894cec 100644
+--- a/nss/makedb.c
++++ b/nss/makedb.c
+@@ -842,6 +842,8 @@ print_database (int fd)
+ 
+ 
+ #ifdef HAVE_SELINUX
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+ static void
+ set_file_creation_context (const char *outname, mode_t mode)
+ {
+@@ -883,6 +885,7 @@ set_file_creation_context (const char *outname, mode_t mode)
+   /* Close the file contexts backend. */
+   selabel_close(label_hnd);
+ }
++#pragma GCC diagnostic pop
+ 
+ static void
+ reset_file_creation_context (void)
