@@ -60,7 +60,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.31
-Release: 	5	
+Release: 	6
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -91,6 +91,7 @@ Patch6011: Fix-memory-leak-in-__printf_fp_l-bug-26215.patch
 Patch6012: Fix-CVE-2020-6096-001.patch
 Patch6013: Fix-CVE-2020-6096-002.patch
 Patch6014: Disable-warnings-due-to-deprecated-libselinux-symbol.patch
+Patch6015: rtld-Avoid-using-up-static-TLS-surplus-for-optimizat.patch 
 
 Patch9000: delete-no-hard-link-to-avoid-all_language-package-to.patch 
 Patch9001: build-extra-libpthreadcond-so.patch
@@ -1188,6 +1189,10 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Tue Sep 15 2020 shanzhikun<shanzhikun@huawei.com> - 2.31-6
+- rtld: Avoid using up static TLS surplus for optimizations [BZ #25051].
+  https://sourceware.org/git/?p=glibc.git;a=commit;h=ffb17e7ba3a5ba9632cee97330b325072fbe41dd
+
 * Fri Sep 4 2020 MarsChan<chenmingmin@huawei.com> - 2.31-5
 - For political reasons, remove country selection from tzselect.ksh
 
