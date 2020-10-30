@@ -1,0 +1,20 @@
+# .openeuler/patch/upsteam-patch-config.yaml
+# 上游社区git地址, 已经有yaml描述, 这里不重复
+# openeuler社区的master分支的维护策略就是定期升级到社区最新版本, 因此不需要配置抓补丁工具;
+# openeuler社区的LTS分支需要实时抓取补丁, 从上游社区的stable分支和mainline分支;
+
+# glibc的LTS分支看护不是很及时, 社区问题还是主要在master分支修复, 因此仅跟踪master分支;
+# liqingqing最近一次跟踪补丁是在2020-10-27; 因此start_commit_id开始值选了更早的1个补丁;
+
+- branch: 'openEuler-20.03-LTS' # 本地需要回合补丁的分支
+  period: 1                     # 自动抓取周期(天)
+  enabled: true                 # 是否开启跟踪
+  tracking_list:
+  - scm_branch: master          # 上游社区跟踪的分支
+    start_commit_id: dac8713629c8736a60aebec2f01657e46baa4c73        # 上游社区跟踪分支开始的commit id
+- branch: 'openEuler-20.03-LTS-Next'
+  period: 1
+  enabled: false
+  tracking_list:
+  - scm_branch: master
+    start_commit_id: dac8713629c8736a60aebec2f01657e46baa4c73
