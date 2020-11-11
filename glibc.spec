@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	46
+Release: 	47
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -96,6 +96,7 @@ Patch19: Workaround-deprecation-warnings-introduced-in-libselinux-3.1.patch
 Patch20: backport-0001-Fix-handling-of-collating-symbols-in-fnmatch-bug-266.patch
 Patch21: backport-sysvipc-Fix-SEM_STAT_ANY-kernel-argument-pass-BZ-26637.patch
 Patch22: backport-i686-tst-strftime3-fix-printf-warning.patch
+Patch23: Fix-CVE-2020-27618-iconv-Accept-redundant-shift-sequences.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1091,6 +1092,10 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Tue Nov 10 2020 liusirui<liusirui@huawei.com> - 2.28-47
+- Fix CVE-2020-27618, iconv accept redundant shift sequences in IBM1364 [BZ #26224]
+  https://sourceware.org/bugzilla/show_bug.cgi?id=26224
+
 * Tue Oct 27 2020 Qingqing Li <liqingqing3@huawei.com> - 2.28-46
 - fix handling of collating symbols in fnmatch.
   upstream link is: https://sourceware.org/bugzilla/show_bug.cgi?id=26620
