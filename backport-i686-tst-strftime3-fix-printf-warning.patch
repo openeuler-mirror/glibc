@@ -1,0 +1,136 @@
+From 6dd2dae7cfe2077c3af854a6220fe582b6bad999 Mon Sep 17 00:00:00 2001
+From: DJ Delorie <dj@redhat.com>
+Date: Thu, 15 Oct 2020 16:31:04 +0800
+Subject: [PATCH] Add Reiwa era tests to time/tst-strftime3.c Also fix printf
+ warning
+
+---
+ time/tst-strftime3.c |  72 +++++++++++++++++++++++++++++++++++++++++--
+ 1 files changed, 72 insertions(+), 0 deletions(-)
+
+diff --git a/time/tst-strftime3.c b/time/tst-strftime3.c
+index a4c427b3..0ec14869 100644
+--- a/time/tst-strftime3.c
++++ b/time/tst-strftime3.c
+@@ -1,5 +1,5 @@
+ /* Data-driven tests for strftime/strptime.
+-   Copyright (C) 2019 Free Software Foundation, Inc.  This file is
++   Copyright (C) 2019-2020 Free Software Foundation, Inc.  This file is
+    part of the GNU C Library.
+ 
+    The GNU C Library is free software; you can redistribute it and/or
+@@ -14,7 +14,7 @@
+ 
+    You should have received a copy of the GNU Lesser General Public
+    License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
++   <https://www.gnu.org/licenses/>.  */
+ 
+ #include <stdio.h>
+ #include <stdlib.h>
+@@ -25,6 +25,7 @@
+ 
+ #include <support/check.h>
+ #include <array_length.h>
++#include <libc-diag.h>
+ 
+ /* These exist for the convenience of writing the test data, because
+    zero-based vs one-based.  */
+@@ -291,6 +292,62 @@ const Data data[] = {
+     1990, Jan,  1, Mon, 12, 00, 00, "ja_JP.EUC-JP", "%EY",
+     /* <U5E73><U6210>02<U5E74> 平成02年 */
+     "\xca\xbf\xc0\xae""02\xc7\xaf" },
++
++
++  { "Japanese era change, 2019, before transition year",
++    2018, Dec, 31, Mon, 12, 00, 00, "ja_JP.UTF-8", "%EY",
++    /* <U5E73><U6210>30<U5E74> 昭和30年 */
++    "\xe5\xb9\xb3\xe6\x88\x90""30\xe5\xb9\xb4" },
++  { "Japanese era change, 2019, start of transition year",
++    2019, Jan,  1, Tue, 12, 00, 00, "ja_JP.UTF-8", "%EY",
++    /* <U5E73><U6210>30<U5E74> 昭和31年 */
++    "\xe5\xb9\xb3\xe6\x88\x90""31\xe5\xb9\xb4" },
++
++  { "Japanese era change, 2019, before transition",
++    2019, Apr, 30, Tue, 12, 00, 00, "ja_JP.UTF-8", "%EY",
++    /* <U5E73><U6210>30<U5E74> 昭和31年 */
++    "\xe5\xb9\xb3\xe6\x88\x90""31\xe5\xb9\xb4" },
++  { "Japanese era change, 2019, after transition",
++    2019, May,  1, Wed, 12, 00, 00, "ja_JP.UTF-8", "%EY",
++    /* <U4EE4><U548C><U5143><U5E74> 令和元年 */
++    "\xe4\xbb\xa4\xe5\x92\x8c\xe5\x85\x83\xe5\xb9\xb4" },
++
++  { "Japanese era change, 2019, end of transition year",
++    2019, Dec, 31, Tue, 12, 00, 00, "ja_JP.UTF-8", "%EY",
++    /* <U4EE4><U548C><U5143><U5E74> 令和元年 */
++    "\xe4\xbb\xa4\xe5\x92\x8c\xe5\x85\x83\xe5\xb9\xb4" },
++  { "Japanese era change, 2019, after transition year",
++    2020, Jan,  1, Wed, 12, 00, 00, "ja_JP.UTF-8", "%EY",
++    /* <U4EE4><U548C>02<U5E74> 令和02年 */
++    "\xe4\xbb\xa4\xe5\x92\x8c""02\xe5\xb9\xb4" },
++
++
++  { "Japanese era change, 2019, before transition year",
++    2018, Dec, 31, Mon, 12, 00, 00, "ja_JP.EUC-JP", "%EY",
++    /* <U5E73><U6210>30<U5E74> 昭和30年 */
++    "\xca\xbf\xc0\xae""30\xc7\xaf" },
++  { "Japanese era change, 2019, start of transition year",
++    2019, Jan,  1, Tue, 12, 00, 00, "ja_JP.EUC-JP", "%EY",
++    /* <U5E73><U6210>30<U5E74> 昭和31年 */
++    "\xca\xbf\xc0\xae""31\xc7\xaf" },
++
++  { "Japanese era change, 2019, before transition",
++    2019, Apr, 30, Tue, 12, 00, 00, "ja_JP.EUC-JP", "%EY",
++    /* <U5E73><U6210>30<U5E74> 昭和31年 */
++    "\xca\xbf\xc0\xae""31\xc7\xaf" },
++  { "Japanese era change, 2019, after transition",
++    2019, May,  1, Wed, 12, 00, 00, "ja_JP.EUC-JP", "%EY",
++    /* <U4EE4><U548C><U5143><U5E74> 令和元年 */
++    "\xce\xe1\xcf\xc2\xb8\xb5\xc7\xaf" },
++
++  { "Japanese era change, 2019, end of transition year",
++    2019, Dec, 31, Tue, 12, 00, 00, "ja_JP.EUC-JP", "%EY",
++    /* <U4EE4><U548C><U5143><U5E74> 令和元年 */
++    "\xce\xe1\xcf\xc2\xb8\xb5\xc7\xaf" },
++  { "Japanese era change, 2019, after transition year",
++    2020, Jan,  1, Wed, 12, 00, 00, "ja_JP.EUC-JP", "%EY",
++    /* <U4EE4><U548C>02<U5E74> 令和02年 */
++    "\xce\xe1\xcf\xc2""02\xc7\xaf" },
+ };
+ 
+ #define NDATA array_length(data)
+@@ -348,7 +405,7 @@ print_string_hex (const char *header, const char *str)
+       if (' ' <= w[i] && w[i] <= '~')
+ 	putchar (w[i]);
+       else
+-	printf ("<U%04X>", w[i]);
++	printf ("<U%04X>", (int) w[i]);
+     }
+   printf ("\n");
+ }
+@@ -384,6 +441,14 @@ tm_to_printed (struct tm *tm, char *buffer)
+       sprintf (temp, "%d", tm->tm_wday);
+     }
+ 
++  DIAG_PUSH_NEEDS_COMMENT;
++#if __GNUC_PREREQ (9, 0)
++  /* GCC 9 warns that strncmp may truncate its output, but that's why
++     we're using it.  When it needs to truncate, it got corrupted
++     data, and we only care that the string is different than valid
++     data, which won't truncate.  */
++  DIAG_IGNORE_NEEDS_COMMENT (9, "-Wformat-truncation=");
++#endif
+   snprintf (buffer, TMBUFLEN, "%04d/%02d/%02d %02d:%02d:%02d %s",
+ 	    tm->tm_year + 1900,
+ 	    tm->tm_mon + 1,
+@@ -392,6 +457,7 @@ tm_to_printed (struct tm *tm, char *buffer)
+ 	    tm->tm_min,
+ 	    tm->tm_sec,
+ 	    wn);
++  DIAG_POP_NEEDS_COMMENT;
+ }
+ 
+ static int
+-- 
+2.23.0
+
