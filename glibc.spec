@@ -46,9 +46,9 @@
 %endif
 
 %define enablekernel 3.2
-%define target %{_target_cpu}-%{_vendor}-linux
+%define target %{_target_cpu}-openEuler-linux
 %ifarch %{arm}
-%define target %{_target_cpu}-%{_vendor}-linuxeabi
+%define target %{_target_cpu}-openEuler-linuxeabi
 %endif
 %define x86_arches %{ix86} x86_64
 %define all_license LGPLv2+ and LGPLv2+ with exceptions and GPLv2+ and GPLv2+ with exceptions and BSD and Inner-Net and ISC and Public Domain and GFDL
@@ -97,6 +97,8 @@ Patch20: backport-0001-Fix-handling-of-collating-symbols-in-fnmatch-bug-266.patc
 Patch21: backport-sysvipc-Fix-SEM_STAT_ANY-kernel-argument-pass-BZ-26637.patch
 Patch22: backport-i686-tst-strftime3-fix-printf-warning.patch
 Patch23: Fix-CVE-2020-27618-iconv-Accept-redundant-shift-sequences.patch
+Patch24: backport-x86-Use-one-ldbl2mpn.c-file-for-both-i386-and-x86_64.patch
+Patch25: backport-Fix-CVE-2020-29573-x86-Harden-printf-against-non-normal-long-double-val.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1092,8 +1094,10 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
-* Fri Jan 8 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-48
-- Replace "openEuler" by %{_vendor} for versatility
+* Thu Dec 17 2020 Wang Shuo <wangshuo_1994@foxmail.com> - 2.28-48
+- Fix CVE-2020-29573, Harden printf against non-normal long double values
+  https://cve.mitre.org/cgi-bin/cvename.cgi?name=2020-29573
+  https://sourceware.org/bugzilla/show_bug.cgi?id=26649
 
 * Tue Nov 10 2020 liusirui<liusirui@huawei.com> - 2.28-47
 - Fix CVE-2020-27618, iconv accept redundant shift sequences in IBM1364 [BZ #26224]
