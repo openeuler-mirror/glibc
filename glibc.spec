@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	48
+Release: 	49
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -99,6 +99,8 @@ Patch22: backport-i686-tst-strftime3-fix-printf-warning.patch
 Patch23: Fix-CVE-2020-27618-iconv-Accept-redundant-shift-sequences.patch
 Patch24: backport-x86-Use-one-ldbl2mpn.c-file-for-both-i386-and-x86_64.patch
 Patch25: backport-Fix-CVE-2020-29573-x86-Harden-printf-against-non-normal-long-double-val.patch
+Patch26: backport-Fix-iconv-buffer-handling-with-IGNORE-error-handler-.patch
+Patch27: backport-CVE-2020-29562-iconv-Fix-incorrect-UCS4-inner-loop-bounds-BZ-26923.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1094,6 +1096,11 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Mon Dec 21 2020 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-49
+- Fix CVE-2020-29562, Fix incorrect UCS4 inner loop bounds (BZ#26923)
+  https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-29562
+  https://sourceware.org/bugzilla/show_bug.cgi?id=26923
+
 * Thu Dec 17 2020 Wang Shuo <wangshuo_1994@foxmail.com> - 2.28-48
 - Fix CVE-2020-29573, Harden printf against non-normal long double values
   https://cve.mitre.org/cgi-bin/cvename.cgi?name=2020-29573
