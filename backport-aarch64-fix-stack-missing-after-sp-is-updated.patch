@@ -1,0 +1,66 @@
+From cd6274089f7a7603cdaf2a24cef575fa61d3772e Mon Sep 17 00:00:00 2001
+From: Shuo Wang <wangshuo47@huawei.com>
+Date: Mon, 4 Jan 2021 20:42:52 +0800
+Subject: [PATCH] aarch64: fix stack missing after sp is updated
+
+reason:aarch64: fix stack missing after sp is updated
+Conflict:NA
+Reference:https://sourceware.org/pipermail/libc-alpha/2021-January/121272.html
+
+After sp is updated, the CFA offset should be set before next instruction.
+Tested in glibc-2.28:
+Thread 2 "xxxxxxx" hit Breakpoint 1, _dl_tlsdesc_dynamic () at ../sysdeps/aarch64/dl-tlsdesc.S:149
+149     stp x1,  x2, [sp, #-32]!
+Missing separate debuginfos, use: dnf debuginfo-install libgcc-7.3.0-20190804.h24.aarch64
+(gdb) bt
+#0  _dl_tlsdesc_dynamic () at ../sysdeps/aarch64/dl-tlsdesc.S:149
+#1  0x0000ffffbe4fbb44 in OurFunction (threadId=3194870184)
+    at /home/test/test_function.c:30
+#2  0x0000000000400c08 in initaaa () at thread.c:58
+#3  0x0000000000400c50 in thread_proc (param=0x0) at thread.c:71
+#4  0x0000ffffbf6918bc in start_thread (arg=0xfffffffff29f) at pthread_create.c:486
+#5  0x0000ffffbf5669ec in thread_start () at ../sysdeps/unix/sysv/linux/aarch64/clone.S:78
+(gdb) ni
+_dl_tlsdesc_dynamic () at ../sysdeps/aarch64/dl-tlsdesc.S:150
+150     stp x3,  x4, [sp, #16]
+(gdb) bt
+#0  _dl_tlsdesc_dynamic () at ../sysdeps/aarch64/dl-tlsdesc.S:150
+#1  0x0000ffffbe4fbb44 in OurFunction (threadId=3194870184)
+    at /home/test/test_function.c:30
+#2  0x0000000000000000 in ?? ()
+Backtrace stopped: previous frame identical to this frame (corrupt stack?)
+(gdb) ni
+_dl_tlsdesc_dynamic () at ../sysdeps/aarch64/dl-tlsdesc.S:157
+157     mrs x4, tpidr_el0
+(gdb) bt
+#0  _dl_tlsdesc_dynamic () at ../sysdeps/aarch64/dl-tlsdesc.S:157
+#1  0x0000ffffbe4fbb44 in OurFunction (threadId=3194870184)
+    at /home/test/test_function.c:30
+#2  0x0000000000400c08 in initaaa () at thread.c:58
+#3  0x0000000000400c50 in thread_proc (param=0x0) at thread.c:71
+#4  0x0000ffffbf6918bc in start_thread (arg=0xfffffffff29f) at pthread_create.c:486
+#5  0x0000ffffbf5669ec in thread_start () at ../sysdeps/unix/sysv/linux/aarch64/clone.S:78
+
+Signed-off-by: liqingqing <liqingqing3@huawei.com>
+Signed-off-by: Shuo Wang <wangshuo47@huawei.com>
+---
+ sysdeps/aarch64/dl-tlsdesc.S | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sysdeps/aarch64/dl-tlsdesc.S b/sysdeps/aarch64/dl-tlsdesc.S
+index 43a62ef3..39ef48e9 100644
+--- a/sysdeps/aarch64/dl-tlsdesc.S
++++ b/sysdeps/aarch64/dl-tlsdesc.S
+@@ -147,8 +147,8 @@ _dl_tlsdesc_dynamic:
+ 	/* Save just enough registers to support fast path, if we fall
+ 	   into slow path we will save additional registers.  */
+ 	stp	x1,  x2, [sp, #-32]!
+-	stp	x3,  x4, [sp, #16]
+ 	cfi_adjust_cfa_offset (32)
++	stp	x3,  x4, [sp, #16]
+ 	cfi_rel_offset (x1, 0)
+ 	cfi_rel_offset (x2, 8)
+ 	cfi_rel_offset (x3, 16)
+-- 
+2.23.0
+
