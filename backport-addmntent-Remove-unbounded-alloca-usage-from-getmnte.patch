@@ -1,0 +1,276 @@
+From 9798906a426fc458b949271bcc9b8ad1608de867 Mon Sep 17 00:00:00 2001
+From: Siddhesh Poyarekar <siddhesh@sourceware.org>
+Date: Tue, 22 Dec 2020 17:18:12 +0530
+Subject: [PATCH] addmntent: Remove unbounded alloca usage from getmntent
+ [BZ#27083]
+
+reason:Remove unbounded alloca usage from getmntent
+Conflict:NA
+Reference:https://sourceware.org/bugzilla/show_bug.cgi?id=27083
+
+The addmntent function replicates elements of struct mnt on stack
+using alloca, which is unsafe.  Put characters directly into the
+stream, escaping them as they're being written out.
+
+Also add a test to check all escaped characters with addmntent and
+getmntent.
+---
+ misc/Makefile            |   2 +-
+ misc/mntent_r.c          | 111 ++++++++++++++-------------------------
+ misc/tst-mntent-escape.c | 101 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 140 insertions(+), 74 deletions(-)
+ create mode 100644 misc/tst-mntent-escape.c
+
+diff --git a/misc/Makefile b/misc/Makefile
+index b7be2bc1..186d3f96 100644
+--- a/misc/Makefile
++++ b/misc/Makefile
+@@ -84,7 +84,7 @@ tests := tst-dirname tst-tsearch tst-fdset tst-efgcvt tst-mntent tst-hsearch \
+ 	 tst-error1 tst-pselect tst-insremque tst-mntent2 bug-hsearch1 \
+ 	 tst-mntent-blank-corrupt tst-mntent-blank-passno bug18240 \
+ 	 tst-preadvwritev tst-preadvwritev64 tst-makedev tst-empty \
+-	 tst-preadvwritev2 tst-preadvwritev64v2
++	 tst-preadvwritev2 tst-preadvwritev64v2 tst-mntent-escape
+ 
+ tests-internal := tst-atomic tst-atomic-long tst-allocate_once
+ tests-static := tst-empty
+diff --git a/misc/mntent_r.c b/misc/mntent_r.c
+index 7a826586..440e4e57 100644
+--- a/misc/mntent_r.c
++++ b/misc/mntent_r.c
+@@ -186,87 +186,52 @@ __getmntent_r (FILE *stream, struct mntent *mp, char *buffer, int bufsiz)
+ libc_hidden_def (__getmntent_r)
+ weak_alias (__getmntent_r, getmntent_r)
+ 
++/* Write STR into STREAM, escaping whitespaces as we go.  Do not check for
++   errors here; we check the stream status in __ADDMNTENT.  */
++static void
++write_string (FILE *stream, const char *str)
++{
++  char c;
++  const char *encode_chars = " \t\n\\";
+ 
+-/* We have to use an encoding for names if they contain spaces or tabs.
+-   To be able to represent all characters we also have to escape the
+-   backslash itself.  This "function" must be a macro since we use
+-   `alloca'.  */
+-#define encode_name(name) \
+-  do {									      \
+-    const char *rp = name;						      \
+-									      \
+-    while (*rp != '\0')							      \
+-      if (*rp == ' ' || *rp == '\t' || *rp == '\n' || *rp == '\\')	      \
+-	break;								      \
+-      else								      \
+-	++rp;								      \
+-									      \
+-    if (*rp != '\0')							      \
+-      {									      \
+-	/* In the worst case the length of the string can increase to	      \
+-	   four times the current length.  */				      \
+-	char *wp;							      \
+-									      \
+-	rp = name;							      \
+-	name = wp = (char *) alloca (strlen (name) * 4 + 1);		      \
+-									      \
+-	do								      \
+-	  if (*rp == ' ')						      \
+-	    {								      \
+-	      *wp++ = '\\';						      \
+-	      *wp++ = '0';						      \
+-	      *wp++ = '4';						      \
+-	      *wp++ = '0';						      \
+-	    }								      \
+-	  else if (*rp == '\t')						      \
+-	    {								      \
+-	      *wp++ = '\\';						      \
+-	      *wp++ = '0';						      \
+-	      *wp++ = '1';						      \
+-	      *wp++ = '1';						      \
+-	    }								      \
+-	  else if (*rp == '\n')						      \
+-	    {								      \
+-	      *wp++ = '\\';						      \
+-	      *wp++ = '0';						      \
+-	      *wp++ = '1';						      \
+-	      *wp++ = '2';						      \
+-	    }								      \
+-	  else if (*rp == '\\')						      \
+-	    {								      \
+-	      *wp++ = '\\';						      \
+-	      *wp++ = '\\';						      \
+-	    }								      \
+-	  else								      \
+-	    *wp++ = *rp;						      \
+-	while (*rp++ != '\0');						      \
+-      }									      \
+-  } while (0)
+-
++  while ((c = *str++) != '\0')
++    {
++      if (strchr (encode_chars, c) == NULL)
++	fputc_unlocked (c, stream);
++      else
++	{
++	  fputc_unlocked ('\\', stream);
++	  fputc_unlocked (((c & 0xc0) >> 6) + '0', stream);
++	  fputc_unlocked (((c & 0x38) >> 3) + '0', stream);
++	  fputc_unlocked (((c & 0x07) >> 0) + '0', stream);
++	}
++    }
++  fputc_unlocked (' ', stream);
++}
+ 
+ /* Write the mount table entry described by MNT to STREAM.
+    Return zero on success, nonzero on failure.  */
+ int
+ __addmntent (FILE *stream, const struct mntent *mnt)
+ {
+-  struct mntent mntcopy = *mnt;
++  int ret = 1;
++
+   if (fseek (stream, 0, SEEK_END))
+-    return 1;
+-
+-  /* Encode spaces and tabs in the names.  */
+-  encode_name (mntcopy.mnt_fsname);
+-  encode_name (mntcopy.mnt_dir);
+-  encode_name (mntcopy.mnt_type);
+-  encode_name (mntcopy.mnt_opts);
+-
+-  return (fprintf (stream, "%s %s %s %s %d %d\n",
+-		   mntcopy.mnt_fsname,
+-		   mntcopy.mnt_dir,
+-		   mntcopy.mnt_type,
+-		   mntcopy.mnt_opts,
+-		   mntcopy.mnt_freq,
+-		   mntcopy.mnt_passno) < 0
+-	  || fflush (stream) != 0);
++    return ret;
++
++  flockfile (stream);
++
++  write_string (stream, mnt->mnt_fsname);
++  write_string (stream, mnt->mnt_dir);
++  write_string (stream, mnt->mnt_type);
++  write_string (stream, mnt->mnt_opts);
++  fprintf (stream, "%d %d\n", mnt->mnt_freq, mnt->mnt_passno);
++
++  ret = ferror (stream) != 0 || fflush (stream) != 0;
++
++  funlockfile (stream);
++
++  return ret;
+ }
+ weak_alias (__addmntent, addmntent)
+ 
+diff --git a/misc/tst-mntent-escape.c b/misc/tst-mntent-escape.c
+new file mode 100644
+index 00000000..c1db428a
+--- /dev/null
++++ b/misc/tst-mntent-escape.c
+@@ -0,0 +1,101 @@
++/* Test mntent interface with escaped sequences.
++   Copyright (C) 2020 Free Software Foundation, Inc.
++
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#include <mntent.h>
++#include <stdio.h>
++#include <string.h>
++#include <support/check.h>
++
++struct const_mntent
++{
++  const char *mnt_fsname;
++  const char *mnt_dir;
++  const char *mnt_type;
++  const char *mnt_opts;
++  int mnt_freq;
++  int mnt_passno;
++  const char *expected;
++};
++
++struct const_mntent tests[] =
++{
++    {"/dev/hda1", "/some dir", "ext2", "defaults", 1, 2,
++     "/dev/hda1 /some\\040dir ext2 defaults 1 2\n"},
++    {"device name", "/some dir", "tmpfs", "defaults", 1, 2,
++     "device\\040name /some\\040dir tmpfs defaults 1 2\n"},
++    {" ", "/some dir", "tmpfs", "defaults", 1, 2,
++     "\\040 /some\\040dir tmpfs defaults 1 2\n"},
++    {"\t", "/some dir", "tmpfs", "defaults", 1, 2,
++     "\\011 /some\\040dir tmpfs defaults 1 2\n"},
++    {"\\", "/some dir", "tmpfs", "defaults", 1, 2,
++     "\\134 /some\\040dir tmpfs defaults 1 2\n"},
++};
++
++static int
++do_test (void)
++{
++  for (int i = 0; i < sizeof (tests) / sizeof (struct const_mntent); i++)
++    {
++      char buf[128];
++      struct mntent *ret, curtest;
++      FILE *fp = fmemopen (buf, sizeof (buf), "w+");
++
++      if (fp == NULL)
++	{
++	  printf ("Failed to open file\n");
++	  return 1;
++	}
++
++      curtest.mnt_fsname = strdupa (tests[i].mnt_fsname);
++      curtest.mnt_dir = strdupa (tests[i].mnt_dir);
++      curtest.mnt_type = strdupa (tests[i].mnt_type);
++      curtest.mnt_opts = strdupa (tests[i].mnt_opts);
++      curtest.mnt_freq = tests[i].mnt_freq;
++      curtest.mnt_passno = tests[i].mnt_passno;
++
++      if (addmntent (fp, &curtest) != 0)
++	{
++	  support_record_failure ();
++	  continue;
++	}
++
++      TEST_COMPARE_STRING (buf, tests[i].expected);
++
++      rewind (fp);
++      ret = getmntent (fp);
++      if (ret == NULL)
++	{
++	  support_record_failure ();
++	  continue;
++	}
++
++      TEST_COMPARE_STRING(tests[i].mnt_fsname, ret->mnt_fsname);
++      TEST_COMPARE_STRING(tests[i].mnt_dir, ret->mnt_dir);
++      TEST_COMPARE_STRING(tests[i].mnt_type, ret->mnt_type);
++      TEST_COMPARE_STRING(tests[i].mnt_opts, ret->mnt_opts);
++      TEST_COMPARE(tests[i].mnt_freq, ret->mnt_freq);
++      TEST_COMPARE(tests[i].mnt_passno, ret->mnt_passno);
++
++      fclose (fp);
++    }
++
++  return 0;
++}
++
++#include <support/test-driver.c>
+-- 
+2.23.0
+

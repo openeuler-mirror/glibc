@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	49
+Release: 	50
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -101,6 +101,10 @@ Patch24: backport-x86-Use-one-ldbl2mpn.c-file-for-both-i386-and-x86_64.patch
 Patch25: backport-Fix-CVE-2020-29573-x86-Harden-printf-against-non-normal-long-double-val.patch
 Patch26: backport-Fix-iconv-buffer-handling-with-IGNORE-error-handler-.patch
 Patch27: backport-CVE-2020-29562-iconv-Fix-incorrect-UCS4-inner-loop-bounds-BZ-26923.patch
+Patch28: backport-aarch64-fix-stack-missing-after-sp-is-updated.patch
+Patch29: backport-aarch64-push-the-set-of-rules-before-falling-into-sl.patch
+Patch30: backport-Fix-buffer-overrun-in-EUC-KR-conversion-module-bz-24.patch
+Patch31: backport-addmntent-Remove-unbounded-alloca-usage-from-getmnte.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1096,6 +1100,15 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Wed Jan 6 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-50
+- Fix stack missing in _dl_tlsdesc_dynamic
+  Fix buffer overrun in EUC-KR conversion module (bz #24973)
+  Remove unbounded alloca usage from getmntent [BZ#27083]
+  https://sourceware.org/pipermail/libc-alpha/2021-January/121272.html
+  https://sourceware.org/pipermail/libc-alpha/2021-January/121330.html
+  https://sourceware.org/bugzilla/show_bug.cgi?id=24973
+  https://sourceware.org/bugzilla/show_bug.cgi?id=27083
+
 * Mon Dec 21 2020 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-49
 - Fix CVE-2020-29562, Fix incorrect UCS4 inner loop bounds (BZ#26923)
   https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-29562
