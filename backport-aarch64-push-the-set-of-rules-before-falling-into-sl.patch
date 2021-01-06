@@ -1,0 +1,89 @@
+From f5082c70101d5b6c10c312f86c9de7fecf0075b6 Mon Sep 17 00:00:00 2001
+From: Shuo Wang <wangshuo47@huawei.com>
+Date: Tue, 5 Jan 2021 10:04:12 +0800
+Subject: [PATCH] aarch64: push the set of rules before falling into slow path
+
+reason:aarch64: push the set of rules before falling into slow path
+Conflict:NA
+Reference:https://sourceware.org/pipermail/libc-alpha/2021-January/121330.html
+
+It is supposed to save the rules for the instructions before falling into slow path.
+
+Tested in glibc-2.28 before fixing:
+Thread 2 "xxxxxxx" hit Breakpoint 1, _dl_tlsdesc_dynamic () at ../sysdeps/aarch64/dl-tlsdesc.S:149
+149     stp x1,  x2, [sp, #-32]!
+Missing separate debuginfos, use: dnf debuginfo-install libgcc-7.3.0-20190804.h24.aarch64
+(gdb) ni
+_dl_tlsdesc_dynamic () at ../sysdeps/aarch64/dl-tlsdesc.S:150
+150     stp x3,  x4, [sp, #16]
+(gdb)
+_dl_tlsdesc_dynamic () at ../sysdeps/aarch64/dl-tlsdesc.S:157
+157     mrs x4, tpidr_el0
+(gdb)
+158     ldr PTR_REG (1), [x0,#TLSDESC_ARG]
+(gdb)
+159     ldr PTR_REG (0), [x4,#TCBHEAD_DTV]
+(gdb)
+160     ldr PTR_REG (3), [x1,#TLSDESC_GEN_COUNT]
+(gdb)
+161     ldr PTR_REG (2), [x0,#DTV_COUNTER]
+(gdb)
+162     cmp PTR_REG (3), PTR_REG (2) 
+(gdb)
+163     b.hi    2f  
+(gdb)
+165     ldp PTR_REG (2), PTR_REG (3), [x1,#TLSDESC_MODID]
+(gdb)
+166     add PTR_REG (0), PTR_REG (0), PTR_REG (2), lsl #(PTR_LOG_SIZE + 1)
+(gdb)
+167     ldr PTR_REG (0), [x0] /* Load val member of DTV entry.  */  
+(gdb)
+168     cmp PTR_REG (0), #TLS_DTV_UNALLOCATED
+(gdb)
+169     b.eq    2f  
+(gdb) bt
+#0  _dl_tlsdesc_dynamic () at ../sysdeps/aarch64/dl-tlsdesc.S:169
+#1  0x0000ffffbe4fbb44 in OurFunction (threadId=4294967295)
+    at /home/test/test_function.c:30
+#2  0x0000000000400c08 in initaaa () at thread.c:58
+#3  0x0000000000400c50 in thread_proc (param=0x0) at thread.c:71
+#4  0x0000ffffbf6918bc in start_thread (arg=0xfffffffff29f) at pthread_create.c:486
+#5  0x0000ffffbf5669ec in thread_start () at ../sysdeps/unix/sysv/linux/aarch64/clone.S:78
+(gdb) ni
+_dl_tlsdesc_dynamic () at ../sysdeps/aarch64/dl-tlsdesc.S:184
+184     stp x29, x30, [sp,#-16*NSAVEXREGPAIRS]!
+(gdb) bt
+#0  _dl_tlsdesc_dynamic () at ../sysdeps/aarch64/dl-tlsdesc.S:184
+#1  0x0000ffffbe4fbb44 in OurFunction (threadId=4294967295)
+    at /home/test/test_function.c:30
+#2  0x0000000000000000 in ?? ()
+Backtrace stopped: previous frame identical to this frame (corrupt stack?)
+
+Co-authored-by: liqingqing <liqingqing3@huawei.com>
+---
+ sysdeps/aarch64/dl-tlsdesc.S | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/sysdeps/aarch64/dl-tlsdesc.S b/sysdeps/aarch64/dl-tlsdesc.S
+index 39ef48e9..479a445b 100644
+--- a/sysdeps/aarch64/dl-tlsdesc.S
++++ b/sysdeps/aarch64/dl-tlsdesc.S
+@@ -167,6 +167,7 @@ _dl_tlsdesc_dynamic:
+ 	ldr	PTR_REG (0), [x0] /* Load val member of DTV entry.  */
+ 	cmp	PTR_REG (0), #TLS_DTV_UNALLOCATED
+ 	b.eq	2f
++	cfi_remember_state
+ 	sub	PTR_REG (3), PTR_REG (3), PTR_REG (4)
+ 	add	PTR_REG (0), PTR_REG (0), PTR_REG (3)
+ 1:
+@@ -180,6 +181,7 @@ _dl_tlsdesc_dynamic:
+ 	   callee will trash.  */
+ 
+ 	/* Save the remaining registers that we must treat as caller save.  */
++	cfi_restore_state
+ # define NSAVEXREGPAIRS 8
+ 	stp	x29, x30, [sp,#-16*NSAVEXREGPAIRS]!
+ 	cfi_adjust_cfa_offset (16*NSAVEXREGPAIRS)
+-- 
+2.23.0
+
