@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	50
+Release: 	51
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -105,6 +105,8 @@ Patch28: backport-aarch64-fix-stack-missing-after-sp-is-updated.patch
 Patch29: backport-aarch64-push-the-set-of-rules-before-falling-into-sl.patch
 Patch30: backport-Fix-buffer-overrun-in-EUC-KR-conversion-module-bz-24.patch
 Patch31: backport-addmntent-Remove-unbounded-alloca-usage-from-getmnte.patch
+Patch32: backport-Use-O_CLOEXEC-in-sysconf-BZ-26791.patch
+Patch33: backport-aarch64-Add-unwind-information-to-_start-bug-26853.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1100,6 +1102,12 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Thu Jan 7 2021 Qingqing Li<liqingqing3@huawei.com> - 2.28-51
+- Fix bug 26791: Use O_CLOEXEC in sysconf
+  bugzilla link: https://sourceware.org/bugzilla/show_bug.cgi?id=26791
+- Fix bug 26853: aarch64: Add unwind information to _start
+  bugzilla link: https://sourceware.org/bugzilla/show_bug.cgi?id=26853
+
 * Wed Jan 6 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-50
 - Fix stack missing in _dl_tlsdesc_dynamic
   Fix buffer overrun in EUC-KR conversion module (bz #24973)
