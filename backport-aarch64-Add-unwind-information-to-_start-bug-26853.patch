@@ -1,0 +1,41 @@
+From 5edf3d9fd6efe06fda37b2a460e60690a90457a4 Mon Sep 17 00:00:00 2001
+From: Florian Weimer <fweimer@redhat.com>
+Date: Mon, 9 Nov 2020 11:31:04 +0100
+Subject: [PATCH] aarch64: Add unwind information to _start (bug 26853)
+
+This adds CFI directives which communicate that the stack ends
+with this function.
+
+Fixes bug 26853.
+---
+ sysdeps/aarch64/start.S | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/sysdeps/aarch64/start.S b/sysdeps/aarch64/start.S
+index bad000f5..5360689c 100644
+--- a/sysdeps/aarch64/start.S
++++ b/sysdeps/aarch64/start.S
+@@ -43,10 +43,9 @@
+  */
+ 
+ 	.text
+-	.globl _start
+-	.type _start,#function
+-_start:
++ENTRY(_start)
+ 	/* Create an initial frame with 0 LR and FP */
++	cfi_undefined(x30)
+ 	mov	x29, #0
+ 	mov	x30, #0
+ 
+@@ -102,6 +101,7 @@ _start:
+ __wrap_main:
+ 	b	main
+ #endif
++END(_start)
+ 
+ 	/* Define a symbol for the first piece of initialized data.  */
+ 	.data
+-- 
+2.23.0
+
