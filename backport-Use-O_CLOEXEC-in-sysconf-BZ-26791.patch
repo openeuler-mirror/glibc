@@ -1,0 +1,27 @@
+From d2d714b9fc02e4710d6dc769d8ec2c9dab0eb69a Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Maximilian=20Kr=C3=BCger?= <max@maxfragg.de>
+Date: Wed, 11 Nov 2020 11:21:30 +0100
+Subject: [PATCH] Use O_CLOEXEC in sysconf [BZ #26791]
+
+If sysconf is used in multithreaded processes, various filedescriptors
+may leak due to missing O_CLOEXEC.  This commit adds the flag.
+---
+ sysdeps/unix/sysv/linux/sysconf.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sysdeps/unix/sysv/linux/sysconf.c b/sysdeps/unix/sysv/linux/sysconf.c
+index 7958a74164..9c5a4cb1a4 100644
+--- a/sysdeps/unix/sysv/linux/sysconf.c
++++ b/sysdeps/unix/sysv/linux/sysconf.c
+@@ -81,7 +81,7 @@ __sysconf (int name)
+ 
+   if (procfname != NULL)
+     {
+-      int fd = __open_nocancel (procfname, O_RDONLY);
++      int fd = __open_nocancel (procfname, O_RDONLY | O_CLOEXEC);
+       if (fd != -1)
+ 	{
+ 	  /* This is more than enough, the file contains a single integer.  */
+-- 
+2.19.1
+
