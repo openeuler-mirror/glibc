@@ -47,9 +47,9 @@
 %endif
 
 %define enablekernel 3.2
-%define target %{_target_cpu}-openEuler-linux
+%define target %{_target_cpu}-%{_vendor}-linux
 %ifarch %{arm}
-%define target %{_target_cpu}-openEuler-linuxeabi
+%define target %{_target_cpu}-%{_vendor}-linuxeabi
 %endif
 %define x86_arches %{ix86} x86_64
 %define all_license LGPLv2+ and LGPLv2+ with exceptions and GPLv2+ and GPLv2+ with exceptions and BSD and Inner-Net and ISC and Public Domain and GFDL
@@ -60,7 +60,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.31
-Release: 	7
+Release: 	8
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -416,7 +416,7 @@ reference=" \
         "-mtune=z13" \
         "-mtune=z14" \
         "-mtune=zEC12" \
-        "-specs=/usr/lib/rpm/openEuler/openEuler-annobin-cc1" "
+        "-specs=/usr/lib/rpm/%{_vendor}/%{_vendor}-annobin-cc1" "
 
 for flag in $RPM_OPT_FLAGS $RPM_LD_FLAGS ; do
         if echo "$reference" | grep -q -F " $flag " ; then
@@ -1190,6 +1190,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Fri Jan 8 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.31-8
+- Replace "openEuler" by %{_vendor} for versatility
+
 * Tue Nov 10 2020 liusirui <liusirui@huawei.com> - 2.31-7
 - Fix CVE-2020-27618, iconv accept redundant shift sequences in IBM1364 [BZ #26224]
   https://sourceware.org/bugzilla/show_bug.cgi?id=26224
