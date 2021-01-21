@@ -1,0 +1,41 @@
+From 22e7ec9550f78af6154e22369cdcd048ba055b23 Mon Sep 17 00:00:00 2001
+From: Shuo Wang <wangshuo_1994@foxmail.com>
+Date: Mon, 11 Jan 2021 21:21:28 +0800
+Subject: [PATCH] disable threads on Intel vm environment
+
+Disable threads on Intel vm environment to avoid performance degradation, eg: 1k.
+
+__x86_shared_non_temporal_threshold is used to determine whether to use L3 cache,
+which is calculated by the variable threads when environment variable is not set.
+When the memcpy size exceeds __x86_shared_non_temporal_threshold, L3 cache is not
+employed to avoid blowing away the entire cache contents for such large copies,
+negatively impacting whole system performance.
+https://sourceware.org/pipermail/libc-alpha/2021-January/121510.html
+
+The glibc community have removed threads from threashold calculation formula in
+commit d3c57027470b78dba79c6d931e4e409b1fecfc80, which, however, results in
+performance degradation on host environment when copying large size, even if the
+performance of vm environment has restored.
+
+In such case, we only align with the community when calculating thresholds on
+vm environment.
+---
+ sysdeps/x86/cacheinfo.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/sysdeps/x86/cacheinfo.c b/sysdeps/x86/cacheinfo.c
+index b9444ddd..7615334e 100644
+--- a/sysdeps/x86/cacheinfo.c
++++ b/sysdeps/x86/cacheinfo.c
+@@ -691,6 +691,8 @@ intel_bug_no_cache_info:
+ 	  if (shared > 0 && threads > 0)
+ 	    shared /= threads;
+ 	}
++      else
++    threads = 1;
+ 
+       /* Account for non-inclusive L2 and L3 caches.  */
+       if (!inclusive_cache)
+-- 
+2.23.0
+
