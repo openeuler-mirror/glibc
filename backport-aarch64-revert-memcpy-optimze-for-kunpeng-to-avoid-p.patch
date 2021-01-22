@@ -1,0 +1,57 @@
+From 28f2ce27722d890a884cc7fa2f6d2bc0cb418f26 Mon Sep 17 00:00:00 2001
+From: Shuo Wang <wangshuo47@huawei.com>
+Date: Wed, 20 Jan 2021 15:20:44 +0800
+Subject: [PATCH] aarch64: revert memcpy optimze for kunpeng to avoid
+ performance degradation
+
+In commit 863d775c481704baaa41855fc93e5a1ca2dc6bf6, kunpeng920 is added to default memcpy version,
+however, there is performance degradation when the copy size is some large bytes, eg: 100k.
+This is the result, tested in glibc-2.28:
+             before backport  after backport	 Performance improvement
+memcpy_1k      0.005              0.005                 0.00%
+memcpy_10k     0.032              0.029                 10.34%
+memcpy_100k    0.356              0.429                 -17.02%
+memcpy_1m      7.470              11.153                -33.02%
+
+This is the demo
+#include "stdio.h"
+#include "string.h"
+#include "stdlib.h"
+
+char a[1024*1024] = {12};
+char b[1024*1024] = {13};
+int main(int argc, char *argv[])
+{
+    int i = atoi(argv[1]);
+    int j;
+    int size = atoi(argv[2]);
+
+    for (j = 0; j < i; j++)
+        memcpy(b, a, size*1024);
+    return 0;
+}
+
+# gcc -g -O0 memcpy.c -o memcpy
+# time taskset -c 10 ./memcpy 100000 1024
+
+Co-authored-by: liqingqing <liqingqing3@huawei.com>
+---
+ sysdeps/aarch64/multiarch/memcpy.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sysdeps/aarch64/multiarch/memcpy.c b/sysdeps/aarch64/multiarch/memcpy.c
+index 27259d3..0e0a5cb 100644
+--- a/sysdeps/aarch64/multiarch/memcpy.c
++++ b/sysdeps/aarch64/multiarch/memcpy.c
+@@ -37,7 +37,7 @@ extern __typeof (__redirect_memcpy) __memcpy_falkor attribute_hidden;
+ libc_ifunc (__libc_memcpy,
+             (IS_THUNDERX (midr)
+ 	     ? __memcpy_thunderx
+-	     : (IS_FALKOR (midr) || IS_PHECDA (midr) || IS_KUNPENG920 (midr)
++	     : (IS_FALKOR (midr) || IS_PHECDA (midr)
+ 		? __memcpy_falkor
+ 		: (IS_THUNDERX2 (midr) || IS_THUNDERX2PA (midr)
+ 		  ? __memcpy_thunderx2
+-- 
+1.8.3.1
+
