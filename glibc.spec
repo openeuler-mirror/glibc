@@ -61,7 +61,7 @@
 Name: 	 	glibc
 Version: 	2.31
 
-Release: 	7
+Release: 	8
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -94,6 +94,7 @@ Patch6013: Fix-CVE-2020-6096-002.patch
 Patch6014: Disable-warnings-due-to-deprecated-libselinux-symbol.patch
 Patch6015: Correct-locking-and-cancellation-cleanup-in-syslog-functions.patch
 Patch6016: Fix-CVE-2020-27618-iconv-Accept-redundant-shift-sequences.patch
+Patch6017: elf-Allow-dlopen-of-filter-object-to-work-BZ-16272.patch
 
 Patch9000: delete-no-hard-link-to-avoid-all_language-package-to.patch 
 Patch9001: build-extra-libpthreadcond-so.patch
@@ -1191,6 +1192,10 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Tue Jan 26 2021 shanzhikun <shanzhikun@huawei.com> - 2.31-8
+- elf: Allow dlopen of filter object to work [BZ #16272]
+  https://sourceware.org/bugzilla/show_bug.cgi?id=16272
+
 * Tue Nov 10 2020 liusirui <liusirui@huawei.com> - 2.31-7
 - Fix CVE-2020-27618, iconv accept redundant shift sequences in IBM1364 [BZ #26224]
   https://sourceware.org/bugzilla/show_bug.cgi?id=26224
