@@ -60,7 +60,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.31
-Release: 	8
+Release: 	9
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -93,6 +93,7 @@ Patch6013: Fix-CVE-2020-6096-002.patch
 Patch6014: Disable-warnings-due-to-deprecated-libselinux-symbol.patch
 Patch6015: rtld-Avoid-using-up-static-TLS-surplus-for-optimizat.patch 
 Patch6016: Fix-CVE-2020-27618-iconv-Accept-redundant-shift-sequences.patch
+Patch6017: elf-Allow-dlopen-of-filter-object-to-work-BZ-16272.patch
 
 Patch9000: delete-no-hard-link-to-avoid-all_language-package-to.patch 
 Patch9001: build-extra-libpthreadcond-so.patch
@@ -1190,6 +1191,10 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Tue Jan 26 2021 shanzhikun <shanzhikun@huawei.com> - 2.31-9
+- elf: Allow dlopen of filter object to work [BZ #16272]
+  https://sourceware.org/bugzilla/show_bug.cgi?id=16272
+
 * Fri Jan 8 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.31-8
 - Replace "openEuler" by %{_vendor} for versatility
 
