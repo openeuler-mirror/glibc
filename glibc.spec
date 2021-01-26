@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	53
+Release: 	54
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -109,6 +109,8 @@ Patch32: backport-Use-O_CLOEXEC-in-sysconf-BZ-26791.patch
 Patch33: backport-aarch64-Add-unwind-information-to-_start-bug-26853.patch
 Patch34: disable-threads-in-Intel-vm-environment.patch
 Patch35: backport-aarch64-revert-memcpy-optimze-for-kunpeng-to-avoid-p.patch
+Patch36: backport-elf-Allow-dlopen-of-filter-object-to-work-BZ-16272.patch
+Patch37: backport-elf-Fix-pldd-BZ-18035.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1104,6 +1106,12 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Tue Jan 26 2021 shanzhikun <shanzhikun@huawei.com> - 2.28-54
+- elf: Allow dlopen of filter object to work [BZ #16272]
+  https://sourceware.org/bugzilla/show_bug.cgi?id=16272
+- elf: Fix pldd (BZ#18035)
+  https://sourceware.org/bugzilla/show_bug.cgi?id=18035
+
 * Fri Jan 22 2021 Qingqing Li<liqingqing3@huawei.com> - 2.28-53
 - revert memcpy optimze for kunpeng to avoid performance regression when input large than kbyte. 
 
