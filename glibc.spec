@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	54
+Release: 	55
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -111,6 +111,7 @@ Patch34: disable-threads-in-Intel-vm-environment.patch
 Patch35: backport-aarch64-revert-memcpy-optimze-for-kunpeng-to-avoid-p.patch
 Patch36: backport-elf-Allow-dlopen-of-filter-object-to-work-BZ-16272.patch
 Patch37: backport-elf-Fix-pldd-BZ-18035.patch
+Patch38: backport-CVE-2021-3326-gconv-Fix-assertion-failure-in-ISO-2022-JP-3-module-.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1106,6 +1107,11 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Tue Feb 2 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-55
+- Fix CVE-2021-3326, Fix assertion failure in ISO-2022-JP-3 module (bug 27256)
+  https://nvd.nist.gov/vuln/detail/CVE-2021-3326
+  https://sourceware.org/bugzilla/show_bug.cgi?id=27256
+
 * Tue Jan 26 2021 shanzhikun <shanzhikun@huawei.com> - 2.28-54
 - elf: Allow dlopen of filter object to work [BZ #16272]
   https://sourceware.org/bugzilla/show_bug.cgi?id=16272
