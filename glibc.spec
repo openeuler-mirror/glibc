@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	55
+Release: 	56
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -442,6 +442,12 @@ done
 
 EnableKernel="--enable-kernel=%{enablekernel}"
 
+##############################################################################
+# Build glibc in `build-%{target}$1', passing the rest of the arguments
+# as CFLAGS to the build (not the same as configure CFLAGS). Several
+# global values are used to determine build flags, kernel version,
+# system tap support, etc.
+##############################################################################
 builddir=build-%{target}
 rm -rf $builddir
 mkdir $builddir
@@ -1107,6 +1113,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Sun Feb 7 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-56
+- Add description for configure
+
 * Tue Feb 2 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-55
 - Fix CVE-2021-3326, Fix assertion failure in ISO-2022-JP-3 module (bug 27256)
   https://nvd.nist.gov/vuln/detail/CVE-2021-3326
