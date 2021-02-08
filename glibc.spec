@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	60
+Release: 	61
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -75,6 +75,11 @@ Source6:   LicenseList
 # The locale packages we supported is recorded in LanguageList
 Source7:   LanguageList
 
+##############################################################################
+# Patches:
+# - backport prefix: the latest community patch
+# - no prefix: openEuler patch
+##############################################################################
 Patch0: Fix-use-after-free-in-glob-when-expanding-user-bug-2.patch
 Patch1: backport-Kunpeng-patches.patch
 Patch2: Avoid-ldbl-96-stack-corruption-from-range-reduction-.patch 
@@ -1132,6 +1137,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Mon Feb 8 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-61
+- Add description for patches
+
 * Mon Feb 8 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-60
 - Add description for SOURCE
 
