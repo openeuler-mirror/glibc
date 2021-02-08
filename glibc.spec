@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	58
+Release: 	59
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -953,7 +953,14 @@ echo ====================PLT RELOCS LIBC.SO==============
 readelf -Wr $RPM_BUILD_ROOT/%{_lib}/libc-*.so | sed -n -e "$PLTCMD"
 echo ====================PLT RELOCS END==================
 
+# Finally, check if valgrind runs with the new glibc.
+# It will fail building if valgrind is not able to run with this glibc so
+# that we can then coordinate with valgrind to get it fixed before we update
+# glibc.
 pushd build-%{target}
+
+# Show the auxiliary vector as seen by the new library
+# (even if we do not perform the valgrind test).
 LD_SHOW_AUXV=1 elf/ld.so --library-path .:elf:nptl:dlfcn /bin/true
 
 %if %{with valgrind}
@@ -1123,6 +1130,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Mon Feb 8 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-59
+- Add description for valgrind
+
 * Mon Feb 8 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-58
 - Add description for building testsuite
 
