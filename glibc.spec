@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	61
+Release: 	62
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -140,6 +140,8 @@ BuildRequires: libselinux-devel >= 1.33.4-3
 %endif
 
 %if %{with valgrind}
+# Require valgrind for smoke testing the dynamic loader to make sure we
+# have not broken valgrind.
 BuildRequires: valgrind
 %endif
 
@@ -1137,6 +1139,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Mon Feb 8 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-62
+- Add description for valgrind
+
 * Mon Feb 8 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-61
 - Add description for patches
 
