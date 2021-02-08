@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	57
+Release: 	58
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -911,6 +911,9 @@ parent=$$
 echo ====================TESTING=========================
 
 # Default libraries.
+# The test suite build failure is hided, which should be fatal.  We
+# check "Summary of test results:" below to verify that all tests
+# were built and run.
 pushd build-%{target}
 make %{?_smp_mflags} -O check |& tee rpmbuild.check.log >&2
 test -n tests.sum
@@ -1120,6 +1123,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Mon Feb 8 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-58
+- Add description for building testsuite
+
 * Mon Feb 8 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-57
 - Add description for testsuite
 
