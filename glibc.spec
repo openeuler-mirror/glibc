@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	56
+Release: 	57
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -895,6 +895,13 @@ done
 %endif # %{with benchtests}
 ##############################################################################
 # Run the glibc testsuite
+# If any tests fail to build we exit %check with an error, otherwise
+# we print the test failure list and the failed test output and continue.
+# Write to standard error to avoid synchronization issues with make and
+# shell tracing output if standard output and standard error are different pipes.
+# This hides a test suite build failure, which should be fatal.  We
+# check "Summary of test results:" below to verify that all tests
+# were built and run.
 ##############################################################################
 %check
 %if %{with testsuite}
@@ -1113,6 +1120,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Mon Feb 8 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-57
+- Add description for testsuite
+
 * Sun Feb 7 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-56
 - Add description for configure
 
