@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	59
+Release: 	60
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -70,7 +70,9 @@ Source2:   nscd.conf
 Source3:   nsswitch.conf
 Source4:   bench.mk
 Source5:   glibc-bench-compare
+# The license list for glibc is recorded in LicenseList
 Source6:   LicenseList
+# The locale packages we supported is recorded in LanguageList
 Source7:   LanguageList
 
 Patch0: Fix-use-after-free-in-glob-when-expanding-user-bug-2.patch
@@ -1130,6 +1132,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Mon Feb 8 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-60
+- Add description for SOURCE
+
 * Mon Feb 8 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-59
 - Add description for valgrind
 
