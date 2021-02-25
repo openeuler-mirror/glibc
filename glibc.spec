@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	51
+Release: 	52
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -107,6 +107,7 @@ Patch30: backport-Fix-buffer-overrun-in-EUC-KR-conversion-module-bz-24.patch
 Patch31: backport-addmntent-Remove-unbounded-alloca-usage-from-getmnte.patch
 Patch32: backport-Use-O_CLOEXEC-in-sysconf-BZ-26791.patch
 Patch33: backport-aarch64-Add-unwind-information-to-_start-bug-26853.patch
+Patch34: disable-threads-in-Intel-vm-environment.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1102,6 +1103,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Thu Jan 21 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-52
+- Disable threads in Intel vm environment to avoid performance degradation
+
 * Thu Jan 7 2021 Qingqing Li<liqingqing3@huawei.com> - 2.28-51
 - Fix bug 26791: Use O_CLOEXEC in sysconf
   bugzilla link: https://sourceware.org/bugzilla/show_bug.cgi?id=26791
