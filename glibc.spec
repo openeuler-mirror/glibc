@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	52
+Release: 	53
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -108,6 +108,7 @@ Patch31: backport-addmntent-Remove-unbounded-alloca-usage-from-getmnte.patch
 Patch32: backport-Use-O_CLOEXEC-in-sysconf-BZ-26791.patch
 Patch33: backport-aarch64-Add-unwind-information-to-_start-bug-26853.patch
 Patch34: disable-threads-in-Intel-vm-environment.patch
+Patch35: backport-aarch64-revert-memcpy-optimze-for-kunpeng-to-avoid-p.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1103,6 +1104,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Fri Jan 22 2021 Qingqing Li<liqingqing3@huawei.com> - 2.28-53
+- revert memcpy optimze for kunpeng to avoid performance regression when input large than kbyte. 
+
 * Thu Jan 21 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-52
 - Disable threads in Intel vm environment to avoid performance degradation
 
