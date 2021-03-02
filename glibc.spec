@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	54
+Release: 	63
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -70,9 +70,16 @@ Source2:   nscd.conf
 Source3:   nsswitch.conf
 Source4:   bench.mk
 Source5:   glibc-bench-compare
+# The license list for glibc is recorded in LicenseList
 Source6:   LicenseList
+# The locale packages we supported is recorded in LanguageList
 Source7:   LanguageList
 
+##############################################################################
+# Patches:
+# - backport prefix: the latest community patch
+# - no prefix: openEuler patch
+##############################################################################
 Patch0: Fix-use-after-free-in-glob-when-expanding-user-bug-2.patch
 Patch1: backport-Kunpeng-patches.patch
 Patch2: Avoid-ldbl-96-stack-corruption-from-range-reduction-.patch 
@@ -111,6 +118,7 @@ Patch34: disable-threads-in-Intel-vm-environment.patch
 Patch35: backport-aarch64-revert-memcpy-optimze-for-kunpeng-to-avoid-p.patch
 Patch36: backport-elf-Allow-dlopen-of-filter-object-to-work-BZ-16272.patch
 Patch37: backport-elf-Fix-pldd-BZ-18035.patch
+Patch38: backport-CVE-2021-3326-gconv-Fix-assertion-failure-in-ISO-2022-JP-3-module-.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -124,6 +132,10 @@ BuildRequires: gd-devel libpng-devel zlib-devel
 %endif
 
 %if %{with docs}
+# Removing texinfo will cause check-safety.sh test to fail because it seems to
+# trigger documentation generation based on dependencies.  We need to fix this
+# upstream in some way that doesn't depend on generating docs to validate the
+# texinfo.  I expect it's simply the wrong dependency for that target.
 BuildRequires: texinfo >= 5.0
 %endif
 
@@ -132,6 +144,8 @@ BuildRequires: libselinux-devel >= 1.33.4-3
 %endif
 
 %if %{with valgrind}
+# Require valgrind for smoke testing the dynamic loader to make sure we
+# have not broken valgrind.
 BuildRequires: valgrind
 %endif
 
@@ -441,6 +455,12 @@ done
 
 EnableKernel="--enable-kernel=%{enablekernel}"
 
+##############################################################################
+# Build glibc in `build-%{target}$1', passing the rest of the arguments
+# as CFLAGS to the build (not the same as configure CFLAGS). Several
+# global values are used to determine build flags, kernel version,
+# system tap support, etc.
+##############################################################################
 builddir=build-%{target}
 rm -rf $builddir
 mkdir $builddir
@@ -888,6 +908,13 @@ done
 %endif # %{with benchtests}
 ##############################################################################
 # Run the glibc testsuite
+# If any tests fail to build we exit %check with an error, otherwise
+# we print the test failure list and the failed test output and continue.
+# Write to standard error to avoid synchronization issues with make and
+# shell tracing output if standard output and standard error are different pipes.
+# This hides a test suite build failure, which should be fatal.  We
+# check "Summary of test results:" below to verify that all tests
+# were built and run.
 ##############################################################################
 %check
 %if %{with testsuite}
@@ -897,6 +924,9 @@ parent=$$
 echo ====================TESTING=========================
 
 # Default libraries.
+# The test suite build failure is hided, which should be fatal.  We
+# check "Summary of test results:" below to verify that all tests
+# were built and run.
 pushd build-%{target}
 make %{?_smp_mflags} -O check |& tee rpmbuild.check.log >&2
 test -n tests.sum
@@ -936,7 +966,14 @@ echo ====================PLT RELOCS LIBC.SO==============
 readelf -Wr $RPM_BUILD_ROOT/%{_lib}/libc-*.so | sed -n -e "$PLTCMD"
 echo ====================PLT RELOCS END==================
 
+# Finally, check if valgrind runs with the new glibc.
+# It will fail building if valgrind is not able to run with this glibc so
+# that we can then coordinate with valgrind to get it fixed before we update
+# glibc.
 pushd build-%{target}
+
+# Show the auxiliary vector as seen by the new library
+# (even if we do not perform the valgrind test).
 LD_SHOW_AUXV=1 elf/ld.so --library-path .:elf:nptl:dlfcn /bin/true
 
 %if %{with valgrind}
@@ -1106,6 +1143,35 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Mon Feb 8 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-63
+- Add description for docs
+
+* Mon Feb 8 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-62
+- Add description for valgrind
+
+* Mon Feb 8 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-61
+- Add description for patches
+
+* Mon Feb 8 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-60
+- Add description for SOURCE
+
+* Mon Feb 8 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-59
+- Add description for valgrind
+
+* Mon Feb 8 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-58
+- Add description for building testsuite
+
+* Mon Feb 8 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-57
+- Add description for testsuite
+
+* Sun Feb 7 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-56
+- Add description for configure
+
+* Tue Feb 2 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-55
+- Fix CVE-2021-3326, Fix assertion failure in ISO-2022-JP-3 module (bug 27256)
+  https://nvd.nist.gov/vuln/detail/CVE-2021-3326
+  https://sourceware.org/bugzilla/show_bug.cgi?id=27256
+
 * Tue Jan 26 2021 shanzhikun <shanzhikun@huawei.com> - 2.28-54
 - elf: Allow dlopen of filter object to work [BZ #16272]
   https://sourceware.org/bugzilla/show_bug.cgi?id=16272
