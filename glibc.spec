@@ -29,7 +29,7 @@
 %bcond_without testsuite
 %bcond_without benchtests
 %bcond_with bootstrap
-%bcond_without werror
+%bcond_with werror
 %bcond_without docs
 %bcond_with libpthreadcond
 
@@ -59,8 +59,8 @@
 # glibc - The GNU C Library (glibc) core package.
 ##############################################################################
 Name: 	 	glibc
-Version: 	2.31
-Release: 	9
+Version: 	2.33
+Release: 	1
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -76,28 +76,12 @@ Source6:   LicenseList
 Patch0: glibc-1070416.patch
 Patch1: glibc-c-utf8-locale.patch
 
-Patch6000: Fix-use-after-free-in-glob-when-expanding-user-bug-2.patch
-Patch6001: Avoid-ldbl-96-stack-corruption-from-range-reduction-.patch
-Patch6002: Reset-converter-state-after-second-wchar_t-output-Bu.patch
-Patch6003: Fix-avx2-strncmp-offset-compare-condition-check-BZ-2.patch
-Patch6004: nptl-wait-for-pending-setxid-request-also-in-detache.patch
-Patch6005: x86-64-Use-RDX_LP-on-__x86_shared_non_temporal_thres.patch
-Patch6006: x86_64-Use-xmmN-with-vpxor-to-clear-a-vector-registe.patch
-Patch6007: nptl-Don-t-madvise-user-provided-stack.patch
-Patch6008: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
-Patch6009: Fix-strtod-multiple-precision-division-bug-bug-26137.patch
-Patch6010: Fix-double-free-in-__printf_fp_l-bug-26214.patch
-Patch6011: Fix-memory-leak-in-__printf_fp_l-bug-26215.patch
-Patch6012: Fix-CVE-2020-6096-001.patch
-Patch6013: Fix-CVE-2020-6096-002.patch
-Patch6014: Disable-warnings-due-to-deprecated-libselinux-symbol.patch
-Patch6015: rtld-Avoid-using-up-static-TLS-surplus-for-optimizat.patch 
-Patch6016: Fix-CVE-2020-27618-iconv-Accept-redundant-shift-sequences.patch
-Patch6017: elf-Allow-dlopen-of-filter-object-to-work-BZ-16272.patch
+Patch6000: backport-posix-tst-rfc3484-Fix-compile-failure-linking-to-loc.patch
 
-Patch9000: delete-no-hard-link-to-avoid-all_language-package-to.patch 
-Patch9001: build-extra-libpthreadcond-so.patch
-Patch9002: remove-country-selection-from-tzselect.patch
+Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
+Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
+Patch9002: build-extra-libpthreadcond-so.patch
+Patch9003: remove-country-selection-from-tzselect.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -481,8 +465,6 @@ popd
 # Install glibc...
 ##############################################################################
 %install
-chmod 644 sysdeps/gnu/errlist.c
-
 %ifarch riscv64
 for d in $RPM_BUILD_ROOT%{_libdir} $RPM_BUILD_ROOT/%{_lib}; do
 	mkdir -p $d
@@ -551,9 +533,6 @@ mv  $RPM_BUILD_ROOT%{_prefix}/lib/locale/libc.lang .
 # Install configuration files for services
 install -p -m 644 %{SOURCE2} $RPM_BUILD_ROOT/etc/nsswitch.conf
 
-mkdir -p $RPM_BUILD_ROOT/etc/default
-install -p -m 644 nis/nss $RPM_BUILD_ROOT/etc/default/nss
-
 # This is for ncsd - in glibc 2.2
 install -m 644 nscd/nscd.conf $RPM_BUILD_ROOT/etc
 mkdir -p $RPM_BUILD_ROOT%{_tmpfilesdir}
@@ -586,7 +565,7 @@ rm -f $RPM_BUILD_ROOT%{_prefix}/lib/debug%{_libdir}/*_p.a
 rm -rf $RPM_BUILD_ROOT%{_prefix}/share/zoneinfo
 
 touch -r %{SOURCE0} $RPM_BUILD_ROOT/etc/ld.so.conf
-touch -r sunrpc/etc.rpc $RPM_BUILD_ROOT/etc/rpc
+touch -r inet/etc.rpc $RPM_BUILD_ROOT/etc/rpc
 
 # Lastly copy some additional documentation for the packages.
 rm -rf documentation
@@ -613,8 +592,8 @@ done
 for i in benchout.schema.json compare_bench.py import_bench.py validate_benchout.py; do
 	cp benchtests/scripts/$i $RPM_BUILD_ROOT%{_prefix}/libexec/glibc-benchtests/
 done
+%endif
 
-%if 0%{?_enable_debug_packages}
 pushd locale
 ln -s programs/*.gperf .
 popd
@@ -811,6 +790,7 @@ cat > debugutils.filelist <<EOF
 %{_prefix}/bin/xtrace
 EOF
 
+%if %{with benchtests}
 ##############################################################################
 # glibc benchtests sub-package
 ##############################################################################
@@ -826,8 +806,9 @@ echo "%{_prefix}/libexec/glibc-benchtests/benchout.schema.json" >> benchtests.fi
 echo "%{_prefix}/libexec/glibc-benchtests/compare_bench.py*" >> benchtests.filelist
 echo "%{_prefix}/libexec/glibc-benchtests/import_bench.py*" >> benchtests.filelist
 echo "%{_prefix}/libexec/glibc-benchtests/validate_benchout.py*" >> benchtests.filelist
-%endif # 0%{?_enable_debug_packages}
+%endif
 
+%if 0%{?_enable_debug_packages}
 ##############################################################################
 # glibc debuginfo sub-package
 ##############################################################################
@@ -870,7 +851,7 @@ for d in $(echo $remove_dir | sed 's/ /\n/g'); do
     sed -i "\|^%%dir $d/\?$|d" debuginfo.filelist
 done
 
-%endif # %{with benchtests}
+%endif # 0%{?_enable_debug_packages}
 ##############################################################################
 # Run the glibc testsuite
 ##############################################################################
@@ -1121,8 +1102,6 @@ fi
 %{_prefix}/lib/locale/en_US.utf8
 %{_prefix}/share/locale/zh_CN
 %{_prefix}/share/locale/en_GB
-%dir %attr(755,root,root) /etc/default
-%verify(not md5 size mtime) %config(noreplace) /etc/default/nss
 
 %files -f libc.lang all-langpacks
 %{_prefix}/lib/locale
@@ -1191,6 +1170,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Fri Mar 5 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.33-1
+- upgrade glibc to 2.33-1
+
 * Tue Jan 26 2021 shanzhikun <shanzhikun@huawei.com> - 2.31-9
 - elf: Allow dlopen of filter object to work [BZ #16272]
   https://sourceware.org/bugzilla/show_bug.cgi?id=16272

@@ -1,25 +1,45 @@
-From 44314a556239a7524b5a6451025737c1bdbb1cd0 Mon Sep 17 00:00:00 2001
-From: Wang Shuo <wangshuo47@huawei.com>
-Date: Thu, 21 May 2020 11:23:06 +0800
+From dc8c5d3ba8ec3c2de8ca0898d682d89492d275b3 Mon Sep 17 00:00:00 2001
+From: Shuo Wang <wangshuo_1994@foxmail.com>
+Date: Tue, 2 Mar 2021 10:41:09 +0800
 Subject: [PATCH] turn REP_STOSB_THRESHOLD from 2k to 1M
 
+REP_STOSB_THRESHOLD is designed to choose vec mov or stosb.
+The default threshold (2k) will lead to performance degradation if the
+memcpy size is between 2k and 1M.
 ---
- sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
 diff --git a/sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S b/sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S
-index dcd63c92..92c08eed 100644
+index faa40856..76f84748 100644
 --- a/sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S
 +++ b/sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S
-@@ -65,7 +65,7 @@
-    Enhanced REP STOSB.  Since the stored value is fixed, larger register
-    size has minimal impact on threshold.  */
- #ifndef REP_STOSB_THRESHOLD
--# define REP_STOSB_THRESHOLD		2048
-+# define REP_STOSB_THRESHOLD		1048576
+@@ -58,6 +58,16 @@
+ # endif
  #endif
  
++/* Threshold to use Enhanced REP STOSB.  Since there is overhead to set
++   up REP STOSB operation, REP STOSB isn't faster on short data.  The
++   memset micro benchmark in glibc shows that 2KB is the approximate
++   value above which REP STOSB becomes faster on processors with
++   Enhanced REP STOSB.  Since the stored value is fixed, larger register
++   size has minimal impact on threshold.  */
++#ifndef REP_STOSB_THRESHOLD
++# define REP_STOSB_THRESHOLD           1048576
++#endif
++
  #ifndef SECTION
+ # error SECTION is not defined!
+ #endif
+@@ -171,7 +181,7 @@ ENTRY (MEMSET_SYMBOL (__memset, unaligned_erms))
+ 	ret
+ 
+ L(stosb_more_2x_vec):
+-	cmp	__x86_rep_stosb_threshold(%rip), %RDX_LP
++	cmp	$REP_STOSB_THRESHOLD, %RDX_LP
+ 	ja	L(stosb)
+ #endif
+ L(more_2x_vec):
 -- 
-2.19.1
+2.23.0
 
