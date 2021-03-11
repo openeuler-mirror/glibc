@@ -1,13 +1,71 @@
 From 808cf7c45e187c1889867ac83d047abfdf81c7a3 Mon Sep 17 00:00:00 2001
-From: root <root@localhost.localdomain>
+From: xuhuijie <xuhuijie2@huawei.com>
 Date: Fri, 14 Aug 2020 17:41:59 +0800
-Subject: [PATCH] performance degradation in multi-core scenarios, here is an
- extra libpthreadcond.so using old version of the function. you can use it by
- adding LD_PRELOAD=./libpthreadcond.so in front of your program (eg:
- LD_PRELOAD=./libpthreadcond.so ./test). use with-libpthreadcond to compile
- it. warning:2.17 version does not meet the posix standard, you should pay
- attention when using it.
- https://sourceware.org/git/?p=glibc.git;a=commit;h=ed19993b5b0d05d62cc883571519a67dae481a14
+Subject: [PATCH] build extra lipthreadcond so
+performance degradation in multi-core scenarios, here is an
+extra libpthreadcond.so using old version of the function. you can use it by
+adding LD_PRELOAD=./libpthreadcond.so in front of your program (eg: 
+LD_PRELOAD=./libpthreadcond.so ./test). use with-libpthreadcond to compile
+it. warning:2.17 version does not meet the posix standard, you should pay
+attention when using it.
+https://sourceware.org/git/?p=glibc.git;a=commit;h=ed19993b5b0d05d62cc883571519a67dae481a14
+
+---
+ nptl_2_17/Makefile                           |   52 + 
+ nptl_2_17/bits/pthreadtypes_2_17.h           |  121 ++
+ nptl_2_17/bits/thread-shared-types_2_17.h    |  104 ++
+ nptl_2_17/build_libpthreadcondso.sh          |    9 +  
+ nptl_2_17/cancellation_2_17.c                |  104 ++
+ nptl_2_17/cleanup_compat_2_17.c              |   50 + 
+ nptl_2_17/libpthreadcond-aarch64.map         |    8 +  
+ nptl_2_17/libpthreadcond-x86_64.map          |    8 +  
+ nptl_2_17/pthreadP_2_17.h                    |  620 +++++++++
+ nptl_2_17/pthread_2_17.h                     | 1173 ++++++++++++++++++
+ nptl_2_17/pthread_cond_broadcast_2_17.c      |   94 ++
+ nptl_2_17/pthread_cond_destroy_2_17.c        |   85 ++
+ nptl_2_17/pthread_cond_init_2_17.c           |   50 + 
+ nptl_2_17/pthread_cond_signal_2_17.c         |   82 ++
+ nptl_2_17/pthread_cond_timedwait_2_17.c      |  268 ++++ 
+ nptl_2_17/pthread_cond_wait_2_17.c           |  231 ++++ 
+ nptl_2_17/pthread_condattr_getclock_2_17.c   |   28 + 
+ nptl_2_17/pthread_condattr_getpshared_2_17.c |   28 + 
+ nptl_2_17/pthread_condattr_init_2_17.c       |   34 + 
+ nptl_2_17/pthread_condattr_setclock_2_17.c   |   45 + 
+ nptl_2_17/pthread_mutex_cond_lock_2_17.c     |   21 + 
+ nptl_2_17/pthread_mutex_lock_2_17.c          |  628 ++++++++++
+ nptl_2_17/pthread_mutex_unlock_2_17.c        |  360 ++++++
+ nptl_2_17/pthreadtypes_2_17.h                |  179 +++
+ nptl_2_17/tpp_2_17.c                         |  195 +++
+ nptl_2_17/unwind_2_17.c                      |  138 +++
+ nptl_2_17/vars_2_17.c                        |   43 + 
+ 27 files changed, 4758 insertions(+)
+ create mode 100644 nptl_2_17/Makefile
+ create mode 100644 nptl_2_17/bits/pthreadtypes_2_17.h
+ create mode 100644 nptl_2_17/bits/thread-shared-types_2_17.h
+ create mode 100644 nptl_2_17/build_libpthreadcondso.sh
+ create mode 100644 nptl_2_17/cancellation_2_17.c
+ create mode 100644 nptl_2_17/cleanup_compat_2_17.c
+ create mode 100644 nptl_2_17/libpthreadcond-aarch64.map
+ create mode 100644 nptl_2_17/libpthreadcond-x86_64.map
+ create mode 100644 nptl_2_17/pthreadP_2_17.h
+ create mode 100644 nptl_2_17/pthread_2_17.h
+ create mode 100644 nptl_2_17/pthread_cond_broadcast_2_17.c
+ create mode 100644 nptl_2_17/pthread_cond_destroy_2_17.c
+ create mode 100644 nptl_2_17/pthread_cond_init_2_17.c
+ create mode 100644 nptl_2_17/pthread_cond_signal_2_17.c
+ create mode 100644 nptl_2_17/pthread_cond_timedwait_2_17.c
+ create mode 100644 nptl_2_17/pthread_cond_wait_2_17.c
+ create mode 100644 nptl_2_17/pthread_condattr_getclock_2_17.c
+ create mode 100644 nptl_2_17/pthread_condattr_getpshared_2_17.c
+ create mode 100644 nptl_2_17/pthread_condattr_init_2_17.c
+ create mode 100644 nptl_2_17/pthread_condattr_setclock_2_17.c
+ create mode 100644 nptl_2_17/pthread_mutex_cond_lock_2_17.c
+ create mode 100644 nptl_2_17/pthread_mutex_lock_2_17.c
+ create mode 100644 nptl_2_17/pthread_mutex_unlock_2_17.c
+ create mode 100644 nptl_2_17/pthreadtypes_2_17.h
+ create mode 100644 nptl_2_17/tpp_2_17.c
+ create mode 100644 nptl_2_17/unwind_2_17.c
+ create mode 100644 nptl_2_17/vars_2_17.c
 
 
 diff --git a/nptl_2_17/Makefile b/nptl_2_17/Makefile
