@@ -46,9 +46,9 @@
 %endif
 
 %define enablekernel 3.2
-%define target %{_target_cpu}-openEuler-linux
+%define target %{_target_cpu}-%{_vendor}-linux
 %ifarch %{arm}
-%define target %{_target_cpu}-openEuler-linuxeabi
+%define target %{_target_cpu}-%{_vendor}-linuxeabi
 %endif
 %define x86_arches %{ix86} x86_64
 %define all_license LGPLv2+ and LGPLv2+ with exceptions and GPLv2+ and GPLv2+ with exceptions and BSD and Inner-Net and ISC and Public Domain and GFDL
@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	63
+Release: 	64
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -442,7 +442,7 @@ reference=" \
         "-mtune=z13" \
         "-mtune=z14" \
         "-mtune=zEC12" \
-        "-specs=/usr/lib/rpm/openEuler/openEuler-annobin-cc1" "
+        "-specs=/usr/lib/rpm/%{_vendor}/%{_vendor}-annobin-cc1" "
 
 for flag in $RPM_OPT_FLAGS $RPM_LD_FLAGS ; do
         if echo "$reference" | grep -q -F " $flag " ; then
@@ -1143,6 +1143,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Tue Mar 16 2021 zhujunhao<zhujunhao8@huawei.com> - 2.28-64
+- Replace openeuler by vendor
+
 * Mon Feb 8 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.28-63
 - Add description for docs
 
