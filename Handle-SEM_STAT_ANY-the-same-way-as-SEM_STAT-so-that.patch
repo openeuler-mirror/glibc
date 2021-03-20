@@ -1,0 +1,41 @@
+From 574500a108be1d2a6a0dc97a075c9e98371aba Tue Sep 29 17:10:20 2020
+From: Dmitry V. Levin <ldv@altlinux.org>
+Date: Tue, 29 Sep 2020 17:10:20 +0800
+Subject: [PATCH] Handle SEM_STAT_ANY the same way as SEM_STAT so that the
+ buffer argument of SEM_STAT_ANY is properly passed to the kernel and back.
+
+---
+ sysdeps/unix/sysv/linux/semctl.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/sysdeps/unix/sysv/linux/semctl.c b/sysdeps/unix/sysv/linux/semctl.c
+index 0c3eb093..15ed333b 100644
+--- a/sysdeps/unix/sysv/linux/semctl.c
++++ b/sysdeps/unix/sysv/linux/semctl.c
+@@ -72,6 +72,7 @@ __new_semctl (int semid, int semnum, int cmd, ...)
+     case IPC_STAT:      /* arg.buf */
+     case IPC_SET:
+     case SEM_STAT:
++    case SEM_STAT_ANY:
+     case IPC_INFO:      /* arg.__buf */
+     case SEM_INFO:
+       va_start (ap, cmd);
+@@ -127,6 +128,7 @@ __semctl_mode16 (int semid, int semnum, int cmd, ...)
+     case IPC_STAT:      /* arg.buf */
+     case IPC_SET:
+     case SEM_STAT:
++    case SEM_STAT_ANY:
+     case IPC_INFO:      /* arg.__buf */
+     case SEM_INFO:
+       va_start (ap, cmd);
+@@ -160,6 +162,7 @@ __old_semctl (int semid, int semnum, int cmd, ...)
+     case IPC_STAT:      /* arg.buf */
+     case IPC_SET:
+     case SEM_STAT:
++    case SEM_STAT_ANY:
+     case IPC_INFO:      /* arg.__buf */
+     case SEM_INFO:
+       va_start (ap, cmd);
+-- 
+2.23.0
+
