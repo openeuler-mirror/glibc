@@ -60,7 +60,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.33
-Release: 	1
+Release: 	2
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -75,6 +75,7 @@ Source6:   LicenseList
 
 Patch0: glibc-1070416.patch
 Patch1: glibc-c-utf8-locale.patch
+Patch2: Fix-the-inaccuracy-of-j0f-j1f-y0f-y1f-BZ.patch
 
 Patch6000: backport-posix-tst-rfc3484-Fix-compile-failure-linking-to-loc.patch
 
@@ -1170,6 +1171,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Wed Apr 7 2021 xieliuhua<xieliuhua@huawei.com> - 2.33-2
+- Fix-the-inaccuracy-of-j0f-j1f-y0f-y1f-BZ.patch
+
 * Fri Mar 5 2021 Wang Shuo<wangshuo_1994@foxmail.com> - 2.33-1
 - upgrade glibc to 2.33-1
 
