@@ -1,0 +1,390 @@
+From 99d01ffcc386d1bfb681fb0684fcf6a6a996beb3 Mon Sep 17 00:00:00 2001
+From: Mike Crowe <mac@mcrowe.com>
+Date: Fri, 21 Jun 2019 14:53:40 +0000
+Subject: [PATCH] nptl: Add clockid parameter to futex timed wait calls
+
+In preparation for adding POSIX clockwait variants of timedwait functions,
+add a clockid_t parameter to futex_abstimed_wait functions and pass
+CLOCK_REALTIME from all callers for the time being.
+
+Replace lll_futex_timed_wait_bitset with lll_futex_clock_wait_bitset
+which takes a clockid_t parameter rather than the magic clockbit.
+
+  * sysdeps/nptl/lowlevellock-futex.h,
+  sysdeps/unix/sysv/linux/lowlevellock-futex.h: Replace
+  lll_futex_timed_wait_bitset with lll_futex_clock_wait_bitset that
+  takes a clockid rather than a special clockbit.
+  * sysdeps/nptl/lowlevellock-futex.h: Add
+  lll_futex_supported_clockid so that client functions can check
+  whether their clockid parameter is valid even if they don't
+  ultimately end up calling lll_futex_clock_wait_bitset.
+  * sysdeps/nptl/futex-internal.h,
+  sysdeps/unix/sysv/linux/futex-internal.h
+  (futex_abstimed_wait, futex_abstimed_wait_cancelable): Add
+  clockid_t parameter to indicate which clock the absolute time
+  passed should be measured against. Pass that clockid onto
+  lll_futex_clock_wait_bitset. Add invalid clock as reason for
+  returning -EINVAL.
+  * sysdeps/nptl/futex-internal.h,
+  sysdeps/unix/sysv/linux/futex-internal.h: Introduce
+  futex_abstimed_supported_clockid so that client functions can check
+  whether their clockid parameter is valid even if they don't
+  ultimately end up calling futex_abstimed_wait.
+  * nptl/pthread_cond_wait.c (__pthread_cond_wait_common): Remove
+  code to calculate relative timeout for
+  __PTHREAD_COND_CLOCK_MONOTONIC_MASK and just pass CLOCK_MONOTONIC
+  or CLOCK_REALTIME as required to futex_abstimed_wait_cancelable.
+  * nptl/pthread_rwlock_common (__pthread_rwlock_rdlock_full)
+  (__pthread_wrlock_full), nptl/sem_waitcommon (do_futex_wait): Pass
+  additional CLOCK_REALTIME to futex_abstimed_wait_cancelable.
+  * nptl/pthread_mutex_timedlock.c (__pthread_mutex_timedlock):
+  Switch to lll_futex_clock_wait_bitset and pass CLOCK_REALTIME
+
+Reviewed-by: Adhemerval Zanella <adhemerval.zanella@linaro.org>
+---
+ ChangeLog                                    | 33 ++++++++++++++++++++
+ nptl/pthread_cond_wait.c                     | 32 ++++---------------
+ nptl/pthread_mutex_timedlock.c               |  4 +--
+ nptl/pthread_rwlock_common.c                 |  8 ++---
+ nptl/sem_waitcommon.c                        |  6 ++--
+ sysdeps/nptl/futex-internal.h                |  9 +++++-
+ sysdeps/nptl/lowlevellock-futex.h            | 14 ++++++---
+ sysdeps/unix/sysv/linux/futex-internal.h     | 24 ++++++++++----
+ sysdeps/unix/sysv/linux/lowlevellock-futex.h | 32 +++++++++++++++----
+ 9 files changed, 110 insertions(+), 52 deletions(-)
+
+diff --git a/ChangeLog b/ChangeLog
+index 24a97096..1f8cf24f 100644
+--- a/ChangeLog
++++ b/ChangeLog
+@@ -1,3 +1,36 @@
++2019-07-12  Mike Crowe  <mac@mcrowe.com>
++
++	nptl: Add clockid parameter to futex timed wait calls
++	* sysdeps/nptl/lowlevellock-futex.h,
++	sysdeps/unix/sysv/linux/lowlevellock-futex.h: Replace
++	lll_futex_timed_wait_bitset with lll_futex_clock_wait_bitset that
++	takes a clockid rather than a special clockbit.
++	* sysdeps/nptl/lowlevellock-futex.h: Add
++	lll_futex_supported_clockid so that client functions can check
++	whether their clockid parameter is valid even if they don't
++	ultimately end up calling lll_futex_clock_wait_bitset.
++	* sysdeps/nptl/futex-internal.h,
++	sysdeps/unix/sysv/linux/futex-internal.h
++	(futex_abstimed_wait, futex_abstimed_wait_cancelable): Add
++	clockid_t parameter to indicate which clock the absolute time
++	passed should be measured against. Pass that clockid onto
++	lll_futex_clock_wait_bitset. Add invalid clock as reason for
++	returning -EINVAL.
++	* sysdeps/nptl/futex-internal.h,
++	sysdeps/unix/sysv/linux/futex-internal.h: Introduce
++	futex_abstimed_supported_clockid so that client functions can check
++	whether their clockid parameter is valid even if they don't
++	ultimately end up calling futex_abstimed_wait.
++	* nptl/pthread_cond_wait.c (__pthread_cond_wait_common): Remove
++	code to calculate relative timeout for
++	__PTHREAD_COND_CLOCK_MONOTONIC_MASK and just pass CLOCK_MONOTONIC
++	or CLOCK_REALTIME as required to futex_abstimed_wait_cancelable.
++	* nptl/pthread_rwlock_common (__pthread_rwlock_rdlock_full)
++	(__pthread_wrlock_full), nptl/sem_waitcommon (do_futex_wait): Pass
++	additional CLOCK_REALTIME to futex_abstimed_wait_cancelable.
++	* nptl/pthread_mutex_timedlock.c (__pthread_mutex_timedlock):
++	Switch to lll_futex_clock_wait_bitset and pass CLOCK_REALTIME
++
+ 2019-04-23  Adhemerval Zanella  <adhemerval.zanella@linaro.org>
+ 
+ 	[BZ #18035]
+diff --git a/nptl/pthread_cond_wait.c b/nptl/pthread_cond_wait.c
+index 3e110541..3294fa3a 100644
+--- a/nptl/pthread_cond_wait.c
++++ b/nptl/pthread_cond_wait.c
+@@ -509,35 +509,15 @@ __pthread_cond_wait_common (pthread_cond_t *cond, pthread_mutex_t *mutex,
+ 		 values despite them being valid.  */
+ 	      if (__glibc_unlikely (abstime->tv_sec < 0))
+ 	        err = ETIMEDOUT;
+-
+-	      else if ((flags & __PTHREAD_COND_CLOCK_MONOTONIC_MASK) != 0)
+-		{
+-		  /* CLOCK_MONOTONIC is requested.  */
+-		  struct timespec rt;
+-		  if (__clock_gettime (CLOCK_MONOTONIC, &rt) != 0)
+-		    __libc_fatal ("clock_gettime does not support "
+-				  "CLOCK_MONOTONIC");
+-		  /* Convert the absolute timeout value to a relative
+-		     timeout.  */
+-		  rt.tv_sec = abstime->tv_sec - rt.tv_sec;
+-		  rt.tv_nsec = abstime->tv_nsec - rt.tv_nsec;
+-		  if (rt.tv_nsec < 0)
+-		    {
+-		      rt.tv_nsec += 1000000000;
+-		      --rt.tv_sec;
+-		    }
+-		  /* Did we already time out?  */
+-		  if (__glibc_unlikely (rt.tv_sec < 0))
+-		    err = ETIMEDOUT;
+-		  else
+-		    err = futex_reltimed_wait_cancelable
+-			(cond->__data.__g_signals + g, 0, &rt, private);
+-		}
+ 	      else
+ 		{
+-		  /* Use CLOCK_REALTIME.  */
++		  const clockid_t clockid =
++		    ((flags & __PTHREAD_COND_CLOCK_MONOTONIC_MASK) != 0) ?
++		    CLOCK_MONOTONIC : CLOCK_REALTIME;
++
+ 		  err = futex_abstimed_wait_cancelable
+-		      (cond->__data.__g_signals + g, 0, abstime, private);
++                    (cond->__data.__g_signals + g, 0, clockid, abstime,
++                     private);
+ 		}
+ 	    }
+ 
+diff --git a/nptl/pthread_mutex_timedlock.c b/nptl/pthread_mutex_timedlock.c
+index 888c12fe..46fcf8d8 100644
+--- a/nptl/pthread_mutex_timedlock.c
++++ b/nptl/pthread_mutex_timedlock.c
+@@ -292,8 +292,8 @@ __pthread_mutex_timedlock (pthread_mutex_t *mutex,
+ 	  lll_futex_timed_wait (&mutex->__data.__lock, oldval,
+ 				&rt, PTHREAD_ROBUST_MUTEX_PSHARED (mutex));
+ #else
+-	  int err = lll_futex_timed_wait_bitset (&mutex->__data.__lock,
+-	      oldval, abstime, FUTEX_CLOCK_REALTIME,
++	  int err = lll_futex_clock_wait_bitset (&mutex->__data.__lock,
++	      oldval, CLOCK_REALTIME, abstime,
+ 	      PTHREAD_ROBUST_MUTEX_PSHARED (mutex));
+ 	  /* The futex call timed out.  */
+ 	  if (err == -ETIMEDOUT)
+diff --git a/nptl/pthread_rwlock_common.c b/nptl/pthread_rwlock_common.c
+index 597a8532..1918f7c9 100644
+--- a/nptl/pthread_rwlock_common.c
++++ b/nptl/pthread_rwlock_common.c
+@@ -319,7 +319,7 @@ __pthread_rwlock_rdlock_full (pthread_rwlock_t *rwlock,
+ 		{
+ 		  int private = __pthread_rwlock_get_private (rwlock);
+ 		  int err = futex_abstimed_wait (&rwlock->__data.__readers,
+-		      r, abstime, private);
++		      r, CLOCK_REALTIME, abstime, private);
+ 		  /* We ignore EAGAIN and EINTR.  On time-outs, we can just
+ 		     return because we don't need to clean up anything.  */
+ 		  if (err == ETIMEDOUT)
+@@ -444,7 +444,7 @@ __pthread_rwlock_rdlock_full (pthread_rwlock_t *rwlock,
+ 		   &wpf, wpf | PTHREAD_RWLOCK_FUTEX_USED))
+ 	    continue;
+ 	  int err = futex_abstimed_wait (&rwlock->__data.__wrphase_futex,
+-	      1 | PTHREAD_RWLOCK_FUTEX_USED, abstime, private);
++	      1 | PTHREAD_RWLOCK_FUTEX_USED, CLOCK_REALTIME, abstime, private);
+ 	  if (err == ETIMEDOUT)
+ 	    {
+ 	      /* If we timed out, we need to unregister.  If no read phase
+@@ -704,7 +704,7 @@ __pthread_rwlock_wrlock_full (pthread_rwlock_t *rwlock,
+ 	     in this group.  */
+ 	  may_share_futex_used_flag = true;
+ 	  int err = futex_abstimed_wait (&rwlock->__data.__writers_futex,
+-	      1 | PTHREAD_RWLOCK_FUTEX_USED, abstime, private);
++	      1 | PTHREAD_RWLOCK_FUTEX_USED, CLOCK_REALTIME, abstime, private);
+ 	  if (err == ETIMEDOUT)
+ 	    {
+ 	      if (prefer_writer)
+@@ -801,7 +801,7 @@ __pthread_rwlock_wrlock_full (pthread_rwlock_t *rwlock,
+ 		   PTHREAD_RWLOCK_FUTEX_USED))
+ 	    continue;
+ 	  int err = futex_abstimed_wait (&rwlock->__data.__wrphase_futex,
+-	      PTHREAD_RWLOCK_FUTEX_USED, abstime, private);
++	      PTHREAD_RWLOCK_FUTEX_USED, CLOCK_REALTIME, abstime, private);
+ 	  if (err == ETIMEDOUT)
+ 	    {
+ 	      if (rwlock->__data.__flags
+diff --git a/nptl/sem_waitcommon.c b/nptl/sem_waitcommon.c
+index 30984be2..1811a32c 100644
+--- a/nptl/sem_waitcommon.c
++++ b/nptl/sem_waitcommon.c
+@@ -109,11 +109,13 @@ do_futex_wait (struct new_sem *sem, const struct timespec *abstime)
+ 
+ #if __HAVE_64B_ATOMICS
+   err = futex_abstimed_wait_cancelable (
+-      (unsigned int *) &sem->data + SEM_VALUE_OFFSET, 0, abstime,
++      (unsigned int *) &sem->data + SEM_VALUE_OFFSET, 0,
++      CLOCK_REALTIME, abstime,
+       sem->private);
+ #else
+   err = futex_abstimed_wait_cancelable (&sem->value, SEM_NWAITERS_MASK,
+-					abstime, sem->private);
++					CLOCK_REALTIME, abstime,
++					sem->private);
+ #endif
+ 
+   return err;
+diff --git a/sysdeps/nptl/futex-internal.h b/sysdeps/nptl/futex-internal.h
+index 1a562478..353fdfb9 100644
+--- a/sysdeps/nptl/futex-internal.h
++++ b/sysdeps/nptl/futex-internal.h
+@@ -49,7 +49,7 @@
+    futex word.
+ 
+    Both absolute and relative timeouts can be used.  An absolute timeout
+-   expires when the given specific point in time on the CLOCK_REALTIME clock
++   expires when the given specific point in time on the specified clock
+    passes, or when it already has passed.  A relative timeout expires when
+    the given duration of time on the CLOCK_MONOTONIC clock passes.  Relative
+    timeouts may be imprecise (see futex_supports_exact_relative_timeouts).
+@@ -159,16 +159,23 @@ futex_reltimed_wait_cancelable (unsigned int* futex_word,
+ 				unsigned int expected,
+ 			        const struct timespec* reltime, int private);
+ 
++/* Check whether the specified clockid is supported by
++   futex_abstimed_wait and futex_abstimed_wait_cancelable.  */
++static __always_inline int
++futex_abstimed_supported_clockid (clockid_t clockid);
++
+ /* Like futex_reltimed_wait, but the provided timeout (ABSTIME) is an
+    absolute point in time; a call will time out after this point in time.  */
+ static __always_inline int
+ futex_abstimed_wait (unsigned int* futex_word, unsigned int expected,
++		     clockid_t clockid,
+ 		     const struct timespec* abstime, int private);
+ 
+ /* Like futex_reltimed_wait but is a POSIX cancellation point.  */
+ static __always_inline int
+ futex_abstimed_wait_cancelable (unsigned int* futex_word,
+ 				unsigned int expected,
++				clockid_t clockid,
+ 			        const struct timespec* abstime, int private);
+ 
+ /* Atomically wrt other futex operations on the same futex, this unblocks the
+diff --git a/sysdeps/nptl/lowlevellock-futex.h b/sysdeps/nptl/lowlevellock-futex.h
+index 27b81b83..68ce7516 100644
+--- a/sysdeps/nptl/lowlevellock-futex.h
++++ b/sysdeps/nptl/lowlevellock-futex.h
+@@ -43,11 +43,15 @@
+ #define lll_futex_timed_wait(futexp, val, timeout, private)             \
+   -ENOSYS
+ 
+-/* This macro should be defined only if FUTEX_CLOCK_REALTIME is also defined.
+-   If CLOCKBIT is zero, this is identical to lll_futex_timed_wait.
+-   If CLOCKBIT has FUTEX_CLOCK_REALTIME set, then it's the same but
+-   TIMEOUT is counted by CLOCK_REALTIME rather than CLOCK_MONOTONIC.  */
+-#define lll_futex_timed_wait_bitset(futexp, val, timeout, clockbit, private) \
++/* Verify whether the supplied clockid is supported by
++   lll_futex_clock_wait_bitset.  */
++#define lll_futex_supported_clockid(clockid)				\
++  (0)
++
++/* Wait until a lll_futex_wake call on FUTEXP, or the absolute TIMEOUT
++   measured against CLOCKID elapses. CLOCKID may be CLOCK_REALTIME or
++   CLOCK_MONOTONIC.  */
++#define lll_futex_clock_wait_bitset(futexp, val, clockid, timeout, private) \
+   -ENOSYS
+ 
+ /* Wake up up to NR waiters on FUTEXP.  */
+diff --git a/sysdeps/unix/sysv/linux/futex-internal.h b/sysdeps/unix/sysv/linux/futex-internal.h
+index 96a07b05..8023cb85 100644
+--- a/sysdeps/unix/sysv/linux/futex-internal.h
++++ b/sysdeps/unix/sysv/linux/futex-internal.h
+@@ -160,17 +160,26 @@ futex_reltimed_wait_cancelable (unsigned int *futex_word,
+     }
+ }
+ 
++/* See sysdeps/nptl/futex-internal.h for details.  */
++static __always_inline int
++futex_abstimed_supported_clockid (clockid_t clockid)
++{
++  return lll_futex_supported_clockid (clockid);
++}
++
+ /* See sysdeps/nptl/futex-internal.h for details.  */
+ static __always_inline int
+ futex_abstimed_wait (unsigned int *futex_word, unsigned int expected,
++		     clockid_t clockid,
+ 		     const struct timespec *abstime, int private)
+ {
+   /* Work around the fact that the kernel rejects negative timeout values
+      despite them being valid.  */
+   if (__glibc_unlikely ((abstime != NULL) && (abstime->tv_sec < 0)))
+     return ETIMEDOUT;
+-  int err = lll_futex_timed_wait_bitset (futex_word, expected, abstime,
+-					 FUTEX_CLOCK_REALTIME, private);
++  int err = lll_futex_clock_wait_bitset (futex_word, expected,
++					 clockid, abstime,
++					 private);
+   switch (err)
+     {
+     case 0:
+@@ -180,8 +189,9 @@ futex_abstimed_wait (unsigned int *futex_word, unsigned int expected,
+       return -err;
+ 
+     case -EFAULT: /* Must have been caused by a glibc or application bug.  */
+-    case -EINVAL: /* Either due to wrong alignment or due to the timeout not
+-		     being normalized.  Must have been caused by a glibc or
++    case -EINVAL: /* Either due to wrong alignment, unsupported
++		     clockid or due to the timeout not being
++		     normalized. Must have been caused by a glibc or
+ 		     application bug.  */
+     case -ENOSYS: /* Must have been caused by a glibc bug.  */
+     /* No other errors are documented at this time.  */
+@@ -194,6 +204,7 @@ futex_abstimed_wait (unsigned int *futex_word, unsigned int expected,
+ static __always_inline int
+ futex_abstimed_wait_cancelable (unsigned int *futex_word,
+ 				unsigned int expected,
++				clockid_t clockid,
+ 			        const struct timespec *abstime, int private)
+ {
+   /* Work around the fact that the kernel rejects negative timeout values
+@@ -202,8 +213,9 @@ futex_abstimed_wait_cancelable (unsigned int *futex_word,
+     return ETIMEDOUT;
+   int oldtype;
+   oldtype = __pthread_enable_asynccancel ();
+-  int err = lll_futex_timed_wait_bitset (futex_word, expected, abstime,
+-					 FUTEX_CLOCK_REALTIME, private);
++  int err = lll_futex_clock_wait_bitset (futex_word, expected,
++					clockid, abstime,
++					private);
+   __pthread_disable_asynccancel (oldtype);
+   switch (err)
+     {
+diff --git a/sysdeps/unix/sysv/linux/lowlevellock-futex.h b/sysdeps/unix/sysv/linux/lowlevellock-futex.h
+index fc834ed1..337faf1e 100644
+--- a/sysdeps/unix/sysv/linux/lowlevellock-futex.h
++++ b/sysdeps/unix/sysv/linux/lowlevellock-futex.h
+@@ -82,12 +82,32 @@
+ 		     __lll_private_flag (FUTEX_WAIT, private),  \
+ 		     val, timeout)
+ 
+-#define lll_futex_timed_wait_bitset(futexp, val, timeout, clockbit, private) \
+-  lll_futex_syscall (6, futexp,                                         \
+-		     __lll_private_flag (FUTEX_WAIT_BITSET | (clockbit), \
+-					 private),                      \
+-		     val, timeout, NULL /* Unused.  */,                 \
+-		     FUTEX_BITSET_MATCH_ANY)
++/* Verify whether the supplied clockid is supported by
++   lll_futex_clock_wait_bitset.  */
++#define lll_futex_supported_clockid(clockid)			\
++  ((clockid) == CLOCK_REALTIME || (clockid) == CLOCK_MONOTONIC)
++
++/* The kernel currently only supports CLOCK_MONOTONIC or
++   CLOCK_REALTIME timeouts for FUTEX_WAIT_BITSET.  We could attempt to
++   convert others here but currently do not.  */
++#define lll_futex_clock_wait_bitset(futexp, val, clockid, timeout, private) \
++  ({									\
++    long int __ret;							\
++    if (lll_futex_supported_clockid (clockid))                          \
++      {                                                                 \
++        const unsigned int clockbit =                                   \
++          (clockid == CLOCK_REALTIME) ? FUTEX_CLOCK_REALTIME : 0;       \
++        const int op =                                                  \
++          __lll_private_flag (FUTEX_WAIT_BITSET | clockbit, private);   \
++                                                                        \
++        __ret = lll_futex_syscall (6, futexp, op, val,                  \
++                                   timeout, NULL /* Unused.  */,	\
++                                   FUTEX_BITSET_MATCH_ANY);		\
++      }                                                                 \
++    else                                                                \
++      __ret = -EINVAL;							\
++    __ret;								\
++  })
+ 
+ #define lll_futex_wake(futexp, nr, private)                             \
+   lll_futex_syscall (4, futexp,                                         \
+-- 
+2.23.0
+
