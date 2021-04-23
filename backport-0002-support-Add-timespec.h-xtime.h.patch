@@ -1,0 +1,455 @@
+From 519839965197291924895a3988804e325035beee Mon Sep 17 00:00:00 2001
+From: Mike Crowe <mac@mcrowe.com>
+Date: Thu, 9 May 2019 14:19:21 -0300
+Subject: [PATCH] support: Add timespec.h xtime.h Add xclock_gettime
+
+It adds useful functions for tests that use struct timespec.
+
+Checked on x86_64-linux-gnu and i686-linux-gnu.
+
+   * support/timespec.h: New file.  Provide timespec helper functions
+   along with macros in the style of those in check.h.
+   * support/timespec.c: New file.  Implement check functions declared
+   in support/timespec.h.
+   * support/timespec-add.c: New file from gnulib containing
+   timespec_add implementation that handles overflow.
+   * support/timespec-sub.c: New file from gnulib containing
+   timespec_sub implementation that handles overflow.
+   * support/xclock_gettime.c (xclock_gettime): New file. Provide
+   clock_gettime wrapper for use in tests that fails the test rather
+   than returning failure.
+   * support/xtime.h: New file to declare xclock_gettime.
+   * support/Makefile: Add xclock_gettime.c timespec.c timespec-add.c timespec-sub.c.
+
+Reviewed-by: Adhemerval Zanella <adhemerval.zanella@linaro.org>
+---
+ support/Makefile         |  4 ++
+ support/timespec-add.c   | 71 ++++++++++++++++++++++++++++++++++++
+ support/timespec-sub.c   | 71 ++++++++++++++++++++++++++++++++++++
+ support/timespec.c       | 59 ++++++++++++++++++++++++++++++
+ support/timespec.h       | 79 ++++++++++++++++++++++++++++++++++++++++
+ support/xclock_gettime.c | 31 ++++++++++++++++
+ support/xtime.h          | 43 ++++++++++++++++++++++
+ 7 files changed, 358 insertions(+)
+ create mode 100644 support/timespec-add.c
+ create mode 100644 support/timespec-sub.c
+ create mode 100644 support/timespec.c
+ create mode 100644 support/timespec.h
+ create mode 100644 support/xclock_gettime.c
+ create mode 100644 support/xtime.h
+
+diff --git a/support/Makefile b/support/Makefile
+index 9bc68583..90c10bac 100644
+--- a/support/Makefile
++++ b/support/Makefile
+@@ -65,6 +65,9 @@ libsupport-routines = \
+   support_test_main \
+   support_test_verify_impl \
+   temp_file \
++  timespec \
++  timespec-add \
++  timespec-sub \
+   write_message \
+   xaccept \
+   xaccept4 \
+@@ -72,6 +75,7 @@ libsupport-routines = \
+   xbind \
+   xcalloc \
+   xchroot \
++  xclock_gettime \
+   xclose \
+   xconnect \
+   xdlfcn \
+diff --git a/support/timespec-add.c b/support/timespec-add.c
+new file mode 100644
+index 00000000..f26abce1
+--- /dev/null
++++ b/support/timespec-add.c
+@@ -0,0 +1,71 @@
++/* Add two struct timespec values.
++   Copyright (C) 2011-2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library and is also part of gnulib.
++   Patches to this file should be submitted to both projects.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++/* Return the sum of two timespec values A and B.  On overflow, return
++   an extremal value.  This assumes 0 <= tv_nsec < TIMESPEC_HZ.  */
++
++#include <config.h>
++#include "timespec.h"
++
++#include "intprops.h"
++
++struct timespec
++timespec_add (struct timespec a, struct timespec b)
++{
++  time_t rs = a.tv_sec;
++  time_t bs = b.tv_sec;
++  int ns = a.tv_nsec + b.tv_nsec;
++  int nsd = ns - TIMESPEC_HZ;
++  int rns = ns;
++  time_t tmin = TYPE_MINIMUM (time_t);
++  time_t tmax = TYPE_MAXIMUM (time_t);
++
++  if (0 <= nsd)
++    {
++      rns = nsd;
++      if (bs < tmax)
++        bs++;
++      else if (rs < 0)
++        rs++;
++      else
++        goto high_overflow;
++    }
++
++  /* INT_ADD_WRAPV is not appropriate since time_t might be unsigned.
++     In theory time_t might be narrower than int, so plain
++     INT_ADD_OVERFLOW does not suffice.  */
++  if (! INT_ADD_OVERFLOW (rs, bs) && tmin <= rs + bs && rs + bs <= tmax)
++    rs += bs;
++  else
++    {
++      if (rs < 0)
++        {
++          rs = tmin;
++          rns = 0;
++        }
++      else
++        {
++        high_overflow:
++          rs = tmax;
++          rns = TIMESPEC_HZ - 1;
++        }
++    }
++
++  return make_timespec (rs, rns);
++}
+diff --git a/support/timespec-sub.c b/support/timespec-sub.c
+new file mode 100644
+index 00000000..7c33a59f
+--- /dev/null
++++ b/support/timespec-sub.c
+@@ -0,0 +1,71 @@
++/* Subtract two struct timespec values.
++   Copyright (C) 2011-2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library and is also part of gnulib.
++   Patches to this file should be submitted to both projects.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++/* Return the difference between two timespec values A and B.  On
++   overflow, return an extremal value.  This assumes 0 <= tv_nsec <
++   TIMESPEC_HZ.  */
++
++#include <config.h>
++#include "timespec.h"
++
++#include "intprops.h"
++
++struct timespec
++timespec_sub (struct timespec a, struct timespec b)
++{
++  time_t rs = a.tv_sec;
++  time_t bs = b.tv_sec;
++  int ns = a.tv_nsec - b.tv_nsec;
++  int rns = ns;
++  time_t tmin = TYPE_MINIMUM (time_t);
++  time_t tmax = TYPE_MAXIMUM (time_t);
++
++  if (ns < 0)
++    {
++      rns = ns + TIMESPEC_HZ;
++      if (bs < tmax)
++        bs++;
++      else if (- TYPE_SIGNED (time_t) < rs)
++        rs--;
++      else
++        goto low_overflow;
++    }
++
++  /* INT_SUBTRACT_WRAPV is not appropriate since time_t might be unsigned.
++     In theory time_t might be narrower than int, so plain
++     INT_SUBTRACT_OVERFLOW does not suffice.  */
++  if (! INT_SUBTRACT_OVERFLOW (rs, bs) && tmin <= rs - bs && rs - bs <= tmax)
++    rs -= bs;
++  else
++    {
++      if (rs < 0)
++        {
++        low_overflow:
++          rs = tmin;
++          rns = 0;
++        }
++      else
++        {
++          rs = tmax;
++          rns = TIMESPEC_HZ - 1;
++        }
++    }
++
++  return make_timespec (rs, rns);
++}
+diff --git a/support/timespec.c b/support/timespec.c
+new file mode 100644
+index 00000000..0a1a13ff
+--- /dev/null
++++ b/support/timespec.c
+@@ -0,0 +1,59 @@
++/* Support code for timespec checks.
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <support/timespec.h>
++#include <stdio.h>
++#include <stdint.h>
++
++void
++test_timespec_before_impl (const char *file, int line,
++			   const struct timespec left,
++			   const struct timespec right)
++{
++  if (left.tv_sec > right.tv_sec
++      || (left.tv_sec == right.tv_sec
++	  && left.tv_nsec > right.tv_nsec)) {
++    support_record_failure ();
++    const struct timespec diff = timespec_sub (left, right);
++    printf ("%s:%d: %jd.%09jds not before %jd.%09jds "
++	    "(difference %jd.%09jds)\n",
++	    file, line,
++	    (intmax_t) left.tv_sec, (intmax_t) left.tv_nsec,
++	    (intmax_t) right.tv_sec, (intmax_t) right.tv_nsec,
++	    (intmax_t) diff.tv_sec, (intmax_t) diff.tv_nsec);
++  }
++}
++
++void
++test_timespec_equal_or_after_impl (const char *file, int line,
++				   const struct timespec left,
++				   const struct timespec right)
++{
++  if (left.tv_sec < right.tv_sec
++      || (left.tv_sec == right.tv_sec
++	  && left.tv_nsec < right.tv_nsec)) {
++    support_record_failure ();
++    const struct timespec diff = timespec_sub (right, left);
++    printf ("%s:%d: %jd.%09jds not after %jd.%09jds "
++	    "(difference %jd.%09jds)\n",
++	    file, line,
++	    (intmax_t) left.tv_sec, (intmax_t) left.tv_nsec,
++	    (intmax_t) right.tv_sec, (intmax_t) right.tv_nsec,
++	    (intmax_t) diff.tv_sec, (intmax_t) diff.tv_nsec);
++  }
++}
+diff --git a/support/timespec.h b/support/timespec.h
+new file mode 100644
+index 00000000..cf2c0318
+--- /dev/null
++++ b/support/timespec.h
+@@ -0,0 +1,79 @@
++/* Useful functions for tests that use struct timespec.
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#ifndef SUPPORT_TIMESPEC_H
++#define SUPPORT_TIMESPEC_H
++
++#include <stdio.h>
++#include <time.h>
++#include <support/check.h>
++#include <support/xtime.h>
++
++struct timespec timespec_add (struct timespec, struct timespec)
++  __attribute__((const));
++struct timespec timespec_sub (struct timespec, struct timespec)
++  __attribute__((const));
++
++static inline struct timespec
++make_timespec (time_t s, long int ns)
++{
++  struct timespec r;
++  r.tv_sec = s;
++  r.tv_nsec = ns;
++  return r;
++}
++
++enum { TIMESPEC_HZ = 1000000000 };
++
++void test_timespec_before_impl (const char *file, int line,
++                                const struct timespec left,
++                                const struct timespec right);
++
++void test_timespec_equal_or_after_impl (const char *file, int line,
++                                        const struct timespec left,
++                                        const struct timespec right);
++
++/* Check that the timespec on the left represents a time before the
++   time on the right. */
++#define TEST_TIMESPEC_BEFORE(left, right)                               \
++  test_timespec_before_impl (__FILE__, __LINE__, (left), (right))
++
++#define TEST_TIMESPEC_BEFORE_NOW(left, clockid)                 \
++  ({                                                            \
++    struct timespec now;                                        \
++    const int saved_errno = errno;                              \
++    xclock_gettime ((clockid), &now);                           \
++    TEST_TIMESPEC_BEFORE ((left), now);                         \
++    errno = saved_errno;                                        \
++  })
++
++/* Check that the timespec on the left represents a time equal to or
++   after the time on the right. */
++#define TEST_TIMESPEC_EQUAL_OR_AFTER(left, right)                       \
++  test_timespec_equal_or_after_impl (__FILE__, __LINE__, left, right)
++
++#define TEST_TIMESPEC_NOW_OR_AFTER(clockid, right)              \
++  ({                                                            \
++    struct timespec now;                                        \
++    const int saved_errno = errno;                              \
++    xclock_gettime ((clockid), &now);                           \
++    TEST_TIMESPEC_EQUAL_OR_AFTER (now, (right));                \
++    errno = saved_errno;                                        \
++  })
++
++#endif /* SUPPORT_TIMESPEC_H */
+diff --git a/support/xclock_gettime.c b/support/xclock_gettime.c
+new file mode 100644
+index 00000000..5dd3ae9b
+--- /dev/null
++++ b/support/xclock_gettime.c
+@@ -0,0 +1,31 @@
++/* clock_gettime with error checking.
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <support/check.h>
++#include <support/xtime.h>
++#include <support/xthread.h>
++
++void
++xclock_gettime (clockid_t clockid,
++                struct timespec *ts)
++{
++  const int ret = clock_gettime (clockid, ts);
++  if (ret < 0)
++    FAIL_EXIT1 ("clock_gettime (%d): %m",
++                clockid);
++}
+diff --git a/support/xtime.h b/support/xtime.h
+new file mode 100644
+index 00000000..9e6df5b9
+--- /dev/null
++++ b/support/xtime.h
+@@ -0,0 +1,43 @@
++/* Support functionality for using time.
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#ifndef SUPPORT_TIME_H
++#define SUPPORT_TIME_H
++
++#include <time.h>
++
++__BEGIN_DECLS
++
++/* The following functions call the corresponding libc functions and
++   terminate the process on error.  */
++
++void xclock_gettime (clockid_t clock, struct timespec *ts);
++
++/* This helper can often simplify tests by avoiding an explicit
++   variable declaration or allowing that declaration to be const. */
++
++static inline struct timespec xclock_now (clockid_t clock)
++{
++  struct timespec ts;
++  xclock_gettime (clock, &ts);
++  return ts;
++}
++
++__END_DECLS
++
++#endif /* SUPPORT_TIME_H */
+-- 
+2.23.0
+
