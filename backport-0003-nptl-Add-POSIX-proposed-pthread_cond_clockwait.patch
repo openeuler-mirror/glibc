@@ -1,0 +1,713 @@
+From afe4de7d283ebd88157126c5494ce1796194c16e Mon Sep 17 00:00:00 2001
+From: Mike Crowe <mac@mcrowe.com>
+Date: Fri, 21 Jun 2019 17:36:56 +0000
+Subject: [PATCH] nptl: Add POSIX-proposed pthread_cond_clockwait
+
+Add:
+
+ int pthread_cond_clockwait (pthread_cond_t *cond,
+                             pthread_mutex_t *mutex,
+                             clockid_t clockid,
+                             const struct timespec *abstime)
+
+which behaves just like pthread_cond_timedwait except it always measures
+abstime against the supplied clockid. Currently supports CLOCK_REALTIME
+and
+CLOCK_MONOTONIC and returns EINVAL if any other clock is specified.
+
+Includes feedback from many others. This function was originally
+proposed[1] as pthread_cond_timedwaitonclock_np, but The Austin Group
+preferred the new name.
+
+    * nptl/Makefile: Add tst-cond26 and tst-cond27
+    * nptl/Versions (GLIBC_2.30): Add pthread_cond_clockwait
+    * sysdeps/nptl/pthread.h: Likewise
+    * nptl/pthreadP.h: Likewise
+    * nptl/pthread_cond_wait.c (__pthread_cond_wait_common): Add
+    clockid parameter and comment describing why we don't need to check
+    its value. Use that value when calling
+    futex_abstimed_wait_cancelable rather than reading the clock from
+    the flags. (__pthread_cond_wait): Pass unused clockid parameter.
+    (__pthread_cond_timedwait): Read clock from flags and pass it to
+    __pthread_cond_wait_common. (__pthread_cond_clockwait): Add new
+    function with weak alias from pthread_cond_clockwait.
+    * sysdeps/unix/sysv/linux/aarch64/libpthread.abilist (GLIBC_2.30): Likewise.
+    * sysdeps/unix/sysv/linux/x86_64/64/libpthread.abilist
+    (GLIBC_2.30): Likewise.
+    * nptl/tst-cond11.c (run_test): Support testing
+    pthread_cond_clockwait too by using a special magic
+    CLOCK_USE_ATTR_CLOCK value to determine whether to call
+    pthread_cond_timedwait or pthread_cond_clockwait. (do_test): Pass
+    CLOCK_USE_ATTR_CLOCK for existing tests, and add new tests using
+    all combinations of CLOCK_MONOTONIC and CLOCK_REALTIME.
+    * ntpl/tst-cond26.c: New test for passing unsupported and invalid
+    clocks to pthread_cond_clockwait.
+    * nptl/tst-cond27.c: Add test similar to tst-cond5.c, but using
+    struct timespec and pthread_cond_clockwait.
+    * manual/threads.texi: Document pthread_cond_clockwait.
+
+[1] https://sourceware.org/ml/libc-alpha/2015-07/msg00193.html
+
+Reviewed-by: Adhemerval Zanella <adhemerval.zanella@linaro.org>
+---
+ ChangeLog                                     |  29 +++
+ manual/threads.texi                           |  20 ++
+ nptl/Makefile                                 |   1 +
+ nptl/Versions                                 |   1 +
+ nptl/pthreadP.h                               |   5 +
+ nptl/pthread_cond_wait.c                      |  44 ++++-
+ nptl/tst-cond11.c                             | 183 +++++-------------
+ nptl/tst-cond26.c                             |  77 ++++++++
+ nptl/tst-cond27.c                             |  66 +++++++
+ sysdeps/nptl/pthread.h                        |  15 ++
+ .../sysv/linux/aarch64/libpthread.abilist     |   1 +
+ .../sysv/linux/x86_64/64/libpthread.abilist   |   1 +
+ 12 files changed, 305 insertions(+), 138 deletions(-)
+ create mode 100644 nptl/tst-cond26.c
+ create mode 100644 nptl/tst-cond27.c
+
+diff --git a/ChangeLog b/ChangeLog
+index 1f8cf24f..8601e9fe 100644
+--- a/ChangeLog
++++ b/ChangeLog
+@@ -1,5 +1,34 @@
+ 2019-07-12  Mike Crowe  <mac@mcrowe.com>
+ 
++	nptl: Add POSIX-proposed pthread_cond_clockwait which behaves just
++	like pthread_cond_timedwait except it always measures abstime
++	against the supplied clockid.
++	* nptl/Makefile: Add tst-cond26 and tst-cond27
++	* nptl/Versions (GLIBC_2.30): Add pthread_cond_clockwait
++	* sysdeps/nptl/pthread.h: Likewise
++	* nptl/pthreadP.h: Likewise
++	* nptl/pthread_cond_wait.c (__pthread_cond_wait_common): Add
++	clockid parameter and comment describing why we don't need to check
++	its value. Use that value when calling
++	futex_abstimed_wait_cancelable rather than reading the clock from
++	the flags. (__pthread_cond_wait): Pass unused clockid parameter.
++	(__pthread_cond_timedwait): Read clock from flags and pass it to
++	__pthread_cond_wait_common. (__pthread_cond_clockwait): Add new
++	function with weak alias from pthread_cond_clockwait.
++	* sysdeps/unix/sysv/linux/aarch64/libpthread.abilist (GLIBC_2.30): Likewise.
++	* sysdeps/unix/sysv/linux/x86_64/64/libpthread.abilist
++	(GLIBC_2.30): Likewise.
++	* nptl/tst-cond11.c (run_test): Support testing
++	pthread_cond_clockwait too by using a special magic
++	CLOCK_USE_ATTR_CLOCK value to determine whether to call
++	pthread_cond_timedwait or pthread_cond_clockwait. (do_test): Pass
++	CLOCK_USE_ATTR_CLOCK for existing tests, and add new tests using
++	all combinations of CLOCK_MONOTONIC and CLOCK_REALTIME.
++	* ntpl/tst-cond26.c: New test for passing unsupported and invalid
++	clocks to pthread_cond_clockwait.
++	* nptl/tst-cond27.c: Add test similar to tst-cond5.c, but using
++	struct timespec and pthread_cond_clockwait.
++	* manual/threads.texi: Document pthread_cond_clockwait.
+ 	nptl: Add clockid parameter to futex timed wait calls
+ 	* sysdeps/nptl/lowlevellock-futex.h,
+ 	sysdeps/unix/sysv/linux/lowlevellock-futex.h: Replace
+diff --git a/manual/threads.texi b/manual/threads.texi
+index 87fda7d8..f4c5447c 100644
+--- a/manual/threads.texi
++++ b/manual/threads.texi
+@@ -669,6 +669,26 @@ The system does not have sufficient memory.
+ @end table
+ @end deftypefun
+ 
++@comment pthread.h
++@comment POSIX-proposed
++@deftypefun int pthread_cond_clockwait (pthread_cond_t *@var{cond}, pthread_mutex_t *@var{mutex},
++                                        clockid_t @var{clockid}, const struct timespec *@var{abstime})
++@safety{@prelim{}@mtsafe{}@asunsafe{@asulock{}}@acunsafe{@aculock{}}}
++@c If exactly the same function with arguments is called from a signal
++@c handler that interrupts between the mutex unlock and sleep then it
++@c will unlock the mutex twice resulting in undefined behaviour.  Keep
++@c in mind that the unlock and sleep are only atomic with respect to other
++@c threads (really a happens-after relationship for pthread_cond_broadcast
++@c and pthread_cond_signal).
++@c In the AC case we would cancel the thread and the mutex would remain
++@c locked and we can't recover from that.
++Behaves like @code{pthread_cond_timedwait} except the time @var{abstime} is
++measured against the clock specified by @var{clockid} rather than the clock
++specified or defaulted when @code{pthread_cond_init} was called.  Currently,
++@var{clockid} must be either @code{CLOCK_MONOTONIC} or
++@code{CLOCK_REALTIME}.
++@end deftypefun
++
+ @c FIXME these are undocumented:
+ @c pthread_atfork
+ @c pthread_attr_destroy
+diff --git a/nptl/Makefile b/nptl/Makefile
+index fb68f238..6a9cd8fa 100644
+--- a/nptl/Makefile
++++ b/nptl/Makefile
+@@ -250,6 +250,7 @@ tests = tst-attr1 tst-attr2 tst-attr3 tst-default-attr \
+ 	tst-cond8 tst-cond9 tst-cond10 tst-cond11 tst-cond12 tst-cond13 \
+ 	tst-cond14 tst-cond15 tst-cond16 tst-cond17 tst-cond18 tst-cond19 \
+ 	tst-cond20 tst-cond21 tst-cond22 tst-cond23 tst-cond24 tst-cond25 \
++	tst-cond26 tst-cond27 \
+ 	tst-cond-except \
+ 	tst-robust1 tst-robust2 tst-robust3 tst-robust4 tst-robust5 \
+ 	tst-robust6 tst-robust7 tst-robust8 tst-robust9 \
+diff --git a/nptl/Versions b/nptl/Versions
+index e7f691da..94d6fa92 100644
+--- a/nptl/Versions
++++ b/nptl/Versions
+@@ -275,6 +275,7 @@ libpthread {
+     mtx_init; mtx_lock; mtx_timedlock; mtx_trylock; mtx_unlock; mtx_destroy;
+     call_once; cnd_broadcast; cnd_destroy; cnd_init; cnd_signal;
+     cnd_timedwait; cnd_wait; tss_create; tss_delete; tss_get; tss_set;
++    pthread_cond_clockwait;
+   }
+ 
+   GLIBC_PRIVATE {
+diff --git a/nptl/pthreadP.h b/nptl/pthreadP.h
+index 19efe1e3..67de9d8c 100644
+--- a/nptl/pthreadP.h
++++ b/nptl/pthreadP.h
+@@ -492,6 +492,11 @@ extern int __pthread_cond_wait (pthread_cond_t *cond, pthread_mutex_t *mutex);
+ extern int __pthread_cond_timedwait (pthread_cond_t *cond,
+ 				     pthread_mutex_t *mutex,
+ 				     const struct timespec *abstime);
++extern int __pthread_cond_clockwait (pthread_cond_t *cond,
++				     pthread_mutex_t *mutex,
++				     clockid_t clockid,
++				     const struct timespec *abstime)
++  __nonnull ((1, 2, 4));
+ extern int __pthread_condattr_destroy (pthread_condattr_t *attr);
+ extern int __pthread_condattr_init (pthread_condattr_t *attr);
+ extern int __pthread_key_create (pthread_key_t *key, void (*destr) (void *));
+diff --git a/nptl/pthread_cond_wait.c b/nptl/pthread_cond_wait.c
+index 3294fa3a..fec86698 100644
+--- a/nptl/pthread_cond_wait.c
++++ b/nptl/pthread_cond_wait.c
+@@ -378,6 +378,7 @@ __condvar_cleanup_waiting (void *arg)
+ */
+ static __always_inline int
+ __pthread_cond_wait_common (pthread_cond_t *cond, pthread_mutex_t *mutex,
++    clockid_t clockid,
+     const struct timespec *abstime)
+ {
+   const int maxspin = 0;
+@@ -386,6 +387,11 @@ __pthread_cond_wait_common (pthread_cond_t *cond, pthread_mutex_t *mutex,
+ 
+   LIBC_PROBE (cond_wait, 2, cond, mutex);
+ 
++  /* clockid will already have been checked by
++     __pthread_cond_clockwait or pthread_condattr_setclock, or we
++     don't use it if abstime is NULL, so we don't need to check it
++     here. */
++
+   /* Acquire a position (SEQ) in the waiter sequence (WSEQ).  We use an
+      atomic operation because signals and broadcasts may update the group
+      switch without acquiring the mutex.  We do not need release MO here
+@@ -511,10 +517,6 @@ __pthread_cond_wait_common (pthread_cond_t *cond, pthread_mutex_t *mutex,
+ 	        err = ETIMEDOUT;
+ 	      else
+ 		{
+-		  const clockid_t clockid =
+-		    ((flags & __PTHREAD_COND_CLOCK_MONOTONIC_MASK) != 0) ?
+-		    CLOCK_MONOTONIC : CLOCK_REALTIME;
+-
+ 		  err = futex_abstimed_wait_cancelable
+                     (cond->__data.__g_signals + g, 0, clockid, abstime,
+                      private);
+@@ -632,7 +634,8 @@ __pthread_cond_wait_common (pthread_cond_t *cond, pthread_mutex_t *mutex,
+ int
+ __pthread_cond_wait (pthread_cond_t *cond, pthread_mutex_t *mutex)
+ {
+-  return __pthread_cond_wait_common (cond, mutex, NULL);
++  /* clockid is unused when abstime is NULL. */
++  return __pthread_cond_wait_common (cond, mutex, 0, NULL);
+ }
+ 
+ /* See __pthread_cond_wait_common.  */
+@@ -644,10 +647,39 @@ __pthread_cond_timedwait (pthread_cond_t *cond, pthread_mutex_t *mutex,
+      it can assume that abstime is not NULL.  */
+   if (abstime->tv_nsec < 0 || abstime->tv_nsec >= 1000000000)
+     return EINVAL;
+-  return __pthread_cond_wait_common (cond, mutex, abstime);
++
++  /* Relaxed MO is suffice because clock ID bit is only modified
++     in condition creation.  */
++  unsigned int flags = atomic_load_relaxed (&cond->__data.__wrefs);
++  clockid_t clockid = (flags & __PTHREAD_COND_CLOCK_MONOTONIC_MASK)
++                    ? CLOCK_MONOTONIC : CLOCK_REALTIME;
++  return __pthread_cond_wait_common (cond, mutex, clockid, abstime);
++}
++
++/* See __pthread_cond_wait_common.  */
++int
++__pthread_cond_clockwait (pthread_cond_t *cond, pthread_mutex_t *mutex,
++			  clockid_t clockid,
++			  const struct timespec *abstime)
++{
++  /* Check parameter validity.  This should also tell the compiler that
++     it can assume that abstime is not NULL.  */
++  if (abstime->tv_nsec < 0 || abstime->tv_nsec >= 1000000000)
++    return EINVAL;
++
++  if (!futex_abstimed_supported_clockid (clockid))
++    return EINVAL;
++
++  /* If we do not support waiting using CLOCK_MONOTONIC, return an error.  */
++  if (clockid == CLOCK_MONOTONIC
++      && !futex_supports_exact_relative_timeouts ())
++    return EINVAL;
++
++  return __pthread_cond_wait_common (cond, mutex, clockid, abstime);
+ }
+ 
+ versioned_symbol (libpthread, __pthread_cond_wait, pthread_cond_wait,
+ 		  GLIBC_2_3_2);
+ versioned_symbol (libpthread, __pthread_cond_timedwait, pthread_cond_timedwait,
+ 		  GLIBC_2_3_2);
++weak_alias (__pthread_cond_clockwait, pthread_cond_clockwait);
+diff --git a/nptl/tst-cond11.c b/nptl/tst-cond11.c
+index eebc8ac5..16d937c4 100644
+--- a/nptl/tst-cond11.c
++++ b/nptl/tst-cond11.c
+@@ -1,4 +1,4 @@
+-/* Copyright (C) 2003-2018 Free Software Foundation, Inc.
++/* Copyright (C) 2003-2019 Free Software Foundation, Inc.
+    This file is part of the GNU C Library.
+    Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
+ 
+@@ -21,145 +21,64 @@
+ #include <stdio.h>
+ #include <time.h>
+ #include <unistd.h>
++#include <support/check.h>
++#include <support/test-driver.h>
++#include <support/timespec.h>
++#include <support/xthread.h>
++#include <support/xtime.h>
+ 
++/* A bogus clock value that tells run_test to use pthread_cond_timedwait
++   rather than pthread_condclockwait.  */
++#define CLOCK_USE_ATTR_CLOCK (-1)
+ 
+ #if defined _POSIX_CLOCK_SELECTION && _POSIX_CLOCK_SELECTION >= 0
+ static int
+-run_test (clockid_t cl)
++run_test (clockid_t attr_clock, clockid_t wait_clock)
+ {
+   pthread_condattr_t condattr;
+   pthread_cond_t cond;
+   pthread_mutexattr_t mutattr;
+   pthread_mutex_t mut;
+ 
+-  printf ("clock = %d\n", (int) cl);
++  printf ("attr_clock = %d\n", (int) attr_clock);
+ 
+-  if (pthread_condattr_init (&condattr) != 0)
+-    {
+-      puts ("condattr_init failed");
+-      return 1;
+-    }
++  TEST_COMPARE (pthread_condattr_init (&condattr), 0);
++  TEST_COMPARE (pthread_condattr_setclock (&condattr, attr_clock), 0);
+ 
+-  if (pthread_condattr_setclock (&condattr, cl) != 0)
+-    {
+-      puts ("condattr_setclock failed");
+-      return 1;
+-    }
++  clockid_t attr_clock_read;
++  TEST_COMPARE (pthread_condattr_getclock (&condattr, &attr_clock_read), 0);
++  TEST_COMPARE (attr_clock, attr_clock_read);
+ 
+-  clockid_t cl2;
+-  if (pthread_condattr_getclock (&condattr, &cl2) != 0)
+-    {
+-      puts ("condattr_getclock failed");
+-      return 1;
+-    }
+-  if (cl != cl2)
+-    {
+-      printf ("condattr_getclock returned wrong value: %d, expected %d\n",
+-	      (int) cl2, (int) cl);
+-      return 1;
+-    }
++  TEST_COMPARE (pthread_cond_init (&cond, &condattr), 0);
++  TEST_COMPARE (pthread_condattr_destroy (&condattr), 0);
+ 
+-  if (pthread_cond_init (&cond, &condattr) != 0)
+-    {
+-      puts ("cond_init failed");
+-      return 1;
+-    }
++  xpthread_mutexattr_init (&mutattr);
++  xpthread_mutexattr_settype (&mutattr, PTHREAD_MUTEX_ERRORCHECK);
++  xpthread_mutex_init (&mut, &mutattr);
++  xpthread_mutexattr_destroy (&mutattr);
+ 
+-  if (pthread_condattr_destroy (&condattr) != 0)
+-    {
+-      puts ("condattr_destroy failed");
+-      return 1;
+-    }
+-
+-  if (pthread_mutexattr_init (&mutattr) != 0)
+-    {
+-      puts ("mutexattr_init failed");
+-      return 1;
+-    }
++  xpthread_mutex_lock (&mut);
++  TEST_COMPARE (pthread_mutex_lock (&mut), EDEADLK);
+ 
+-  if (pthread_mutexattr_settype (&mutattr, PTHREAD_MUTEX_ERRORCHECK) != 0)
+-    {
+-      puts ("mutexattr_settype failed");
+-      return 1;
+-    }
+-
+-  if (pthread_mutex_init (&mut, &mutattr) != 0)
+-    {
+-      puts ("mutex_init failed");
+-      return 1;
+-    }
+-
+-  if (pthread_mutexattr_destroy (&mutattr) != 0)
+-    {
+-      puts ("mutexattr_destroy failed");
+-      return 1;
+-    }
+-
+-  if (pthread_mutex_lock (&mut) != 0)
+-    {
+-      puts ("mutex_lock failed");
+-      return 1;
+-    }
+-
+-  if (pthread_mutex_lock (&mut) != EDEADLK)
+-    {
+-      puts ("2nd mutex_lock did not return EDEADLK");
+-      return 1;
+-    }
+-
+-  struct timespec ts;
+-  if (clock_gettime (cl, &ts) != 0)
+-    {
+-      puts ("clock_gettime failed");
+-      return 1;
+-    }
++  struct timespec ts_timeout;
++  xclock_gettime (wait_clock == CLOCK_USE_ATTR_CLOCK ? attr_clock : wait_clock,
++                  &ts_timeout);
+ 
+   /* Wait one second.  */
+-  ++ts.tv_sec;
+-
+-  int e = pthread_cond_timedwait (&cond, &mut, &ts);
+-  if (e == 0)
+-    {
+-      puts ("cond_timedwait succeeded");
+-      return 1;
+-    }
+-  else if (e != ETIMEDOUT)
+-    {
+-      puts ("cond_timedwait did not return ETIMEDOUT");
+-      return 1;
+-    }
+-
+-  struct timespec ts2;
+-  if (clock_gettime (cl, &ts2) != 0)
+-    {
+-      puts ("second clock_gettime failed");
+-      return 1;
+-    }
+-
+-  if (ts2.tv_sec < ts.tv_sec
+-      || (ts2.tv_sec == ts.tv_sec && ts2.tv_nsec < ts.tv_nsec))
+-    {
+-      puts ("timeout too short");
+-      return 1;
+-    }
++  ++ts_timeout.tv_sec;
+ 
+-  if (pthread_mutex_unlock (&mut) != 0)
+-    {
+-      puts ("mutex_unlock failed");
+-      return 1;
+-    }
++  if (wait_clock == CLOCK_USE_ATTR_CLOCK) {
++    TEST_COMPARE (pthread_cond_timedwait (&cond, &mut, &ts_timeout), ETIMEDOUT);
++    TEST_TIMESPEC_BEFORE_NOW (ts_timeout, attr_clock);
++  } else {
++    TEST_COMPARE (pthread_cond_clockwait (&cond, &mut, wait_clock, &ts_timeout),
++                  ETIMEDOUT);
++    TEST_TIMESPEC_BEFORE_NOW (ts_timeout, wait_clock);
++  }
+ 
+-  if (pthread_mutex_destroy (&mut) != 0)
+-    {
+-      puts ("mutex_destroy failed");
+-      return 1;
+-    }
+-
+-  if (pthread_cond_destroy (&cond) != 0)
+-    {
+-      puts ("cond_destroy failed");
+-      return 1;
+-    }
++  xpthread_mutex_unlock (&mut);
++  xpthread_mutex_destroy (&mut);
++  TEST_COMPARE (pthread_cond_destroy (&cond), 0);
+ 
+   return 0;
+ }
+@@ -171,12 +90,11 @@ do_test (void)
+ {
+ #if !defined _POSIX_CLOCK_SELECTION || _POSIX_CLOCK_SELECTION == -1
+ 
+-  puts ("_POSIX_CLOCK_SELECTION not supported, test skipped");
+-  return 0;
++  FAIL_UNSUPPORTED ("_POSIX_CLOCK_SELECTION not supported, test skipped");
+ 
+ #else
+ 
+-  int res = run_test (CLOCK_REALTIME);
++  run_test (CLOCK_REALTIME, CLOCK_USE_ATTR_CLOCK);
+ 
+ # if defined _POSIX_MONOTONIC_CLOCK && _POSIX_MONOTONIC_CLOCK >= 0
+ #  if _POSIX_MONOTONIC_CLOCK == 0
+@@ -184,21 +102,22 @@ do_test (void)
+   if (e < 0)
+     puts ("CLOCK_MONOTONIC not supported");
+   else if (e == 0)
+-    {
+-      puts ("sysconf (_SC_MONOTONIC_CLOCK) must not return 0");
+-      res = 1;
+-    }
++      FAIL_RET ("sysconf (_SC_MONOTONIC_CLOCK) must not return 0");
+   else
++    {
+ #  endif
+-    res |= run_test (CLOCK_MONOTONIC);
++      run_test (CLOCK_MONOTONIC, CLOCK_USE_ATTR_CLOCK);
++      run_test (CLOCK_REALTIME, CLOCK_MONOTONIC);
++      run_test (CLOCK_MONOTONIC, CLOCK_MONOTONIC);
++      run_test (CLOCK_MONOTONIC, CLOCK_REALTIME);
++    }
+ # else
+   puts ("_POSIX_MONOTONIC_CLOCK not defined");
+ # endif
+ 
+-  return res;
++  return 0;
+ #endif
+ }
+ 
+-#define TIMEOUT 3
+-#define TEST_FUNCTION do_test ()
+-#include "../test-skeleton.c"
++#include <support/test-driver.c>
++
+diff --git a/nptl/tst-cond26.c b/nptl/tst-cond26.c
+new file mode 100644
+index 00000000..bb4d6c9b
+--- /dev/null
++++ b/nptl/tst-cond26.c
+@@ -0,0 +1,77 @@
++/* Test unsupported/bad clocks passed to pthread_cond_clockwait.
++
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <errno.h>
++#include <pthread.h>
++#include <stdio.h>
++#include <time.h>
++#include <unistd.h>
++#include <support/check.h>
++#include <support/timespec.h>
++#include <support/xthread.h>
++
++static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
++static pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
++
++#define NOT_A_VALID_CLOCK 123456
++
++static int
++do_test (void)
++{
++  xpthread_mutex_lock (&mut);
++
++  const struct timespec ts = make_timespec (0, 0);
++
++  /* These clocks are meaningless to sem_clockwait.  */
++#if defined(CLOCK_PROCESS_CPUTIME_ID)
++  TEST_COMPARE (pthread_cond_clockwait (&cond, &mut,
++                                        CLOCK_PROCESS_CPUTIME_ID, &ts), EINVAL);
++#endif
++#if defined(CLOCK_THREAD_CPUTIME_ID)
++  TEST_COMPARE (pthread_cond_clockwait (&cond, &mut,
++                                        CLOCK_THREAD_CPUTIME_ID, &ts), EINVAL);
++#endif
++
++  /* These clocks might be meaningful, but are currently unsupported
++     by pthread_cond_clockwait.  */
++#if defined(CLOCK_REALTIME_COARSE)
++  TEST_COMPARE (pthread_cond_clockwait (&cond, &mut,
++                                        CLOCK_REALTIME_COARSE, &ts), EINVAL);
++#endif
++#if defined(CLOCK_MONOTONIC_RAW)
++  TEST_COMPARE (pthread_cond_clockwait (&cond, &mut,
++                                        CLOCK_MONOTONIC_RAW, &ts), EINVAL);
++#endif
++#if defined(CLOCK_MONOTONIC_COARSE)
++  TEST_COMPARE (pthread_cond_clockwait (&cond, &mut,
++                                        CLOCK_MONOTONIC_COARSE, &ts), EINVAL);
++#endif
++#if defined(CLOCK_BOOTTIME)
++  TEST_COMPARE (pthread_cond_clockwait (&cond, &mut,
++                                        CLOCK_BOOTTIME, &ts), EINVAL);
++#endif
++
++  /* This is a completely invalid clock.  */
++  TEST_COMPARE (pthread_cond_clockwait (&cond, &mut,
++                                        NOT_A_VALID_CLOCK, &ts), EINVAL);
++
++  return 0;
++}
++
++#include <support/test-driver.c>
+diff --git a/nptl/tst-cond27.c b/nptl/tst-cond27.c
+new file mode 100644
+index 00000000..ad9658af
+--- /dev/null
++++ b/nptl/tst-cond27.c
+@@ -0,0 +1,66 @@
++/* Test pthread_cond_clockwait timeout.
++
++   Copyright (C) 2019 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <errno.h>
++#include <pthread.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <time.h>
++#include <sys/time.h>
++#include <support/check.h>
++#include <support/timespec.h>
++#include <support/xthread.h>
++
++
++static pthread_mutex_t mut = PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP;
++static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
++
++
++static int
++do_test_clock (clockid_t clockid)
++{
++  /* Get the mutex.  */
++  xpthread_mutex_lock (&mut);
++
++  /* Waiting for the condition will fail.  But we want the timeout here.  */
++  const struct timespec ts_now = xclock_now (clockid);
++  const struct timespec ts_timeout =
++    timespec_add (ts_now, make_timespec (0, 500000000));
++
++  /* In theory pthread_cond_clockwait could return zero here due to
++     spurious wakeup. However that can't happen without a signal or an
++     additional waiter.  */
++  TEST_COMPARE (pthread_cond_clockwait (&cond, &mut, clockid, &ts_timeout),
++                ETIMEDOUT);
++
++  xpthread_mutex_unlock (&mut);
++
++  return 0;
++}
++
++static int
++do_test (void)
++{
++  do_test_clock (CLOCK_MONOTONIC);
++  do_test_clock (CLOCK_REALTIME);
++  return 0;
++}
++
++#include <support/test-driver.c>
+diff --git a/sysdeps/nptl/pthread.h b/sysdeps/nptl/pthread.h
+index df049abf..7eb2decf 100644
+--- a/sysdeps/nptl/pthread.h
++++ b/sysdeps/nptl/pthread.h
+@@ -1003,6 +1003,21 @@ extern int pthread_cond_timedwait (pthread_cond_t *__restrict __cond,
+ 				   const struct timespec *__restrict __abstime)
+      __nonnull ((1, 2, 3));
+ 
++# ifdef __USE_GNU
++/* Wait for condition variable COND to be signaled or broadcast until
++   ABSTIME measured by the specified clock. MUTEX is assumed to be
++   locked before. CLOCK is the clock to use. ABSTIME is an absolute
++   time specification against CLOCK's epoch.
++
++   This function is a cancellation point and therefore not marked with
++   __THROW. */
++extern int pthread_cond_clockwait (pthread_cond_t *__restrict __cond,
++				   pthread_mutex_t *__restrict __mutex,
++				   __clockid_t __clock_id,
++				   const struct timespec *__restrict __abstime)
++     __nonnull ((1, 2, 4));
++# endif
++
+ /* Functions for handling condition variable attributes.  */
+ 
+ /* Initialize condition variable attribute ATTR.  */
+diff --git a/sysdeps/unix/sysv/linux/aarch64/libpthread.abilist b/sysdeps/unix/sysv/linux/aarch64/libpthread.abilist
+index 9a9e4cee..cd9f09fa 100644
+--- a/sysdeps/unix/sysv/linux/aarch64/libpthread.abilist
++++ b/sysdeps/unix/sysv/linux/aarch64/libpthread.abilist
+@@ -235,6 +235,7 @@ GLIBC_2.28 mtx_lock F
+ GLIBC_2.28 mtx_timedlock F
+ GLIBC_2.28 mtx_trylock F
+ GLIBC_2.28 mtx_unlock F
++GLIBC_2.28 pthread_cond_clockwait F
+ GLIBC_2.28 thrd_create F
+ GLIBC_2.28 thrd_detach F
+ GLIBC_2.28 thrd_exit F
+diff --git a/sysdeps/unix/sysv/linux/x86_64/64/libpthread.abilist b/sysdeps/unix/sysv/linux/x86_64/64/libpthread.abilist
+index 931c8277..8add10d7 100644
+--- a/sysdeps/unix/sysv/linux/x86_64/64/libpthread.abilist
++++ b/sysdeps/unix/sysv/linux/x86_64/64/libpthread.abilist
+@@ -211,6 +211,7 @@ GLIBC_2.28 mtx_lock F
+ GLIBC_2.28 mtx_timedlock F
+ GLIBC_2.28 mtx_trylock F
+ GLIBC_2.28 mtx_unlock F
++GLIBC_2.28 pthread_cond_clockwait F
+ GLIBC_2.28 thrd_create F
+ GLIBC_2.28 thrd_detach F
+ GLIBC_2.28 thrd_exit F
+-- 
+2.23.0
+
