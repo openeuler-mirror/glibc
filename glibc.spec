@@ -60,7 +60,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.33
-Release: 	2
+Release: 	3
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -72,6 +72,7 @@ Source3:   bench.mk
 Source4:   glibc-bench-compare
 Source5:   LanguageList
 Source6:   LicenseList
+Source7:   replace_same_file_to_hard_link.py
 
 Patch0: glibc-1070416.patch
 Patch1: glibc-c-utf8-locale.patch
@@ -481,13 +482,11 @@ make -j1 install_root=$RPM_BUILD_ROOT install -C build-%{target}
 
 pushd build-%{target}
 
-# notice: we can't use parallel compilation because the localedata will use "localedef" command
-# to create locales such as LC_CTYPE, LC_TIME etc, and this command will create a file,
-# or create a hard link if there already has a output file who's input is the same,
-# so when we use parallel compilation, it will lead to different results, and this will cause BEP inconsistence.
-make -j1 install_root=$RPM_BUILD_ROOT \
+make %{?_smp_mflags} install_root=$RPM_BUILD_ROOT \
 	install-locale-files -C ../localedata objdir=`pwd`
 popd
+
+python3 %{SOURCE7} $PRM_BUILD_ROOT/usr/lib/locale
 
 rm -f $RPM_BUILD_ROOT/%{_libdir}/libNoVersion*
 rm -f $RPM_BUILD_ROOT/%{_lib}/libNoVersion*
@@ -1171,6 +1170,10 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Tue Apr 27 2021 xuhuijie<xuhujie@huawei.com> - 2.33-3
+- Fix locales BEP inconsistence, use python to replace same file
+  to hard link
+
 * Wed Apr 7 2021 xieliuhua<xieliuhua@huawei.com> - 2.33-2
 - Fix-the-inaccuracy-of-j0f-j1f-y0f-y1f-BZ.patch
 
