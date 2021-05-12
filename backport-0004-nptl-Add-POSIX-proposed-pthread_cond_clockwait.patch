@@ -3,6 +3,9 @@ From: Mike Crowe <mac@mcrowe.com>
 Date: Fri, 21 Jun 2019 17:36:56 +0000
 Subject: [PATCH] nptl: Add POSIX-proposed pthread_cond_clockwait
 
+Conflict:NA
+Reference:https://sourceware.org/git/?p=glibc.git;a=commitdiff;h=afe4de7d283ebd88157126c5494ce1796194c16e
+
 Add:
 
  int pthread_cond_clockwait (pthread_cond_t *cond,

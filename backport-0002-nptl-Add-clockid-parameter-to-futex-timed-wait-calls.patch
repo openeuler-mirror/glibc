@@ -3,6 +3,9 @@ From: Mike Crowe <mac@mcrowe.com>
 Date: Fri, 21 Jun 2019 14:53:40 +0000
 Subject: [PATCH] nptl: Add clockid parameter to futex timed wait calls
 
+Conflict:NA
+Reference:https://sourceware.org/git/?p=glibc.git;a=commitdiff;h=99d01ffcc386d1bfb681fb0684fcf6a6a996beb3
+
 In preparation for adding POSIX clockwait variants of timedwait functions,
 add a clockid_t parameter to futex_abstimed_wait functions and pass
 CLOCK_REALTIME from all callers for the time being.
@@ -48,10 +51,10 @@ Reviewed-by: Adhemerval Zanella <adhemerval.zanella@linaro.org>
  nptl/pthread_rwlock_common.c                 |  8 ++---
  nptl/sem_waitcommon.c                        |  6 ++--
  sysdeps/nptl/futex-internal.h                |  9 +++++-
- sysdeps/nptl/lowlevellock-futex.h            | 14 ++++++---
+ sysdeps/nptl/lowlevellock-futex.h            | 13 ++++++---
  sysdeps/unix/sysv/linux/futex-internal.h     | 24 ++++++++++----
  sysdeps/unix/sysv/linux/lowlevellock-futex.h | 32 +++++++++++++++----
- 9 files changed, 110 insertions(+), 52 deletions(-)
+ 9 files changed, 110 insertions(+), 51 deletions(-)
 
 diff --git a/ChangeLog b/ChangeLog
 index 24a97096..1f8cf24f 100644
@@ -91,9 +94,9 @@ index 24a97096..1f8cf24f 100644
 +	* nptl/pthread_mutex_timedlock.c (__pthread_mutex_timedlock):
 +	Switch to lll_futex_clock_wait_bitset and pass CLOCK_REALTIME
 +
- 2019-04-23  Adhemerval Zanella  <adhemerval.zanella@linaro.org>
+ 2019-03-05  Adhemerval Zanella  <adhemerval.zanella@linaro.org>
  
- 	[BZ #18035]
+ 	* nptl/nptl-init.c (__have_futex_clock_realtime,
 diff --git a/nptl/pthread_cond_wait.c b/nptl/pthread_cond_wait.c
 index 3e110541..3294fa3a 100644
 --- a/nptl/pthread_cond_wait.c
@@ -145,9 +148,9 @@ index 888c12fe..46fcf8d8 100644
 --- a/nptl/pthread_mutex_timedlock.c
 +++ b/nptl/pthread_mutex_timedlock.c
 @@ -292,8 +292,8 @@ __pthread_mutex_timedlock (pthread_mutex_t *mutex,
- 	  lll_futex_timed_wait (&mutex->__data.__lock, oldval,
- 				&rt, PTHREAD_ROBUST_MUTEX_PSHARED (mutex));
- #else
+ 	  assume_other_futex_waiters |= FUTEX_WAITERS;
+ 
+ 	  /* Block using the futex.  */
 -	  int err = lll_futex_timed_wait_bitset (&mutex->__data.__lock,
 -	      oldval, abstime, FUTEX_CLOCK_REALTIME,
 +	  int err = lll_futex_clock_wait_bitset (&mutex->__data.__lock,
@@ -256,12 +259,11 @@ diff --git a/sysdeps/nptl/lowlevellock-futex.h b/sysdeps/nptl/lowlevellock-futex
 index 27b81b83..68ce7516 100644
 --- a/sysdeps/nptl/lowlevellock-futex.h
 +++ b/sysdeps/nptl/lowlevellock-futex.h
-@@ -43,11 +43,15 @@
+@@ -43,10 +43,15 @@
  #define lll_futex_timed_wait(futexp, val, timeout, private)             \
    -ENOSYS
  
--/* This macro should be defined only if FUTEX_CLOCK_REALTIME is also defined.
--   If CLOCKBIT is zero, this is identical to lll_futex_timed_wait.
+-/* If CLOCKBIT is zero, this is identical to lll_futex_timed_wait.
 -   If CLOCKBIT has FUTEX_CLOCK_REALTIME set, then it's the same but
 -   TIMEOUT is counted by CLOCK_REALTIME rather than CLOCK_MONOTONIC.  */
 -#define lll_futex_timed_wait_bitset(futexp, val, timeout, clockbit, private) \
