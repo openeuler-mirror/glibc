@@ -1,0 +1,443 @@
+From 0ddb7ea842abf63516b74d4b057c052afc6ba863 Mon Sep 17 00:00:00 2001
+From: Adhemerval Zanella <adhemerval.zanella@linaro.org>
+Date: Thu, 28 Feb 2019 11:33:22 -0300
+Subject: [PATCH] nptl: Assume __ASSUME_FUTEX_CLOCK_REALTIME support
+
+Conflict:NA
+Reference:https://sourceware.org/git/?p=glibc.git;a=commitdiff;h=0ddb7ea842abf63516b74d4b057c052afc6ba863
+
+This patch assumes realtime clock support for nptl and thus removes
+all the associated code.
+
+For __pthread_mutex_timedlock the fallback usage for the case where
+lll_futex_timed_wait_bitset it not set define is also removed. The
+generic lowlevellock-futex.h always define it, so for NPTL code the
+check always yield true.
+
+Checked on x86_64-linux-gnu and i686-linux-gnu.
+
+	* nptl/nptl-init.c (__have_futex_clock_realtime,
+	__have_futex_clock_realtime): Remove definition.
+	(__pthread_initialize_minimal_internal): Remove FUTEX_CLOCK_REALTIME
+	check test for !__ASSUME_FUTEX_CLOCK_REALTIME.
+	* nptl/pthread_mutex_timedlock.c (__pthread_mutex_timedlock): Assume
+	__ASSUME_FUTEX_CLOCK_REALTIME support.
+	* sysdeps/unix/sysv/linux/i386/lowlevellock.S: Likewise.
+	* sysdeps/unix/sysv/linux/x86_64/lowlevellock.S: Likewise.
+	* sysdeps/unix/sysv/linux/kernel-features.h
+	(__ASSUME_FUTEX_CLOCK_REALTIME): Remove.
+	* sysdeps/nptl/lowlevellock-futex.h (lll_futex_timed_wait_bitset):
+	Adjust comment.
+---
+ ChangeLog                                     |  15 +++
+ nptl/nptl-init.c                              |  29 -----
+ nptl/pthread_mutex_timedlock.c                |  27 ----
+ sysdeps/nptl/lowlevellock-futex.h             |   3 +-
+ sysdeps/unix/sysv/linux/i386/lowlevellock.S   | 100 ---------------
+ sysdeps/unix/sysv/linux/kernel-features.h     |   3 -
+ sysdeps/unix/sysv/linux/x86_64/lowlevellock.S | 115 ------------------
+ 7 files changed, 16 insertions(+), 276 deletions(-)
+
+diff --git a/ChangeLog b/ChangeLog
+index 3a70b618ab..53c5d2fcef 100644
+--- a/ChangeLog
++++ b/ChangeLog
+@@ -1,3 +1,18 @@
++2019-03-05  Adhemerval Zanella  <adhemerval.zanella@linaro.org>
++
++	* nptl/nptl-init.c (__have_futex_clock_realtime,
++	__have_futex_clock_realtime): Remove definition.
++	(__pthread_initialize_minimal_internal): Remove FUTEX_CLOCK_REALTIME
++	check test for !__ASSUME_FUTEX_CLOCK_REALTIME.
++	* nptl/pthread_mutex_timedlock.c (__pthread_mutex_timedlock): Assume
++	__ASSUME_FUTEX_CLOCK_REALTIME support.
++	* sysdeps/unix/sysv/linux/i386/lowlevellock.S: Likewise.
++	* sysdeps/unix/sysv/linux/x86_64/lowlevellock.S: Likewise.
++	* sysdeps/unix/sysv/linux/kernel-features.h
++	(__ASSUME_FUTEX_CLOCK_REALTIME): Remove.
++	* sysdeps/nptl/lowlevellock-futex.h (lll_futex_timed_wait_bitset):
++	Adjust comment.
++
+ 2019-04-23  Adhemerval Zanella  <adhemerval.zanella@linaro.org>
+ 
+ 	[BZ #18035]
+diff --git a/nptl/nptl-init.c b/nptl/nptl-init.c
+index b5895fabf3..61ec8ed12a 100644
+--- a/nptl/nptl-init.c
++++ b/nptl/nptl-init.c
+@@ -58,15 +58,6 @@ int __set_robust_list_avail;
+ # define set_robust_list_not_avail() do { } while (0)
+ #endif
+ 
+-#ifndef __ASSUME_FUTEX_CLOCK_REALTIME
+-/* Nonzero if we do not have FUTEX_CLOCK_REALTIME.  */
+-int __have_futex_clock_realtime;
+-# define __set_futex_clock_realtime() \
+-  __have_futex_clock_realtime = 1
+-#else
+-#define __set_futex_clock_realtime() do { } while (0)
+-#endif
+-
+ /* Version of the library, used in libthread_db to detect mismatches.  */
+ static const char nptl_version[] __attribute_used__ = VERSION;
+ 
+@@ -298,26 +289,6 @@ __pthread_initialize_minimal_internal (void)
+       set_robust_list_not_avail ();
+   }
+ 
+-#ifdef __NR_futex
+-# ifndef __ASSUME_FUTEX_CLOCK_REALTIME
+-    {
+-      int word = 0;
+-      /* NB: the syscall actually takes six parameters.  The last is the
+-	 bit mask.  But since we will not actually wait at all the value
+-	 is irrelevant.  Given that passing six parameters is difficult
+-	 on some architectures we just pass whatever random value the
+-	 calling convention calls for to the kernel.  It causes no harm.  */
+-      INTERNAL_SYSCALL_DECL (err);
+-      word = INTERNAL_SYSCALL (futex, err, 5, &word,
+-			       FUTEX_WAIT_BITSET | FUTEX_CLOCK_REALTIME
+-			       | FUTEX_PRIVATE_FLAG, 1, NULL, 0);
+-      assert (INTERNAL_SYSCALL_ERROR_P (word, err));
+-      if (INTERNAL_SYSCALL_ERRNO (word, err) != ENOSYS)
+-	__set_futex_clock_realtime ();
+-    }
+-# endif
+-#endif
+-
+   /* Set initial thread's stack block from 0 up to __libc_stack_end.
+      It will be bigger than it actually is, but for unwind.c/pt-longjmp.c
+      purposes this is good enough.  */
+diff --git a/nptl/pthread_mutex_timedlock.c b/nptl/pthread_mutex_timedlock.c
+index 2f61a7d0d5..270b072c97 100644
+--- a/nptl/pthread_mutex_timedlock.c
++++ b/nptl/pthread_mutex_timedlock.c
+@@ -240,27 +240,6 @@ __pthread_mutex_timedlock (pthread_mutex_t *mutex,
+ 	     values despite them being valid.  */
+ 	  if (__glibc_unlikely (abstime->tv_sec < 0))
+ 	    return ETIMEDOUT;
+-#if (!defined __ASSUME_FUTEX_CLOCK_REALTIME \
+-     || !defined lll_futex_timed_wait_bitset)
+-	  struct timeval tv;
+-	  struct timespec rt;
+-
+-	  /* Get the current time.  */
+-	  (void) __gettimeofday (&tv, NULL);
+-
+-	  /* Compute relative timeout.  */
+-	  rt.tv_sec = abstime->tv_sec - tv.tv_sec;
+-	  rt.tv_nsec = abstime->tv_nsec - tv.tv_usec * 1000;
+-	  if (rt.tv_nsec < 0)
+-	    {
+-	      rt.tv_nsec += 1000000000;
+-	      --rt.tv_sec;
+-	    }
+-
+-	  /* Already timed out?  */
+-	  if (rt.tv_sec < 0)
+-	    return ETIMEDOUT;
+-#endif
+ 
+ 	  /* We cannot acquire the mutex nor has its owner died.  Thus, try
+ 	     to block using futexes.  Set FUTEX_WAITERS if necessary so that
+@@ -287,18 +266,12 @@ __pthread_mutex_timedlock (pthread_mutex_t *mutex,
+ 	  assume_other_futex_waiters |= FUTEX_WAITERS;
+ 
+ 	  /* Block using the futex.  */
+-#if (!defined __ASSUME_FUTEX_CLOCK_REALTIME \
+-     || !defined lll_futex_timed_wait_bitset)
+-	  lll_futex_timed_wait (&mutex->__data.__lock, oldval,
+-				&rt, PTHREAD_ROBUST_MUTEX_PSHARED (mutex));
+-#else
+ 	  int err = lll_futex_timed_wait_bitset (&mutex->__data.__lock,
+ 	      oldval, abstime, FUTEX_CLOCK_REALTIME,
+ 	      PTHREAD_ROBUST_MUTEX_PSHARED (mutex));
+ 	  /* The futex call timed out.  */
+ 	  if (err == -ETIMEDOUT)
+ 	    return -err;
+-#endif
+ 	  /* Reload current lock value.  */
+ 	  oldval = mutex->__data.__lock;
+ 	}
+diff --git a/sysdeps/nptl/lowlevellock-futex.h b/sysdeps/nptl/lowlevellock-futex.h
+index bb8effe288..63d917d8da 100644
+--- a/sysdeps/nptl/lowlevellock-futex.h
++++ b/sysdeps/nptl/lowlevellock-futex.h
+@@ -43,8 +43,7 @@
+ #define lll_futex_timed_wait(futexp, val, timeout, private)             \
+   -ENOSYS
+ 
+-/* This macro should be defined only if FUTEX_CLOCK_REALTIME is also defined.
+-   If CLOCKBIT is zero, this is identical to lll_futex_timed_wait.
++/* If CLOCKBIT is zero, this is identical to lll_futex_timed_wait.
+    If CLOCKBIT has FUTEX_CLOCK_REALTIME set, then it's the same but
+    TIMEOUT is counted by CLOCK_REALTIME rather than CLOCK_MONOTONIC.  */
+ #define lll_futex_timed_wait_bitset(futexp, val, timeout, clockbit, private) \
+diff --git a/sysdeps/unix/sysv/linux/i386/lowlevellock.S b/sysdeps/unix/sysv/linux/i386/lowlevellock.S
+index 83191a3899..a9898e94fd 100644
+--- a/sysdeps/unix/sysv/linux/i386/lowlevellock.S
++++ b/sysdeps/unix/sysv/linux/i386/lowlevellock.S
+@@ -148,16 +148,6 @@ __lll_timedlock_wait:
+ 	cfi_adjust_cfa_offset(4)
+ 	cfi_rel_offset(%ebx, 0)
+ 
+-# ifndef __ASSUME_FUTEX_CLOCK_REALTIME
+-#  ifdef PIC
+-	LOAD_PIC_REG (bx)
+-	cmpl	$0, __have_futex_clock_realtime@GOTOFF(%ebx)
+-#  else
+-	cmpl	$0, __have_futex_clock_realtime
+-#  endif
+-	je	.Lreltmo
+-# endif
+-
+ 	cmpl	$0, (%edx)
+ 	js	8f
+ 
+@@ -199,96 +189,6 @@ __lll_timedlock_wait:
+ 8:	movl	$ETIMEDOUT, %eax
+ 	jmp	7b
+ 
+-# ifndef __ASSUME_FUTEX_CLOCK_REALTIME
+-.Lreltmo:
+-	/* Check for a valid timeout value.  */
+-	cmpl	$1000000000, 4(%edx)
+-	jae	3f
+-
+-	pushl	%esi
+-	cfi_adjust_cfa_offset(4)
+-	cfi_rel_offset(%esi, 0)
+-	pushl	%edi
+-	cfi_adjust_cfa_offset(4)
+-	cfi_rel_offset(%edi, 0)
+-
+-	/* Stack frame for the timespec and timeval structs.  */
+-	subl	$8, %esp
+-	cfi_adjust_cfa_offset(8)
+-
+-	movl	%ecx, %ebp
+-	movl	%edx, %edi
+-
+-	movl	$2, %edx
+-	xchgl	%edx, (%ebp)
+-
+-	test	%edx, %edx
+-	je	6f
+-
+-1:
+-	/* Get current time.  */
+-	movl	%esp, %ebx
+-	xorl	%ecx, %ecx
+-	movl	$__NR_gettimeofday, %eax
+-	ENTER_KERNEL
+-
+-	/* Compute relative timeout.  */
+-	movl	4(%esp), %eax
+-	movl	$1000, %edx
+-	mul	%edx		/* Milli seconds to nano seconds.  */
+-	movl	(%edi), %ecx
+-	movl	4(%edi), %edx
+-	subl	(%esp), %ecx
+-	subl	%eax, %edx
+-	jns	4f
+-	addl	$1000000000, %edx
+-	subl	$1, %ecx
+-4:	testl	%ecx, %ecx
+-	js	2f		/* Time is already up.  */
+-
+-	/* Store relative timeout.  */
+-	movl	%ecx, (%esp)
+-	movl	%edx, 4(%esp)
+-
+-	/* Futex call.  */
+-	movl	%ebp, %ebx
+-	movl	$2, %edx
+-	movl	%esp, %esi
+-	movl	16(%esp), %ecx
+-	LOAD_FUTEX_WAIT (%ecx)
+-	movl	$SYS_futex, %eax
+-	ENTER_KERNEL
+-
+-	/* NB: %edx == 2 */
+-	xchgl	%edx, (%ebp)
+-
+-	testl	%edx, %edx
+-	je	6f
+-
+-	cmpl	$-ETIMEDOUT, %eax
+-	jne	1b
+-2:	movl	$ETIMEDOUT, %edx
+-
+-6:	addl	$8, %esp
+-	cfi_adjust_cfa_offset(-8)
+-	popl	%edi
+-	cfi_adjust_cfa_offset(-4)
+-	cfi_restore(%edi)
+-	popl	%esi
+-	cfi_adjust_cfa_offset(-4)
+-	cfi_restore(%esi)
+-7:	popl	%ebx
+-	cfi_adjust_cfa_offset(-4)
+-	cfi_restore(%ebx)
+-	popl	%ebp
+-	cfi_adjust_cfa_offset(-4)
+-	cfi_restore(%ebp)
+-	movl	%edx, %eax
+-	ret
+-
+-3:	movl	$EINVAL, %edx
+-	jmp	7b
+-# endif
+ 	cfi_endproc
+ 	.size	__lll_timedlock_wait,.-__lll_timedlock_wait
+ #endif
+diff --git a/sysdeps/unix/sysv/linux/kernel-features.h b/sysdeps/unix/sysv/linux/kernel-features.h
+index 0db1b987a4..bc5c959f58 100644
+--- a/sysdeps/unix/sysv/linux/kernel-features.h
++++ b/sysdeps/unix/sysv/linux/kernel-features.h
+@@ -57,9 +57,6 @@
+    2.6.27.  */
+ #define __ASSUME_IN_NONBLOCK	1
+ 
+-/* Support for the FUTEX_CLOCK_REALTIME flag was added in 2.6.29.  */
+-#define __ASSUME_FUTEX_CLOCK_REALTIME	1
+-
+ /* Support for preadv and pwritev was added in 2.6.30.  */
+ #define __ASSUME_PREADV	1
+ #define __ASSUME_PWRITEV	1
+diff --git a/sysdeps/unix/sysv/linux/x86_64/lowlevellock.S b/sysdeps/unix/sysv/linux/x86_64/lowlevellock.S
+index 166dbcfd3b..00ba88d5d2 100644
+--- a/sysdeps/unix/sysv/linux/x86_64/lowlevellock.S
++++ b/sysdeps/unix/sysv/linux/x86_64/lowlevellock.S
+@@ -127,15 +127,6 @@ __lll_lock_wait:
+ 	.align	16
+ __lll_timedlock_wait:
+ 	cfi_startproc
+-# ifndef __ASSUME_FUTEX_CLOCK_REALTIME
+-#  ifdef PIC
+-	cmpl	$0, __have_futex_clock_realtime(%rip)
+-#  else
+-	cmpl	$0, __have_futex_clock_realtime
+-#  endif
+-	je	.Lreltmo
+-# endif
+-
+ 	cmpq	$0, (%rdx)
+ 	js	5f
+ 
+@@ -176,112 +167,6 @@ __lll_timedlock_wait:
+ 5:	movl	$ETIMEDOUT, %eax
+ 	retq
+ 
+-# ifndef __ASSUME_FUTEX_CLOCK_REALTIME
+-.Lreltmo:
+-	/* Check for a valid timeout value.  */
+-	cmpq	$1000000000, 8(%rdx)
+-	jae	3f
+-
+-	pushq	%r8
+-	cfi_adjust_cfa_offset(8)
+-	pushq	%r9
+-	cfi_adjust_cfa_offset(8)
+-	pushq	%r12
+-	cfi_adjust_cfa_offset(8)
+-	pushq	%r13
+-	cfi_adjust_cfa_offset(8)
+-	pushq	%r14
+-	cfi_adjust_cfa_offset(8)
+-	cfi_offset(%r8, -16)
+-	cfi_offset(%r9, -24)
+-	cfi_offset(%r12, -32)
+-	cfi_offset(%r13, -40)
+-	cfi_offset(%r14, -48)
+-	pushq	%rsi
+-	cfi_adjust_cfa_offset(8)
+-
+-	/* Stack frame for the timespec and timeval structs.  */
+-	subq	$24, %rsp
+-	cfi_adjust_cfa_offset(24)
+-
+-	movq	%rdi, %r12
+-	movq	%rdx, %r13
+-
+-	movl	$2, %edx
+-	xchgl	%edx, (%r12)
+-
+-	testl	%edx, %edx
+-	je	6f
+-
+-1:
+-	/* Get current time.  */
+-	movq	%rsp, %rdi
+-	xorl	%esi, %esi
+-	/* This call works because we directly jump to a system call entry
+-	   which preserves all the registers.  */
+-	call	JUMPTARGET(__gettimeofday)
+-
+-	/* Compute relative timeout.  */
+-	movq	8(%rsp), %rax
+-	movl	$1000, %edi
+-	mul	%rdi		/* Milli seconds to nano seconds.  */
+-	movq	(%r13), %rdi
+-	movq	8(%r13), %rsi
+-	subq	(%rsp), %rdi
+-	subq	%rax, %rsi
+-	jns	4f
+-	addq	$1000000000, %rsi
+-	decq	%rdi
+-4:	testq	%rdi, %rdi
+-	js	2f		/* Time is already up.  */
+-
+-	/* Store relative timeout.  */
+-	movq	%rdi, (%rsp)
+-	movq	%rsi, 8(%rsp)
+-
+-	/* Futex call.  */
+-	movl	$2, %edx
+-	movl	$1, %eax
+-	movq	%rsp, %r10
+-	movl	24(%rsp), %esi
+-	LOAD_FUTEX_WAIT (%esi)
+-	movq	%r12, %rdi
+-	movl	$SYS_futex, %eax
+-	syscall
+-
+-	/* NB: %edx == 2 */
+-	xchgl	%edx, (%r12)
+-
+-	testl	%edx, %edx
+-	je	6f
+-
+-	cmpl	$-ETIMEDOUT, %eax
+-	jne	1b
+-2:	movl	$ETIMEDOUT, %edx
+-
+-6:	addq	$32, %rsp
+-	cfi_adjust_cfa_offset(-32)
+-	popq	%r14
+-	cfi_adjust_cfa_offset(-8)
+-	cfi_restore(%r14)
+-	popq	%r13
+-	cfi_adjust_cfa_offset(-8)
+-	cfi_restore(%r13)
+-	popq	%r12
+-	cfi_adjust_cfa_offset(-8)
+-	cfi_restore(%r12)
+-	popq	%r9
+-	cfi_adjust_cfa_offset(-8)
+-	cfi_restore(%r9)
+-	popq	%r8
+-	cfi_adjust_cfa_offset(-8)
+-	cfi_restore(%r8)
+-	movl	%edx, %eax
+-	retq
+-
+-3:	movl	$EINVAL, %eax
+-	retq
+-# endif
+ 	cfi_endproc
+ 	.size	__lll_timedlock_wait,.-__lll_timedlock_wait
+ #endif
+-- 
+2.21.0.windows.1
+
