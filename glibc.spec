@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	65
+Release: 	66
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -119,9 +119,10 @@ Patch35: backport-aarch64-revert-memcpy-optimze-for-kunpeng-to-avoid-p.patch
 Patch36: backport-elf-Allow-dlopen-of-filter-object-to-work-BZ-16272.patch
 Patch37: backport-elf-Fix-pldd-BZ-18035.patch
 Patch38: backport-CVE-2021-3326-gconv-Fix-assertion-failure-in-ISO-2022-JP-3-module-.patch
-Patch39: backport-0001-nptl-Add-clockid-parameter-to-futex-timed-wait-calls.patch
-Patch40: backport-0002-support-Add-timespec.h-xtime.h.patch
-Patch41: backport-0003-nptl-Add-POSIX-proposed-pthread_cond_clockwait.patch
+Patch39: backport-0001-nptl-Assume-__ASSUME_FUTEX_CLOCK_REALTIME-support.patch
+Patch40: backport-0002-nptl-Add-clockid-parameter-to-futex-timed-wait-calls.patch
+Patch41: backport-0003-support-Add-timespec.h-xtime.h.patch
+Patch42: backport-0004-nptl-Add-POSIX-proposed-pthread_cond_clockwait.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1146,6 +1147,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Wed May 12 2021 xuhuijie<xuhuijie2@huawei.com> - 2.28-66
+- pthread_cond_clockwait: add pre-patch to prevent adaptions
+
 * Wed Apr 21 2021 xuhuijie<xuhuijie2@huawei.com> - 2.28-65
 - Add POSIX-proposed pthread_cond_clockwait
 
