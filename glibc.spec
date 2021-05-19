@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	66
+Release: 	67
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -123,6 +123,7 @@ Patch39: backport-0001-nptl-Assume-__ASSUME_FUTEX_CLOCK_REALTIME-support.patch
 Patch40: backport-0002-nptl-Add-clockid-parameter-to-futex-timed-wait-calls.patch
 Patch41: backport-0003-support-Add-timespec.h-xtime.h.patch
 Patch42: backport-0004-nptl-Add-POSIX-proposed-pthread_cond_clockwait.patch
+Patch43: backport-rtld-Avoid-using-up-static-TLS-surplus-for-optimizat.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1147,6 +1148,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Mon May 17 2021 xujing<17826839720@163.com> - 2.28-67
+- Avoid using up static TLS surplus to fix graphical install error
+
 * Wed May 12 2021 xuhuijie<xuhuijie2@huawei.com> - 2.28-66
 - pthread_cond_clockwait: add pre-patch to prevent adaptions
 
