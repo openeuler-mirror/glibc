@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	67
+Release: 	68
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -124,6 +124,8 @@ Patch40: backport-0002-nptl-Add-clockid-parameter-to-futex-timed-wait-calls.patc
 Patch41: backport-0003-support-Add-timespec.h-xtime.h.patch
 Patch42: backport-0004-nptl-Add-POSIX-proposed-pthread_cond_clockwait.patch
 Patch43: backport-rtld-Avoid-using-up-static-TLS-surplus-for-optimizat.patch
+Patch44: backport-CVE-2021-33574-0001-Fix-mq_notify-bug-27896.patch
+Patch45: backport-CVE-2021-33574-0002-Fix-mq_notify-bug-27896.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1148,6 +1150,10 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Sat Jun 5 2021 Qingqing Li<liqingqing3@huawei.com> - 2.28-68
+- fix CVE-2021-33574, fix use of __pthread_attr_copy in mq_notify (bug 27896)
+  https://sourceware.org/bugzilla/show_bug.cgi?id=27896
+
 * Mon May 17 2021 xujing<17826839720@163.com> - 2.28-67
 - Avoid using up static TLS surplus to fix graphical install error
 
