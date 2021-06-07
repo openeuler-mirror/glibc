@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	68
+Release: 	69
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -1150,6 +1150,12 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Mon Jun 7 2021 Qingqing Li<liqingqing3@huawei.com> - 2.28-69
+- aarch64: align stack in clone [BZ #27939]
+  https://sourceware.org/bugzilla/show_bug.cgi?id=27939
+  x86-64 Align child stack to 16 bytes [BZ #27902]
+  https://sourceware.org/bugzilla/show_bug.cgi?id=27902
+
 * Sat Jun 5 2021 Qingqing Li<liqingqing3@huawei.com> - 2.28-68
 - fix CVE-2021-33574, fix use of __pthread_attr_copy in mq_notify (bug 27896)
   https://sourceware.org/bugzilla/show_bug.cgi?id=27896
