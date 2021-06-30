@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	70
+Release: 	71
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -128,6 +128,7 @@ Patch44: backport-CVE-2021-33574-0001-Fix-mq_notify-bug-27896.patch
 Patch45: backport-CVE-2021-33574-0002-Fix-mq_notify-bug-27896.patch
 Patch46: backport-aarch64-align-stack-in-clone-BZ-27939.patch
 Patch47: backport-x86-64-Align-child-stack-to-16-bytes-BZ-27902.patch 
+Patch48: backport-ldconfig-handle-.dynstr-located-in-separate-segment-.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1152,6 +1153,10 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Wed Jun 30 2021 lvying<lvying6@huawei.com> - 2.28-71
+- ldconfig: handle .dynstr located in separate segment (bug 25087)
+  https://sourceware.org/git/?p=glibc.git;a=commit;h=58e8f5fd2ba47b6dc47fd4d0a35e4175c7c87aaa
+
 * Sat Jun 26 2021 Qingqing Li<liqingqing3@huawei.com> - 2.28-70
 - enable patches to fix bug 27939 and 27902
 
