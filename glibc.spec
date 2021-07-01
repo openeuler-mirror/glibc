@@ -60,7 +60,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.33
-Release: 	4
+Release: 	5
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -81,6 +81,7 @@ Patch2: Fix-the-inaccuracy-of-j0f-j1f-y0f-y1f-BZ.patch
 Patch6000: backport-posix-tst-rfc3484-Fix-compile-failure-linking-to-loc.patch
 Patch6001: backport-Use-__pthread_attr_copy-in-mq_notify-bug-27896.patch
 Patch6002: backport-Fix-use-of-__pthread_attr_copy-in-mq_notify-bug-27896.patch
+Patch6003: backport-CVE-2021-35942-wordexp-handle-overflow-in-positional-parameter-numb.patch
 
 Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1172,6 +1173,10 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Thu Jul 1 2021 QingqingLi<liqingqing3@huawei.com> - 2.33-5
+- wordexp: Use strtoul instead of atoi so that overflow can be detected. (bug 28011)
+  https://sourceware.org/bugzilla/show_bug.cgi?id=28011
+
 * Fri Jun 18 2021 Qingqing Li<liqingqing3@huawei.com> - 2.33-4
 - fix CVE-2021-33574(bug 27896)
   https://sourceware.org/bugzilla/show_bug.cgi?id=27896
