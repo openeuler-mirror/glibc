@@ -60,7 +60,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.33
-Release: 	5
+Release: 	6
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -82,6 +82,7 @@ Patch6000: backport-posix-tst-rfc3484-Fix-compile-failure-linking-to-loc.patch
 Patch6001: backport-Use-__pthread_attr_copy-in-mq_notify-bug-27896.patch
 Patch6002: backport-Fix-use-of-__pthread_attr_copy-in-mq_notify-bug-27896.patch
 Patch6003: backport-CVE-2021-35942-wordexp-handle-overflow-in-positional-parameter-numb.patch
+Patch6004: backport-malloc-Initiate-tcache-shutdown-even-without-allocat.patch
 
 Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1173,7 +1174,11 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
-* Thu Jul 1 2021 QingqingLi<liqingqing3@huawei.com> - 2.33-5
+* Sat Jul 3 2021 Qingqing Li<liqingqing3@huawei.com> - 2.33-6
+- malloc: tcache shutdown sequence does not work if the thread never allocated anything. (bug 28028)
+  https://sourceware.org/bugzilla/show_bug.cgi?id=28028
+
+* Thu Jul 1 2021 Qingqing Li<liqingqing3@huawei.com> - 2.33-5
 - wordexp: Use strtoul instead of atoi so that overflow can be detected. (bug 28011)
   https://sourceware.org/bugzilla/show_bug.cgi?id=28011
 
