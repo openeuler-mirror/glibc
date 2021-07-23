@@ -60,7 +60,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.33
-Release: 	6
+Release: 	7
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -94,7 +94,7 @@ Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 BuildRequires: audit-libs-devel >= 1.1.3, sed >= 3.95, libcap-devel, gettext
 BuildRequires: procps-ng, util-linux, gawk, systemtap-sdt-devel, systemd, python3
 BuildRequires: make >= 4.0, bison >= 2.7, binutils >= 2.30-17, gcc >= 7.2.1-6
-BuildRequires: m4 gcc_secure gdb
+BuildRequires: m4 gcc_secure
 
 %if %{without bootstrap}
 BuildRequires: gd-devel libpng-devel zlib-devel
@@ -1174,6 +1174,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Fri Jul 23 2021 zhouwenpei<zhouwenpei1@huawei.com> - 2.33-7
+- remove unnecessary build require.
+
 * Sat Jul 3 2021 Qingqing Li<liqingqing3@huawei.com> - 2.33-6
 - malloc: tcache shutdown sequence does not work if the thread never allocated anything. (bug 28028)
   https://sourceware.org/bugzilla/show_bug.cgi?id=28028
