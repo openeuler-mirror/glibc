@@ -1,0 +1,25 @@
+From 0c4dcaf641089d64011c1eb9c45542ae43a87d5e Mon Sep 17 00:00:00 2001
+From: Siddhesh Poyarekar <siddhesh@sourceware.org>
+Date: Tue, 11 May 2021 09:04:29 +0530
+Subject: [PATCH] _dl_exception_create_format: Add missing va_end
+
+Coverity discovered a missing va_end.
+---
+ elf/dl-exception.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/elf/dl-exception.c b/elf/dl-exception.c
+index 1c63e4a3a65b..5cfe2002d29f 100644
+--- a/elf/dl-exception.c
++++ b/elf/dl-exception.c
+@@ -187,6 +187,7 @@ _dl_exception_create_format (struct dl_exception *exception, const char *objname
+     if (len_objname != end - wptr)
+       length_mismatch ();
+     exception->objname = memcpy (wptr, objname, len_objname);
++    va_end (ap);
+   }
+ }
+ rtld_hidden_def (_dl_exception_create_format)
+-- 
+2.18.4
+
