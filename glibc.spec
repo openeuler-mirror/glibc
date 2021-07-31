@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	73
+Release: 	74
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -131,6 +131,7 @@ Patch47: backport-x86-64-Align-child-stack-to-16-bytes-BZ-27902.patch
 Patch48: backport-ldconfig-handle-.dynstr-located-in-separate-segment-.patch
 Patch49: backport-CVE-2021-35942-wordexp-handle-overflow-in-positional-parameter-numb.patch
 Patch50: backport-malloc-Initiate-tcache-shutdown-even-without-allocat.patch
+Patch51: backport-ldconfig-Fix-memory-leaks.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1155,6 +1156,10 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Sat Jul 31 2021 Lv Ying<lvying6@huawei.com> - 2.28-74
+- ldconfig: Fix memory leaks
+  https://sourceware.org/git/?p=glibc.git;a=commitdiff;h=468d772e81e9842f4f73431c164b4a12f13d8658
+
 * Sat Jul 3 2021 Qingqing Li<liqingqing3@huawei.com> - 2.28-73
 - malloc: tcache shutdown sequence does not work if the thread never allocated anything. (bug 28028)
   https://sourceware.org/bugzilla/show_bug.cgi?id=28028
