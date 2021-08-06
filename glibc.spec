@@ -59,8 +59,8 @@
 # glibc - The GNU C Library (glibc) core package.
 ##############################################################################
 Name: 	 	glibc
-Version: 	2.33
-Release: 	7
+Version: 	2.34
+Release: 	1
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -76,18 +76,10 @@ Source7:   replace_same_file_to_hard_link.py
 
 Patch0: glibc-1070416.patch
 Patch1: glibc-c-utf8-locale.patch
-Patch2: Fix-the-inaccuracy-of-j0f-j1f-y0f-y1f-BZ.patch
 
-Patch6000: backport-posix-tst-rfc3484-Fix-compile-failure-linking-to-loc.patch
-Patch6001: backport-Use-__pthread_attr_copy-in-mq_notify-bug-27896.patch
-Patch6002: backport-Fix-use-of-__pthread_attr_copy-in-mq_notify-bug-27896.patch
-Patch6003: backport-CVE-2021-35942-wordexp-handle-overflow-in-positional-parameter-numb.patch
-Patch6004: backport-malloc-Initiate-tcache-shutdown-even-without-allocat.patch
-
-Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
+#Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
-Patch9002: build-extra-libpthreadcond-so.patch
-Patch9003: remove-country-selection-from-tzselect.patch
+#Patch9002: build-extra-libpthreadcond-so.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -478,7 +470,7 @@ for d in $RPM_BUILD_ROOT%{_libdir} $RPM_BUILD_ROOT/%{_lib}; do
 done
 %endif
 
-make -j1 install_root=$RPM_BUILD_ROOT install -C build-%{target}
+make %{?_smp_mflags} install_root=$RPM_BUILD_ROOT install -C build-%{target}
 
 %if %{with libpthreadcond}
 	cp build-%{target}/nptl/libpthreadcond.so $RPM_BUILD_ROOT%{_libdir}
@@ -621,13 +613,10 @@ mv -f $RPM_BUILD_ROOT/%{_lib}/lib{pcprofile,memusage}.so \
 # Strip all of the installed object files.
 strip -g $RPM_BUILD_ROOT%{_libdir}/*.o
 
-# Rebuild libpthread.a using --whole-archive to ensure all of libpthread
-# is included in a static link.
+# create a null libpthread static link for compatibility.
 pushd $RPM_BUILD_ROOT%{_prefix}/%{_lib}/
-%GCC -r -nostdlib -o libpthread.o -Wl,--whole-archive ./libpthread.a
 rm libpthread.a
-ar rcs libpthread.a libpthread.o
-rm libpthread.o
+ar rc libpthread.a
 popd
 
 for i in $RPM_BUILD_ROOT%{_prefix}/bin/{xtrace,memusage}; do
@@ -778,7 +767,7 @@ grep '/libnss_[a-z]*\.so$' master.filelist > nss-devel.filelist
 ##############################################################################
 # libnsl subpackage
 ##############################################################################
-grep '/libnsl-[0-9.]*.so$' master.filelist > libnsl.filelist
+grep -E '/libnsl\.so\.[0-9]+$' master.filelist > libnsl.filelist
 test $(wc -l < libnsl.filelist) -eq 1
 
 ##############################################################################
@@ -1174,6 +1163,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Thu Aug 5 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-1
+- upgrade to 2.34.
+
 * Fri Jul 23 2021 zhouwenpei<zhouwenpei1@huawei.com> - 2.33-7
 - remove unnecessary build require.
 
