@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	75
+Release: 	76
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -133,6 +133,8 @@ Patch49: backport-CVE-2021-35942-wordexp-handle-overflow-in-positional-parameter
 Patch50: backport-malloc-Initiate-tcache-shutdown-even-without-allocat.patch
 Patch51: backport-ldconfig-Fix-memory-leaks.patch
 Patch52: backport-_dl_exception_create_format-Add-missing-va_end.patch
+Patch53: backport-CVE-2021-38604-0001-librt-add-test-bug-28213.patch
+Patch54: backport-CVE-2021-38604-0002-librt-fix-null-pointer-deference.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1157,6 +1159,10 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Wed Aug 25 2021 Qingqing Li<liqingqing3@huawei.com> - 2.28-76
+- fix CVE-2021-38604
+  https://sourceware.org/bugzilla/show_bug.cgi?id=28213
+
 * Sat Jul 31 2021 Lv Ying<lvying6@huawei.com> - 2.28-75
 - _dl_exception_create_format: Add missing va_end
   https://sourceware.org/git/?p=glibc.git;a=commit;h=81046e2812a3b41ad9a818eb42a1681bea232ce9
