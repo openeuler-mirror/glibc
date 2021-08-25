@@ -60,7 +60,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	1
+Release: 	2
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -76,6 +76,8 @@ Source7:   replace_same_file_to_hard_link.py
 
 Patch0: glibc-1070416.patch
 Patch1: glibc-c-utf8-locale.patch
+Patch2: backport-CVE-2021-38604-0001-librt-add-test-bug-28213.patch
+Patch3: backport-CVE-2021-38604-0002-librt-fix-NULL-pointer-dereference-bug-28213.patch
 
 #Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1163,6 +1165,10 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Wed Aug 25 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-2
+- fix CVE-2021-38604
+  https://sourceware.org/bugzilla/show_bug.cgi?id=28213
+
 * Thu Aug 5 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-1
 - upgrade to 2.34.
 
