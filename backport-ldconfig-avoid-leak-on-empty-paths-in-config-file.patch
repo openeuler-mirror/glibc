@@ -1,0 +1,33 @@
+From 05d3f389a4387d293924cba1fd16b1b1324f4ca2 Mon Sep 17 00:00:00 2001
+From: Siddhesh Poyarekar <siddhesh@sourceware.org>
+Date: Tue, 3 Aug 2021 21:10:10 +0530
+Subject: [PATCH] ldconfig: avoid leak on empty paths in config file
+
+reference: https://sourceware.org/git/?p=glibc.git;a=commit;h=b0234d79e7d82475d1666f25326ec045c045b3ed
+conflict: context add_dir is different from add_dir_1
+
+Reviewed-by: Arjun Shankar <arjun@redhat.com>
+---
+ elf/ldconfig.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/elf/ldconfig.c b/elf/ldconfig.c
+index be87bb383dac..3f0fb84bb01b 100644
+--- a/elf/ldconfig.c
++++ b/elf/ldconfig.c
+@@ -402,7 +402,11 @@ add_dir (const char *line)
+     entry->path[--i] = '\0';
+ 
+   if (i == 0)
+-    return;
++    {
++      free (entry->path);
++      free (entry);
++      return;
++    }
+ 
+   char *path = entry->path;
+   if (opt_chroot)
+-- 
+2.18.4
+

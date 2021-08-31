@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	76
+Release: 	77
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -135,6 +135,7 @@ Patch51: backport-ldconfig-Fix-memory-leaks.patch
 Patch52: backport-_dl_exception_create_format-Add-missing-va_end.patch
 Patch53: backport-CVE-2021-38604-0001-librt-add-test-bug-28213.patch
 Patch54: backport-CVE-2021-38604-0002-librt-fix-null-pointer-deference.patch
+Patch55: backport-ldconfig-avoid-leak-on-empty-paths-in-config-file.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1159,6 +1160,10 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Tue Aug 31 2021 Lv Ying<lvying6@huawei.com> - 2.28-77
+- ldconfig: avoid leak on empty paths in config file
+  https://sourceware.org/git/?p=glibc.git;a=commit;h=b0234d79e7d82475d1666f25326ec045c045b3ed
+
 * Wed Aug 25 2021 Qingqing Li<liqingqing3@huawei.com> - 2.28-76
 - fix CVE-2021-38604
   https://sourceware.org/bugzilla/show_bug.cgi?id=28213
