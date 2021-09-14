@@ -46,6 +46,9 @@
 %undefine with_valgrind
 %endif
 
+# Only some architectures have static PIE support
+%define pie_arches %{ix86} x86_64 aarch64
+
 %define enablekernel 3.2
 %define target %{_target_cpu}-%{_vendor}-linux
 %ifarch %{arm}
@@ -60,7 +63,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	2
+Release: 	3
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -425,9 +428,13 @@ pushd $builddir
 	--enable-bind-now \
 	--build=%{target} \
 	--enable-stack-protector=strong \
-%ifarch %{x86_arches}
+%ifarch %{pie_arches}
 %if 0%{?gcc_version} >= 8
 	--enable-static-pie \
+%endif
+%endif
+%ifarch %{x86_arches}
+%if 0%{?gcc_version} >= 8
 	--enable-cet \
 %endif
 %endif
@@ -1165,6 +1172,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Tue Sep 14 2021 Yang Yanchao<yangyanchao6@huawei.com> - 2.34-3
+- add --enable-static-pie in aarch64
+
 * Wed Aug 25 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-2
 - fix CVE-2021-38604
   https://sourceware.org/bugzilla/show_bug.cgi?id=28213
