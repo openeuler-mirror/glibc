@@ -1,0 +1,35 @@
+From 3d9a539ee66165148b2b9e08b46e03a5f58f65d2 Mon Sep 17 00:00:00 2001
+From: Adhemerval Zanella <adhemerval.zanella@linaro.org>
+Date: Wed, 4 Aug 2021 17:14:46 -0300
+Subject: [PATCH] rt: Set the correct message queue for tst-mqueue10
+
+Checked on x86_64-linux-gnu.
+---
+ rt/tst-mqueue10.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/rt/tst-mqueue10.c b/rt/tst-mqueue10.c
+index 1879580..0bf64d7 100644
+--- a/rt/tst-mqueue10.c
++++ b/rt/tst-mqueue10.c
+@@ -25,7 +25,7 @@
+ #include <support/temp_file.h>
+ #include <unistd.h>
+ 
+-static char name[sizeof "/tst-mqueue2-" + INT_BUFSIZE_BOUND (pid_t)];
++static char name[sizeof "/tst-mqueue10-" + INT_BUFSIZE_BOUND (pid_t)];
+ 
+ static void
+ do_cleanup (void)
+@@ -37,7 +37,7 @@ do_cleanup (void)
+ static int
+ do_test (void)
+ {
+-  snprintf (name, sizeof (name), "/tst-mqueue2-%u", getpid ());
++  snprintf (name, sizeof (name), "/tst-mqueue10-%u", getpid ());
+ 
+   char msg[8] = { 0x55 };
+ 
+-- 
+1.8.3.1
+
