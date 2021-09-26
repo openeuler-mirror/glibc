@@ -63,7 +63,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	5
+Release: 	6
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -95,6 +95,8 @@ Patch14: 2-5-AArch64-Improve-A64FX-memset-for-large-sizes.patch
 Patch15: 3-5-AArch64-Improve-A64FX-memset-for-remaining-bytes.patch
 Patch16: 4-5-AArch64-Improve-A64FX-memset-by-removing-unroll3.patch
 Patch17: 5-5-AArch64-Improve-A64FX-memset-medium-loops.patch
+Patch18: elf-Unconditionally-use-__ehdr_start.patch
+Patch19: aarch64-Make-elf_machine_-load_address-dynamic-robus.patch
 
 #Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1186,6 +1188,11 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Sun Sep 26 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-6
+- elf: Unconditionally use __ehdr_start.
+- aarch64: Make elf_machine_{load_addr,dynamic} robust [BZ #28203].
+  upstream link: https://sourceware.org/bugzilla/show_bug.cgi?id=28203
+
 * Fri Sep 17 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-5
 - aarch64: optimize memset performance.
 
