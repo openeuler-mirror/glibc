@@ -63,7 +63,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	6
+Release: 	7
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -97,6 +97,7 @@ Patch16: 4-5-AArch64-Improve-A64FX-memset-by-removing-unroll3.patch
 Patch17: 5-5-AArch64-Improve-A64FX-memset-medium-loops.patch
 Patch18: elf-Unconditionally-use-__ehdr_start.patch
 Patch19: aarch64-Make-elf_machine_-load_address-dynamic-robus.patch
+Patch20: mtrace-Use-a-static-buffer-for-printing-BZ-25947.patch
 
 #Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1188,6 +1189,10 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Mon Sep 27 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-7
+- mtrace: use a static buffer for printing, fix memory leak.
+  upstream link: https://sourceware.org/bugzilla/show_bug.cgi?id=25947
+
 * Sun Sep 26 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-6
 - elf: Unconditionally use __ehdr_start.
 - aarch64: Make elf_machine_{load_addr,dynamic} robust [BZ #28203].
