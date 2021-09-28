@@ -63,7 +63,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	3
+Release: 	4
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -81,6 +81,15 @@ Patch0: glibc-1070416.patch
 Patch1: glibc-c-utf8-locale.patch
 Patch2: backport-CVE-2021-38604-0001-librt-add-test-bug-28213.patch
 Patch3: backport-CVE-2021-38604-0002-librt-fix-NULL-pointer-dereference-bug-28213.patch
+Patch4: copy_and_spawn_sgid-Avoid-double-calls-to-close.patch
+Patch5: gaiconf_init-Avoid-double-free-in-label-and-preceden.patch
+Patch6: gconv_parseconfdir-Fix-memory-leak.patch
+Patch7: gethosts-Remove-unused-argument-_type.patch
+Patch8: iconv_charmap-Close-output-file-when-done.patch
+Patch9: ldconfig-avoid-leak-on-empty-paths-in-config-file.patch
+Patch10: Linux-Fix-fcntl-ioctl-prctl-redirects-for-_TIME_BITS.patch
+Patch11: nis-Fix-leak-on-realloc-failure-in-nis_getnames-BZ-2.patch
+Patch12: rt-Set-the-correct-message-queue-for-tst-mqueue10.patch
 
 #Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1172,6 +1181,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Fri Sep 17 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-4
+- backport upstream patches to fix some memory leak and double free bugs
+
 * Tue Sep 14 2021 Yang Yanchao<yangyanchao6@huawei.com> - 2.34-3
 - add --enable-static-pie in aarch64
 
