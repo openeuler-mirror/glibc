@@ -1,0 +1,28 @@
+From ef8e2a0633bb701a89dd4967e1a87dc33bb7032c Mon Sep 17 00:00:00 2001
+From: Andreas Schwab <schwab@linux-m68k.org>
+Date: Mon, 23 Aug 2021 10:19:52 +0200
+Subject: [PATCH] rtld: copy terminating null in tunables_strdup (bug 28256)
+
+Avoid triggering a false positive from valgrind by copying the terminating
+null in tunables_strdup.  At this point the heap is still clean, but
+valgrind is stricter here.
+---
+ elf/dl-tunables.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/elf/dl-tunables.c b/elf/dl-tunables.c
+index 4c9d36e39807..2494a4826af2 100644
+--- a/elf/dl-tunables.c
++++ b/elf/dl-tunables.c
+@@ -52,8 +52,6 @@ tunables_strdup (const char *in)
+   if (out == (void *)-1)
+     return NULL;
+ 
+-  i--;
+-
+   while (i-- > 0)
+     out[i] = in[i];
+ 
+-- 
+2.18.4
+
