@@ -63,7 +63,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	8
+Release: 	9
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -99,6 +99,13 @@ Patch18: elf-Unconditionally-use-__ehdr_start.patch
 Patch19: aarch64-Make-elf_machine_-load_address-dynamic-robus.patch
 Patch20: mtrace-Use-a-static-buffer-for-printing-BZ-25947.patch
 Patch21: time-Fix-overflow-itimer-tests-on-32-bit-systems.patch
+Patch22: arm-Simplify-elf_machine_-load_address-dynamic.patch
+Patch23: elf-Drop-elf-tls-macros.h-in-favor-of-__thread-and-t.patch
+Patch24: elf-Fix-missing-colon-in-LD_SHOW_AUXV-output-BZ-2825.patch
+Patch25: Remove-sysdeps-tls-macros.h.patch
+Patch26: riscv-Drop-reliance-on-_GLOBAL_OFFSET_TABLE_-0.patch
+Patch27: x86_64-Simplify-elf_machine_-load_address-dynamic.patch
+Patch28: x86-fix-Autoconf-caching-of-instruction-support-chec.patch
 
 #Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1190,6 +1197,10 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Wed Sep 29 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-9
+- elf: drop elf/tls-macros.h in favor of thread tls_mode attribute.
+- use __ehdr_start for __GLOBAL_OFFSET_TABLE[0]
+
 * Wed Sep 29 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-8
 - fix overflow ittimer tests on 32 bit system
 
