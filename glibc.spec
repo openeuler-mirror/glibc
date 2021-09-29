@@ -63,7 +63,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	7
+Release: 	8
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -98,6 +98,7 @@ Patch17: 5-5-AArch64-Improve-A64FX-memset-medium-loops.patch
 Patch18: elf-Unconditionally-use-__ehdr_start.patch
 Patch19: aarch64-Make-elf_machine_-load_address-dynamic-robus.patch
 Patch20: mtrace-Use-a-static-buffer-for-printing-BZ-25947.patch
+Patch21: time-Fix-overflow-itimer-tests-on-32-bit-systems.patch
 
 #Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1189,6 +1190,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Wed Sep 29 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-8
+- fix overflow ittimer tests on 32 bit system
+
 * Mon Sep 27 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-7
 - mtrace: use a static buffer for printing, fix memory leak.
   upstream link: https://sourceware.org/bugzilla/show_bug.cgi?id=25947
