@@ -63,7 +63,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	9
+Release: 	10
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -106,6 +106,7 @@ Patch25: Remove-sysdeps-tls-macros.h.patch
 Patch26: riscv-Drop-reliance-on-_GLOBAL_OFFSET_TABLE_-0.patch
 Patch27: x86_64-Simplify-elf_machine_-load_address-dynamic.patch
 Patch28: x86-fix-Autoconf-caching-of-instruction-support-chec.patch
+Patch29: Update-string-test-memmove.c-to-cover-16KB-copy.patch
 
 #Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1197,6 +1198,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Mon Oct 11 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-10
+- update test memmove.c to cover 16KB.
+
 * Wed Sep 29 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-9
 - elf: drop elf/tls-macros.h in favor of thread tls_mode attribute.
 - use __ehdr_start for __GLOBAL_OFFSET_TABLE[0]
