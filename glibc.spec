@@ -63,7 +63,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	10
+Release: 	11
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -76,6 +76,10 @@ Source4:   glibc-bench-compare
 Source5:   LanguageList
 Source6:   LicenseList
 Source7:   replace_same_file_to_hard_link.py
+
+%if %{with testsuite}
+Source8:   testsuite_whitelist.%{_target_cpu}
+%endif
 
 Patch0: glibc-1070416.patch
 Patch1: glibc-c-utf8-locale.patch
@@ -885,6 +889,18 @@ done
 ##############################################################################
 %check
 %if %{with testsuite}
+
+omit_testsuite() {
+  whitelist=$1
+  sed -i '/^#/d' $whitelist
+  sed -i '/^[\s]*$/d' $whitelist
+  while read testsuite; do
+    testsuite_escape=$(echo "$testsuite" | \
+                       sed 's/\([.+?^$\/\\|()\[]\|\]\)/\\\0/g')
+    sed -i "/${testsuite_escape}/d" rpmbuild.tests.sum.not-passing
+  done < "$whitelist"
+}
+
 # Increase timeouts
 export TIMEOUTFACTOR=16
 parent=$$
@@ -893,14 +909,24 @@ echo ====================TESTING=========================
 # Default libraries.
 pushd build-%{target}
 make %{?_smp_mflags} -O check |& tee rpmbuild.check.log >&2
-test -n tests.sum
+test -s tests.sum
+
+# This hides a test suite build failure, which should be fatal.  We
+# check "Summary of test results:" below to verify that all tests
+# were built and run.
 if ! grep -q '^Summary of test results:$' rpmbuild.check.log ; then
   echo "FAIL: test suite build of target: $(basename "$(pwd)")" >& 2
   exit 1
 fi
 set +x
-grep -v ^PASS: tests.sum > rpmbuild.tests.sum.not-passing || true
-if test -n rpmbuild.tests.sum.not-passing ; then
+grep -v ^PASS: tests.sum | grep -v ^UNSUPPORTED > rpmbuild.tests.sum.not-passing || true
+
+# Delete the testsuite from the whitelist
+cp %{SOURCE8} testsuite_whitelist
+omit_testsuite testsuite_whitelist
+rm -rf testsuite_whitelist
+
+if test -s rpmbuild.tests.sum.not-passing ; then
   echo ===================FAILED TESTS===================== >&2
   echo "Target: $(basename "$(pwd)")" >& 2
   cat rpmbuild.tests.sum.not-passing >&2
@@ -914,6 +940,7 @@ if test -n rpmbuild.tests.sum.not-passing ; then
       fi
     done
   done <rpmbuild.tests.sum.not-passing
+  exit 1
 fi
 
 # Unconditonally dump differences in the system call list.
@@ -1198,6 +1225,10 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Tue Oct 12 2021 Yang Yanchao<yangyanchao6@huawei.com> - 2.34-11
+- Add the testsuite whitelist.
+  If a test case out of the trustlist fails, the compilation is interrupted.
+
 * Mon Oct 11 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-10
 - update test memmove.c to cover 16KB.
 
