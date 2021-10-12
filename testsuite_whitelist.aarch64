@@ -1,0 +1,111 @@
+# These test cases failed due to gcc_secure
+conform/ISO/setjmp.h/conform
+conform/ISO/stdlib.h/conform
+conform/ISO/stdlib.h/linknamespace
+conform/ISO/string.h/conform
+conform/ISO11/setjmp.h/conform
+conform/ISO11/stdio.h/conform
+conform/ISO11/stdlib.h/conform
+conform/ISO11/stdlib.h/linknamespace
+conform/ISO11/string.h/conform
+conform/ISO11/wchar.h/conform
+conform/ISO99/setjmp.h/conform
+conform/ISO99/stdio.h/conform
+conform/ISO99/stdlib.h/conform
+conform/ISO99/stdlib.h/linknamespace
+conform/ISO99/string.h/conform
+conform/ISO99/wchar.h/conform
+conform/POSIX/stdlib.h/conform
+conform/POSIX/stdlib.h/linknamespace
+conform/POSIX/string.h/conform
+conform/POSIX2008/fcntl.h/conform
+conform/POSIX2008/mqueue.h/conform
+conform/POSIX2008/stdio.h/conform
+conform/POSIX2008/stdlib.h/conform
+conform/POSIX2008/stdlib.h/linknamespace
+conform/POSIX2008/wchar.h/conform
+conform/UNIX98/stdlib.h/conform
+conform/UNIX98/string.h/conform
+conform/UNIX98/unistd.h/conform
+conform/UNIX98/unistd.h/linknamespace
+conform/UNIX98/wchar.h/conform
+conform/XOPEN2K/fcntl.h/conform
+conform/XOPEN2K/mqueue.h/conform
+conform/XOPEN2K/stdio.h/conform
+conform/XOPEN2K/stdlib.h/conform
+conform/XOPEN2K/string.h/conform
+conform/XOPEN2K/syslog.h/conform
+conform/XOPEN2K/unistd.h/conform
+conform/XOPEN2K/unistd.h/linknamespace
+conform/XOPEN2K/wchar.h/conform
+conform/XOPEN2K8/fcntl.h/conform
+conform/XOPEN2K8/mqueue.h/conform
+conform/XOPEN2K8/stdio.h/conform
+conform/XOPEN2K8/stdlib.h/conform
+conform/XOPEN2K8/syslog.h/conform
+conform/XOPEN2K8/unistd.h/conform
+conform/XOPEN2K8/unistd.h/linknamespace
+conform/XOPEN2K8/wchar.h/conform
+conform/XPG4/stdlib.h/conform
+conform/XPG4/stdlib.h/linknamespace
+conform/XPG4/string.h/conform
+conform/XPG4/unistd.h/conform
+conform/XPG42/stdlib.h/conform
+conform/XPG42/string.h/conform
+conform/XPG42/unistd.h/conform
+elf/circleload1
+elf/constload1
+elf/dblload
+elf/dblunload
+elf/lateglobal
+elf/reldep6
+elf/resolvfail
+elf/tst-global1
+elf/tst-tls20
+nptl/tst-execstack
+
+# GCC no longer implements <varargs.h>
+conform/UNIX98/varargs.h/conform
+conform/UNIX98/varargs.h/linknamespace
+conform/XPG4/varargs.h/conform
+conform/XPG4/varargs.h/linknamespace
+conform/XPG42/varargs.h/conform
+conform/XPG42/varargs.h/linknamespace
+
+# These cases depend on gdbm-devel
+conform/UNIX98/ndbm.h/conform
+conform/UNIX98/ndbm.h/linknamespace
+conform/XOPEN2K/ndbm.h/conform
+conform/XOPEN2K/ndbm.h/linknamespace
+conform/XOPEN2K8/ndbm.h/conform
+conform/XOPEN2K8/ndbm.h/linknamespace
+conform/XPG42/ndbm.h/conform
+conform/XPG42/ndbm.h/linknamespace
+
+# Test whether the date/time is correct under different 
+# language libraries, use case problems, and see that 
+# the compiled language library itself has no errors
+# https://sourceware.org/bugzilla/show_bug.cgi?id=23164
+localedata/tst-langinfo-newlocale-static
+
+# The use case itself passed but because 
+# test-xfail-tst-protected1a/test-xfail-tst-protected1b was added
+elf/tst-protected1a
+elf/tst-protected1b
+
+# the test case is due to check whether a macro is defined 
+# in the header files. As GLIBC evolves, the position of the 
+# macro changes, causing the use case to fail
+posix/annexc
+
+# Check whether sys/mman.h is consistent with linux/mman.h. 
+# kernel has a self-developed macro that does not require glibc adaptation
+# https://gitee.com/src-openeuler/kernel/issues/I4BZ9T?from=project-issue
+misc/tst-mman-consts
+
+# Add the tst-nss-files-hosts-long.root/etc/hosts of glibc to 
+# the /etc/hosts directory of the system, and then run sucess
+nss/tst-nss-files-hosts-long
+
+# The test case fails due to OBS machine restrictions which can be passed locally.
+elf/tst-debug1
