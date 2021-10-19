@@ -63,7 +63,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	11
+Release: 	12
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -228,6 +228,20 @@ Requires: %{name}-common = %{version}-%{release}
 %description locale-source
 The locale-source package contains all language packs which are built custom
 locales
+
+##############################################################################
+# glibc "locale-archive" sub-package
+##############################################################################
+%package locale-archive
+Summary: The locale-archive of glibc
+Requires: %{name} = %{version}-%{release}
+Requires: %{name}-common = %{version}-%{release}
+
+%description locale-archive
+The locale-archive sub package contains the locale-archive. In the past,
+this file is provided in "glibc-common".Now, we provide basic language support
+in "glibc-common", but if you need a customized language, you can extract
+it from the "local-archive".
 
 ##############################################################################
 # glibc "devel" sub-package
@@ -562,6 +576,12 @@ $olddir/build-%{target}/elf/ld.so \
         --prefix $RPM_BUILD_ROOT --add-to-archive \
         eo *_*
 %{find_lang} libc
+# In the past, locale-archive is provided by common.
+# In the current version, locale-archive is provided by locale-archive.
+# Due to the change of the packing mode, the locale-archive fails to be
+# replaced during the upgrade. Therefore, a backup file is required to
+# replace the locale-archive.
+ln locale-archive locale-archive.update
 popd
 mv  $RPM_BUILD_ROOT%{_prefix}/lib/locale/libc.lang .
 
@@ -1106,6 +1126,28 @@ else
   io.stdout:write ("Error: Missing " .. iconv_cache .. " file.\n")
 end
 
+%posttrans locale-archive
+archive_path="%{_prefix}/lib/locale/locale-archive"
+update_path="%{_prefix}/lib/locale/locale-archive.update"
+save_path="%{_prefix}/lib/locale/locale-archive.rpmsave"
+archive_stat=`stat --format="%D %i" "$archive_path" 2>/dev/null || echo "null"`
+update_stat=`stat --format="%D %i" "$update_path" || echo "null"`
+# When the hard link does not match, use locale-archive.update
+if [ "$archive_stat" != "null" ] &&
+   [ "$update_stat" != "null" ] &&
+   [ "$archive_stat" != "$update_stat" ];then
+    unlink $archive_path
+    archive_stat="null"
+fi
+# Regenerate a file if it does not exist
+if [ "$archive_stat" == "null" ];then
+   ln "$update_path" "$archive_path"
+fi
+# Delete the .rpmsave
+if [ -f "$save_path" ];then
+    unlink $save_path
+fi
+
 %pre devel
 # this used to be a link and it is causing nightmares now
 if [ -L %{_prefix}/include/scsi ] ; then
@@ -1149,7 +1191,6 @@ fi
 %license COPYING COPYING.LIB LICENSES
 
 %files -f common.filelist common
-%attr(0644,root,root) %verify(not md5 size mtime mode) %ghost %config(missingok,noreplace) %{_prefix}/lib/locale/locale-archive
 %dir %{_prefix}/lib/locale
 %dir %{_prefix}/lib/locale/C.utf8
 %{_prefix}/lib/locale/C.utf8/*
@@ -1161,6 +1202,7 @@ fi
 %files -f libc.lang all-langpacks
 %{_prefix}/lib/locale
 %exclude %{_prefix}/lib/locale/locale-archive
+%exclude %{_prefix}/lib/locale/locale-archive.update
 %exclude %{_prefix}/lib/locale/C.utf8
 %exclude %{_prefix}/lib/locale/zh_CN.utf8
 %exclude %{_prefix}/lib/locale/en_US.utf8
@@ -1172,6 +1214,10 @@ fi
 %{_prefix}/share/i18n/locales/*
 %dir %{_prefix}/share/i18n/charmaps
 %{_prefix}/share/i18n/charmaps/*
+
+%files locale-archive
+%attr(0644,root,root) %{_prefix}/lib/locale/locale-archive
+%attr(0644,root,root) %{_prefix}/lib/locale/locale-archive.update
 
 %files -f devel.filelist devel
 
@@ -1225,6 +1271,10 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Tue Oct 19 2021 Yang Yanchao <yangyanchao6@huawei.com> - 2.34-12
+- Add locale-archive sub packages to support more languages
+  and reduce memory usage.
+
 * Tue Oct 12 2021 Yang Yanchao<yangyanchao6@huawei.com> - 2.34-11
 - Add the testsuite whitelist.
   If a test case out of the trustlist fails, the compilation is interrupted.
