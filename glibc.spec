@@ -63,7 +63,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	12
+Release: 	13
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -111,6 +111,7 @@ Patch26: riscv-Drop-reliance-on-_GLOBAL_OFFSET_TABLE_-0.patch
 Patch27: x86_64-Simplify-elf_machine_-load_address-dynamic.patch
 Patch28: x86-fix-Autoconf-caching-of-instruction-support-chec.patch
 Patch29: Update-string-test-memmove.c-to-cover-16KB-copy.patch
+Patch30: x86-64-Optimize-load-of-all-bits-set-into-ZMM-regist.patch
 
 #Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1271,6 +1272,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Mon Oct 25 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-13
+- fpu: x86-64 optimize load of all bits set into ZMM register.
+
 * Tue Oct 19 2021 Yang Yanchao <yangyanchao6@huawei.com> - 2.34-12
 - Add locale-archive sub packages to support more languages
   and reduce memory usage.
