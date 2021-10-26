@@ -31,7 +31,9 @@
 %bcond_with bootstrap
 %bcond_with werror
 %bcond_without docs
-%bcond_with libpthreadcond
+%ifarch x86_64 aarch64
+%bcond_without compat_2_17
+%endif
 
 %ifarch %{valgrind_arches}
 %bcond_without valgrind
@@ -63,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	14
+Release: 	15
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -117,7 +119,7 @@ Patch32: rtld-copy-terminating-null-in-tunables_strdup-bug-28.patch
 
 #Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
-#Patch9002: build-extra-libpthreadcond-so.patch
+Patch9002: compat-2.17-libpthreadcond-so.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -410,6 +412,18 @@ Requires: man info
 This package provides al doc and man files of %{name}
 
 ##############################################################################
+# glibc compat-2.17 sub-package
+##############################################################################
+%if %{with compat_2_17}
+%package compat-2.17
+Summary: provides pthread library with glibc-2.17
+
+%description compat-2.17
+This subpackage to provide the function of the glibc-2.17 pthread library.
+Currently, provide pthread_condition function..
+%endif
+
+##############################################################################
 # Prepare for the build.
 ##############################################################################
 %prep
@@ -507,11 +521,11 @@ make %{?_smp_mflags} -O -r %{glibc_make_flags}
 popd
 
 ##############################################################################
-# Build libpthreadcond
+# Build libpthread-2.17.so
 ##############################################################################
-%if %{with libpthreadcond}
+%if %{with compat_2_17}
 	cd nptl_2_17
-	sh build_libpthreadcondso.sh %{_target_cpu} $builddir
+	sh build_libpthread-2.17.so.sh %{_target_cpu} $builddir
 	cd ..
 %endif
 
@@ -527,10 +541,6 @@ done
 %endif
 
 make %{?_smp_mflags} install_root=$RPM_BUILD_ROOT install -C build-%{target}
-
-%if %{with libpthreadcond}
-	cp build-%{target}/nptl/libpthreadcond.so $RPM_BUILD_ROOT%{_libdir}
-%endif
 
 pushd build-%{target}
 
@@ -590,6 +600,11 @@ mv  $RPM_BUILD_ROOT%{_prefix}/lib/locale/libc.lang .
 
 # Install configuration files for services
 install -p -m 644 %{SOURCE2} $RPM_BUILD_ROOT/etc/nsswitch.conf
+
+# This is for compat-2.17
+%if %{with compat_2_17}
+install -p -m 755  build-%{target}/nptl/libpthread-2.17.so $RPM_BUILD_ROOT%{_libdir}
+%endif
 
 # This is for ncsd - in glibc 2.2
 install -m 644 nscd/nscd.conf $RPM_BUILD_ROOT/etc
@@ -703,6 +718,9 @@ touch libnsl.filelist
 touch debugutils.filelist
 touch benchtests.filelist
 touch debuginfo.filelist
+%if %{with compat_2_17}
+touch compat-2.17.filelist
+%endif
 
 {
   find $RPM_BUILD_ROOT \( -type f -o -type l \) \
@@ -729,6 +747,9 @@ touch debuginfo.filelist
       -e '\,.*/share/i18n/charmaps/.*,d' \
       -e '\,.*/etc/\(localtime\|nsswitch.conf\|ld\.so\.conf\|ld\.so\.cache\|default\|rpc\|gai\.conf\),d' \
       -e '\,.*/%{_libdir}/lib\(pcprofile\|memusage\)\.so,d' \
+%if %{with compat_2_17}
+      -e '\,.*/%{_libdir}/libpthread-2.17.so,d' \
+%endif
       -e '\,.*/bin/\(memusage\|mtrace\|xtrace\|pcprofiledump\),d'
 } | sort > master.filelist
 
@@ -764,10 +785,6 @@ for module in compat files dns; do
     >> glibc.filelist
 done
 grep -e "libmemusage.so" -e "libpcprofile.so" master.filelist >> glibc.filelist
-
-%if %{with libpthreadcond}
-	echo "%{_libdir}/libpthreadcond.so" >> glibc.filelist
-%endif
 
 ##############################################################################
 # glibc "common" sub-package
@@ -863,6 +880,13 @@ echo "%{_prefix}/libexec/glibc-benchtests/import_bench.py*" >> benchtests.fileli
 echo "%{_prefix}/libexec/glibc-benchtests/validate_benchout.py*" >> benchtests.filelist
 %endif
 
+%if %{with compat_2_17}
+##############################################################################
+# glibc compat-2.17 sub-package
+##############################################################################
+        echo "%{_libdir}/libpthread-2.17.so" >> compat-2.17.filelist
+%endif
+
 %if 0%{?_enable_debug_packages}
 ##############################################################################
 # glibc debuginfo sub-package
@@ -881,6 +905,9 @@ find_debuginfo_args="$find_debuginfo_args \
     -l glibc.filelist \
 %if %{with benchtests}
     -l benchtests.filelist
+%endif
+%if %{with compat_2_17}
+    -l compat-2.17.filelist \
 %endif
     "
 %endif
@@ -1273,7 +1300,16 @@ fi
 #Doc of nss_modules sub-package
 %doc hesiod/README.hesiod
 
+%if %{with compat_2_17}
+%files -f compat-2.17.filelist compat-2.17
+%endif
+
 %changelog
+* Tue Oct 26 2021 Yang Yanchao<yangyanchao6@huawei.com> - 2.34-15
+- add glibc-compat-2.17 subpackage to provide the function of 
+  the glibc-2.17 pthread library.
+  Currently, provide pthread_condition function.
+
 * Mon Oct 25 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-14
 - mtrace fix output with PIE and ASLR.
 - elf: rtld copy terminating null in tunables strdup.
