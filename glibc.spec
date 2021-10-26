@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	16
+Release: 	17
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -969,7 +969,6 @@ if ! grep -q '^Summary of test results:$' rpmbuild.check.log ; then
   echo "FAIL: test suite build of target: $(basename "$(pwd)")" >& 2
   exit 1
 fi
-set +x
 grep -v ^PASS: tests.sum | grep -v ^UNSUPPORTED > rpmbuild.tests.sum.not-passing || true
 
 # Delete the testsuite from the whitelist
@@ -977,6 +976,7 @@ cp %{SOURCE8} testsuite_whitelist
 omit_testsuite testsuite_whitelist
 rm -rf testsuite_whitelist
 
+set +x
 if test -s rpmbuild.tests.sum.not-passing ; then
   echo ===================FAILED TESTS===================== >&2
   echo "Target: $(basename "$(pwd)")" >& 2
@@ -1306,6 +1306,9 @@ fi
 %endif
 
 %changelog
+* Tue Oct 26 2021 Yang Yanchao<yangyanchao6@huawei.com> - 2.34-17
+- Show more debugging information during testsuite
+
 * Tue Oct 26 2021 Chuangchuang Fang<fangchuangchuang@huawei.com> - 2.34-16
 - Use __executable_start as the lowest address for profiling
 
