@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	15
+Release: 	16
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -116,6 +116,7 @@ Patch29: Update-string-test-memmove.c-to-cover-16KB-copy.patch
 Patch30: x86-64-Optimize-load-of-all-bits-set-into-ZMM-regist.patch
 Patch31: mtrace-Fix-output-with-PIE-and-ASLR-BZ-22716.patch
 Patch32: rtld-copy-terminating-null-in-tunables_strdup-bug-28.patch
+Patch33: Use-__executable_start-as-the-lowest-address-for-pro.patch
 
 #Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1305,6 +1306,9 @@ fi
 %endif
 
 %changelog
+* Tue Oct 26 2021 Chuangchuang Fang<fangchuangchuang@huawei.com> - 2.34-16
+- Use __executable_start as the lowest address for profiling
+
 * Tue Oct 26 2021 Yang Yanchao<yangyanchao6@huawei.com> - 2.34-15
 - add glibc-compat-2.17 subpackage to provide the function of 
   the glibc-2.17 pthread library.
