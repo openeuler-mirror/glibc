@@ -63,7 +63,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	4
+Release: 	5
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -90,6 +90,11 @@ Patch9: ldconfig-avoid-leak-on-empty-paths-in-config-file.patch
 Patch10: Linux-Fix-fcntl-ioctl-prctl-redirects-for-_TIME_BITS.patch
 Patch11: nis-Fix-leak-on-realloc-failure-in-nis_getnames-BZ-2.patch
 Patch12: rt-Set-the-correct-message-queue-for-tst-mqueue10.patch
+Patch13: 1-5-AArch64-Improve-A64FX-memset-for-small-sizes.patch
+Patch14: 2-5-AArch64-Improve-A64FX-memset-for-large-sizes.patch
+Patch15: 3-5-AArch64-Improve-A64FX-memset-for-remaining-bytes.patch
+Patch16: 4-5-AArch64-Improve-A64FX-memset-by-removing-unroll3.patch
+Patch17: 5-5-AArch64-Improve-A64FX-memset-medium-loops.patch
 
 #Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1181,6 +1186,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Fri Sep 17 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-5
+- aarch64: optimize memset performance.
+
 * Fri Sep 17 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-4
 - backport upstream patches to fix some memory leak and double free bugs
 
