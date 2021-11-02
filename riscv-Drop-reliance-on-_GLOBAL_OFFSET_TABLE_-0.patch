@@ -1,0 +1,60 @@
+From 34b4624b04fc8f038b2c329ca7560197320615b4 Mon Sep 17 00:00:00 2001
+From: Fangrui Song <maskray@google.com>
+Date: Wed, 18 Aug 2021 10:01:31 -0700
+Subject: [PATCH] riscv: Drop reliance on _GLOBAL_OFFSET_TABLE_[0]
+
+&__ehdr_start is a better way to get the load address.
+
+This is similar to commits b37b75d269883a2c553bb7019a813094eb4e2dd1
+(x86-64) and 43d06ed218fc8be58987bdfd00e21e5720f0b862 (aarch64).
+
+Reviewed-by: Palmer Dabbelt <palmerdabbelt@google.com>
+---
+ sysdeps/riscv/dl-machine.h | 21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
+
+diff --git a/sysdeps/riscv/dl-machine.h b/sysdeps/riscv/dl-machine.h
+index aedf69f..5b07461 100644
+--- a/sysdeps/riscv/dl-machine.h
++++ b/sysdeps/riscv/dl-machine.h
+@@ -76,27 +76,26 @@ elf_machine_matches_host (const ElfW(Ehdr) *ehdr)
+   return 1;
+ }
+ 
++/* Return the run-time load address of the shared object.  */
++static inline ElfW(Addr)
++elf_machine_load_address (void)
++{
++  extern const ElfW(Ehdr) __ehdr_start attribute_hidden;
++  return (ElfW(Addr)) &__ehdr_start;
++}
++
+ /* Return the link-time address of _DYNAMIC.  */
+ static inline ElfW(Addr)
+ elf_machine_dynamic (void)
+ {
+-  extern ElfW(Addr) _GLOBAL_OFFSET_TABLE_ __attribute__ ((visibility ("hidden")));
+-  return _GLOBAL_OFFSET_TABLE_;
++  extern ElfW(Dyn) _DYNAMIC[] attribute_hidden;
++  return (ElfW(Addr)) _DYNAMIC - elf_machine_load_address ();
+ }
+ 
+ #define STRINGXP(X) __STRING (X)
+ #define STRINGXV(X) STRINGV_ (X)
+ #define STRINGV_(...) # __VA_ARGS__
+ 
+-/* Return the run-time load address of the shared object.  */
+-static inline ElfW(Addr)
+-elf_machine_load_address (void)
+-{
+-  ElfW(Addr) load_addr;
+-  asm ("lla %0, _DYNAMIC" : "=r" (load_addr));
+-  return load_addr - elf_machine_dynamic ();
+-}
+-
+ /* Initial entry point code for the dynamic linker.
+    The C function `_dl_start' is the real entry point;
+    its return value is the user program's entry point.  */
+-- 
+1.8.3.1
+

@@ -1,0 +1,1810 @@
+From 710ba420fd417a4a82e0ad2e998e5f3b972cb503 Mon Sep 17 00:00:00 2001
+From: Fangrui Song <maskray@google.com>
+Date: Wed, 18 Aug 2021 09:15:20 -0700
+Subject: [PATCH] Remove sysdeps/*/tls-macros.h
+
+They provide TLS_GD/TLS_LD/TLS_IE/TLS_IE macros for TLS testing.  Now
+that we have migrated to __thread and tls_model attributes, these macros
+are unused and the tls-macros.h files can retire.
+
+Reviewed-by: Szabolcs Nagy <szabolcs.nagy@arm.com>
+---
+ benchtests/strcoll-inputs/filelist#en_US.UTF-8 |  22 ----
+ sysdeps/aarch64/tls-macros.h                   |  51 ---------
+ sysdeps/alpha/tls-macros.h                     |  25 -----
+ sysdeps/arc/tls-macros.h                       |  47 --------
+ sysdeps/arm/tls-macros.h                       |  72 -------------
+ sysdeps/csky/abiv2/tls-macros.h                |  55 ----------
+ sysdeps/generic/tls-macros.h                   |  12 ---
+ sysdeps/hppa/tls-macros.h                      | 114 --------------------
+ sysdeps/i386/tls-macros.h                      |  47 --------
+ sysdeps/ia64/tls-macros.h                      |  66 ------------
+ sysdeps/m68k/tls-macros.h                      |  68 ------------
+ sysdeps/microblaze/tls-macros.h                |  46 --------
+ sysdeps/mips/tls-macros.h                      | 130 ----------------------
+ sysdeps/nios2/tls-macros.h                     |  46 --------
+ sysdeps/powerpc/powerpc32/tls-macros.h         |  49 ---------
+ sysdeps/powerpc/powerpc64/tls-macros.h         |  42 --------
+ sysdeps/powerpc/tls-macros.h                   |   3 -
+ sysdeps/riscv/tls-macros.h                     |  47 --------
+ sysdeps/s390/s390-32/tls-macros.h              | 106 ------------------
+ sysdeps/s390/s390-64/tls-macros.h              |  90 ----------------
+ sysdeps/sh/tls-macros.h                        | 143 -------------------------
+ sysdeps/sparc/sparc32/tls-macros.h             |  66 ------------
+ sysdeps/sparc/sparc64/tls-macros.h             |  65 -----------
+ sysdeps/x86_64/tls-macros.h                    |  39 -------
+ 24 files changed, 1451 deletions(-)
+ delete mode 100644 sysdeps/aarch64/tls-macros.h
+ delete mode 100644 sysdeps/alpha/tls-macros.h
+ delete mode 100644 sysdeps/arc/tls-macros.h
+ delete mode 100644 sysdeps/arm/tls-macros.h
+ delete mode 100644 sysdeps/csky/abiv2/tls-macros.h
+ delete mode 100644 sysdeps/generic/tls-macros.h
+ delete mode 100644 sysdeps/hppa/tls-macros.h
+ delete mode 100644 sysdeps/i386/tls-macros.h
+ delete mode 100644 sysdeps/ia64/tls-macros.h
+ delete mode 100644 sysdeps/m68k/tls-macros.h
+ delete mode 100644 sysdeps/microblaze/tls-macros.h
+ delete mode 100644 sysdeps/mips/tls-macros.h
+ delete mode 100644 sysdeps/nios2/tls-macros.h
+ delete mode 100644 sysdeps/powerpc/powerpc32/tls-macros.h
+ delete mode 100644 sysdeps/powerpc/powerpc64/tls-macros.h
+ delete mode 100644 sysdeps/powerpc/tls-macros.h
+ delete mode 100644 sysdeps/riscv/tls-macros.h
+ delete mode 100644 sysdeps/s390/s390-32/tls-macros.h
+ delete mode 100644 sysdeps/s390/s390-64/tls-macros.h
+ delete mode 100644 sysdeps/sh/tls-macros.h
+ delete mode 100644 sysdeps/sparc/sparc32/tls-macros.h
+ delete mode 100644 sysdeps/sparc/sparc64/tls-macros.h
+ delete mode 100644 sysdeps/x86_64/tls-macros.h
+
+diff --git a/benchtests/strcoll-inputs/filelist#en_US.UTF-8 b/benchtests/strcoll-inputs/filelist#en_US.UTF-8
+index 43eb9ef..197700e 100644
+--- a/benchtests/strcoll-inputs/filelist#en_US.UTF-8
++++ b/benchtests/strcoll-inputs/filelist#en_US.UTF-8
+@@ -3195,7 +3195,6 @@ Implies
+ submul_1.S
+ sysdep.h
+ add_n.S
+-tls-macros.h
+ libc-tls.c
+ sub_n.S
+ libgcc-compat.c
+@@ -3443,7 +3442,6 @@ libresolv.abilist
+ thread_state.h
+ pty-private.h
+ ldconfig.h
+-tls-macros.h
+ fd_to_filename.h
+ not-cancel.h
+ safe-fatal.h
+@@ -3605,7 +3603,6 @@ start.S
+ tst-mode-switch-3.c
+ addmul_1.S
+ add_n.S
+-tls-macros.h
+ libc-tls.c
+ sub_n.S
+ strcmp.S
+@@ -3921,7 +3918,6 @@ addmul_1.S
+ pthread_spin_trylock.S
+ add_n.S
+ e_sqrt.c
+-tls-macros.h
+ sub_n.S
+ strcmp.S
+ strlen.S
+@@ -4138,7 +4134,6 @@ addmul_1.S
+ pthread_spin_trylock.S
+ add_n.S
+ rtld-memset.c
+-tls-macros.h
+ sub_n.S
+ strcmp.S
+ strlen.S
+@@ -4651,7 +4646,6 @@ addmul_1.S
+ sysdep.h
+ strlen.c
+ add_n.S
+-tls-macros.h
+ sub_n.S
+ i786
+ Implies
+@@ -4712,7 +4706,6 @@ Makefile
+ start.S
+ libm-test-ulps
+ sysdep.h
+-tls-macros.h
+ libc-tls.c
+ tst-audit.h
+ dl-machine.h
+@@ -5071,7 +5064,6 @@ addmul_1.S
+ sysdep.h
+ add_n.S
+ wcschr.S
+-tls-macros.h
+ sub_n.S
+ tst-quad2.c
+ strcmp.S
+@@ -6337,7 +6329,6 @@ Makefile
+ start.S
+ libm-test-ulps
+ sysdep.h
+-tls-macros.h
+ libc-tls.c
+ strlen.S
+ tst-audit.h
+@@ -6447,7 +6438,6 @@ strstr.c
+ string-endian.h
+ memcmp.c
+ sysdep.h
+-tls-macros.h
+ tst-audit.h
+ dl-machine.h
+ dl-tls.h
+@@ -6581,7 +6571,6 @@ Makefile
+ start.S
+ libm-test-ulps
+ sysdep.h
+-tls-macros.h
+ libc-tls.c
+ strcmp.S
+ strrchr.S
+@@ -7004,7 +6993,6 @@ addmul_1.S
+ Implies
+ sysdep.h
+ rtld-memset.c
+-tls-macros.h
+ strcmp.S
+ strlen.S
+ tst-audit.h
+@@ -7124,7 +7112,6 @@ wcschr.c
+ Makefile
+ ffs.c
+ sysdep.h
+-tls-macros.h
+ test-arithf.c
+ nofpu
+ atomic-feupdateenv.c
+@@ -7386,7 +7373,6 @@ gprrest0.S
+ sysdep.h
+ add_n.S
+ rtld-memset.c
+-tls-macros.h
+ sub_n.S
+ strcmp.S
+ strlen.S
+@@ -7969,7 +7955,6 @@ memcmp.S
+ Makefile
+ start.S
+ sysdep.h
+-tls-macros.h
+ libc-tls.c
+ strcmp.S
+ sched_cpucount.c
+@@ -8197,7 +8182,6 @@ start.S
+ addmul_1.S
+ nscd-types.h
+ add_n.S
+-tls-macros.h
+ libc-tls.c
+ sub_n.S
+ divqu.S
+@@ -8318,7 +8302,6 @@ Makefile
+ ffs.c
+ start.S
+ sysdep.h
+-tls-macros.h
+ libc-tls.c
+ tst-audit.h
+ wcpcpy.c
+@@ -8628,7 +8611,6 @@ Makefile
+ start.S
+ sysdep.h
+ add_n.S
+-tls-macros.h
+ sub_n.S
+ strcmp.S
+ tst-audit.h
+@@ -8690,7 +8672,6 @@ start.S
+ addmul_1.S
+ sysdep.h
+ add_n.S
+-tls-macros.h
+ sub_n.S
+ strcmp.S
+ tst-audit.h
+@@ -8796,7 +8777,6 @@ ftestexcept.c
+ rt-aeabi_unwind_cpp_pr1.c
+ sysdep.h
+ add_n.S
+-tls-macros.h
+ libc-tls.c
+ sub_n.S
+ strlen.S
+@@ -8879,7 +8859,6 @@ Makefile
+ start.S
+ libm-test-ulps
+ sysdep.h
+-tls-macros.h
+ libc-tls.c
+ tst-audit.h
+ dl-machine.h
+@@ -12064,7 +12043,6 @@ nodelmod4.c
+ dl-fini.c
+ unload2dep.c
+ unload8.c
+-tls-macros.h
+ unload4.c
+ tst-array5.exp
+ unload4mod2.c
+diff --git a/sysdeps/aarch64/tls-macros.h b/sysdeps/aarch64/tls-macros.h
+deleted file mode 100644
+index 33883dc..0000000
+--- a/sysdeps/aarch64/tls-macros.h
++++ /dev/null
+@@ -1,51 +0,0 @@
+-/* Copyright (C) 2009-2021 Free Software Foundation, Inc.
+-
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public License as
+-   published by the Free Software Foundation; either version 2.1 of the
+-   License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <https://www.gnu.org/licenses/>.  */
+-
+-#define TLS_LD(x) TLS_GD(x)
+-
+-#define TLS_GD(x)					\
+-  ({ register unsigned long __result asm ("x0");	\
+-     asm ("adrp	%0, :tlsgd:" #x "; "			\
+-	  "add	%0, %0, #:tlsgd_lo12:" #x "; "		\
+-	  "bl	__tls_get_addr;"			\
+-	  "nop"						\
+-	  : "=r" (__result)				\
+-	  :						\
+-	  : "x1", "x2", "x3", "x4", "x5", "x6",		\
+-	    "x7", "x8", "x9", "x10", "x11", "x12",	\
+-	    "x13", "x14", "x15", "x16", "x17", "x18",	\
+-	    "x30", "memory", "cc");			\
+-     (int *) (__result); })
+-
+-#define TLS_IE(x)					\
+-  ({ register unsigned long __result asm ("x0");	\
+-     register unsigned long __t;			\
+-     asm ("mrs	%1, tpidr_el0; "			\
+-	  "adrp	%0, :gottprel:" #x "; "			\
+-	  "ldr	%0, [%0, #:gottprel_lo12:" #x "]; "	\
+-	  "add	%0, %0, %1"				\
+-	  : "=r" (__result), "=r" (__t));		\
+-     (int *) (__result); })
+-
+-#define TLS_LE(x)					\
+-  ({ register unsigned long __result asm ("x0");	\
+-     asm ("mrs	%0, tpidr_el0; "			\
+-	  "add	%0, %0, :tprel_hi12:" #x "; "		\
+-	  "add	%0, %0, :tprel_lo12_nc:" #x		\
+-	  : "=r" (__result));				\
+-     (int *) (__result); })
+diff --git a/sysdeps/alpha/tls-macros.h b/sysdeps/alpha/tls-macros.h
+deleted file mode 100644
+index 00489c2..0000000
+--- a/sysdeps/alpha/tls-macros.h
++++ /dev/null
+@@ -1,25 +0,0 @@
+-/* Macros to support TLS testing in times of missing compiler support.  */
+-
+-extern void *__tls_get_addr (void *);
+-
+-# define TLS_GD(x)							\
+-  ({ register void *__gp asm ("$29"); void *__result;			\
+-     asm ("lda %0, " #x "($gp) !tlsgd" : "=r" (__result) : "r"(__gp));	\
+-     __tls_get_addr (__result); })
+-
+-# define TLS_LD(x)							\
+-  ({ register void *__gp asm ("$29"); void *__result;			\
+-     asm ("lda %0, " #x "($gp) !tlsldm" : "=r" (__result) : "r"(__gp));	\
+-     __result = __tls_get_addr (__result);				\
+-     asm ("lda %0, " #x "(%0) !dtprel" : "+r" (__result));		\
+-     __result; })
+-
+-# define TLS_IE(x)							\
+-  ({ register void *__gp asm ("$29"); long ofs;				\
+-     asm ("ldq %0, " #x "($gp) !gottprel" : "=r"(ofs) : "r"(__gp));	\
+-     __builtin_thread_pointer () + ofs; })
+-
+-# define TLS_LE(x)						\
+-  ({ void *__result = __builtin_thread_pointer ();		\
+-     asm ("lda %0, " #x "(%0) !tprel" : "+r" (__result));	\
+-     __result; })
+diff --git a/sysdeps/arc/tls-macros.h b/sysdeps/arc/tls-macros.h
+deleted file mode 100644
+index b0003d8..0000000
+--- a/sysdeps/arc/tls-macros.h
++++ /dev/null
+@@ -1,47 +0,0 @@
+-/* Macros to support TLS testing in times of missing compiler support.  ARC version.
+-   Copyright (C) 2020-2021 Free Software Foundation, Inc.
+-
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <https://www.gnu.org/licenses/>.  */
+-
+-
+-/* For now.  */
+-#define TLS_LD(x)	TLS_IE(x)
+-
+-#define TLS_GD(x)					\
+-  ({ void *__result;					\
+-     __asm__ ("add r0, pcl, @" #x "@tlsgd      \n"     	\
+-	  ".tls_gd_ld " #x "`bl __tls_get_addr@plt \n"	\
+-	  "mov %0, r0                    \n"		\
+-	  : "=&r" (__result)				\
+-	  ::"r0","r1","r2","r3","r4","r5","r6","r7",	\
+-	    "r8","r9","r10","r11","r12");		\
+-     __result; })
+-
+-#define TLS_LE(x)					\
+-  ({ void *__result;					\
+-     void *tp = __builtin_thread_pointer ();		\
+-     __asm__ ("add %0, %1, @" #x "@tpoff   \n"		\
+-	  : "=r" (__result) : "r"(tp));	        	\
+-     __result; })
+-
+-#define TLS_IE(x)					\
+-  ({ void *__result;					\
+-     void *tp = __builtin_thread_pointer ();		\
+-     __asm__ ("ld %0, [pcl, @" #x "@tlsie]      \n"     \
+-	  "add %0, %1, %0                       \n"	\
+-	  : "=&r" (__result) : "r" (tp));		\
+-     __result; })
+diff --git a/sysdeps/arm/tls-macros.h b/sysdeps/arm/tls-macros.h
+deleted file mode 100644
+index 25cd849..0000000
+--- a/sysdeps/arm/tls-macros.h
++++ /dev/null
+@@ -1,72 +0,0 @@
+-#include <sysdep.h>                     /* For ARCH_HAS_T2.  */
+-
+-#ifdef __thumb2__
+-# define ARM_PC_OFFSET "4"
+-#else
+-# define ARM_PC_OFFSET "8"
+-#endif
+-
+-/* Returns the address of data containing ".word SYMBOL(RELOC)".  */
+-#if defined (ARCH_HAS_T2) && !defined (PIC)
+-# define GET_SPECIAL_RELOC(symbol, reloc)			\
+-  ({								\
+-    int *__##symbol##_rodata;					\
+-    asm ("movw %0, #:lower16:1f\n"				\
+-	 "movt %0, #:upper16:1f\n"				\
+-	 ".pushsection .rodata.cst4, \"aM\", %%progbits, 4\n"	\
+-	 ".balign 4\n"						\
+-	 "1: .word " #symbol "(" #reloc ")\n"			\
+-	 ".popsection"						\
+-	 : "=r" (__##symbol##_rodata));				\
+-    __##symbol##_rodata;					\
+-  })
+-#elif defined (ARCH_HAS_T2) && defined (PIC) && ARM_PCREL_MOVW_OK
+-# define GET_SPECIAL_RELOC(symbol, reloc)			\
+-  ({								\
+-    int *__##symbol##_rodata;					\
+-    asm ("movw %0, #:lower16:1f - 2f - " ARM_PC_OFFSET "\n"	\
+-	 "movt %0, #:upper16:1f - 2f - " ARM_PC_OFFSET "\n"	\
+-	 ".pushsection .rodata.cst4, \"aM\", %%progbits, 4\n"	\
+-	 ".balign 4\n"						\
+-	 "1: .word " #symbol "(" #reloc ")\n"			\
+-	 ".popsection\n"					\
+-	 "2: add %0, %0, pc"					\
+-	 : "=r" (__##symbol##_rodata));				\
+-    __##symbol##_rodata;					\
+-  })
+-#else
+-# define GET_SPECIAL_RELOC(symbol, reloc)			\
+-  ({								\
+-    int *__##symbol##_rodata;					\
+-    asm ("adr %0, 1f\n"						\
+-	 "b 2f\n"						\
+-	 ".balign 4\n"						\
+-	 "1: .word " #symbol "(" #reloc ")\n"			\
+-	 "2:"							\
+-	 : "=r" (__##symbol##_rodata));				\
+-    __##symbol##_rodata;					\
+-  })
+-#endif
+-
+-/* Returns the pointer value (SYMBOL(RELOC) + pc - PC_OFS).  */
+-#define GET_SPECIAL_PCREL(symbol, reloc)				\
+-  ({									\
+-    int *__##symbol##_rodata = GET_SPECIAL_RELOC (symbol, reloc);	\
+-    (void *) ((int) __##symbol##_rodata + *__##symbol##_rodata);	\
+-  })
+-
+-#define TLS_LE(x)						\
+-  (__builtin_thread_pointer () + *GET_SPECIAL_RELOC (x, tpoff))
+-
+-#define TLS_IE(x)						\
+-  ((int *) (__builtin_thread_pointer ()				\
+-	    + *(int *) GET_SPECIAL_PCREL (x, gottpoff)))
+-
+-extern void *__tls_get_addr (void *);
+-
+-#define TLS_LD(x)						\
+-  ((int *) (__tls_get_addr (GET_SPECIAL_PCREL (x, tlsldm))	\
+-	    + *GET_SPECIAL_RELOC (x, tlsldo)))
+-
+-#define TLS_GD(x)						\
+-  ((int *) __tls_get_addr (GET_SPECIAL_PCREL (x, tlsgd)))
+diff --git a/sysdeps/csky/abiv2/tls-macros.h b/sysdeps/csky/abiv2/tls-macros.h
+deleted file mode 100644
+index 57ed1e7..0000000
+--- a/sysdeps/csky/abiv2/tls-macros.h
++++ /dev/null
+@@ -1,55 +0,0 @@
+-/* Macros for accessing thread-local storage.  C-SKY ABIV2 version.
+-   Copyright (C) 2018-2021 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <https://www.gnu.org/licenses/>.  */
+-
+-# define TLS_LE(x)					\
+-  ({ int *__result;					\
+-     __asm__ ("lrw %0, " #x "@TPOFF\n\t"		\
+-	      "add %0, tls, %0"				\
+-	      : "=&r" (__result));			\
+-     __result; })
+-
+-# define TLS_IE(x)					\
+-  ({ int *__result;					\
+-     __asm__ ("grs a1, 1f\n"				\
+-	      "1:\tlrw %0, " #x "@GOTTPOFF\n\t"		\
+-	      "ldr.w %0, (a1, %0 << 0)\n\t"		\
+-	      "add %0, tls, %0"				\
+-	      : "=&r" (__result): : "a1");		\
+-     __result; })
+-
+-# define TLS_LD(x)					\
+-  ({ char *__result;					\
+-     int __offset;					\
+-     extern void *__tls_get_addr (void *);		\
+-     __asm__ ("grs a1, 1f\n"				\
+-	      "1:\tlrw %0, " #x "@TLSLDM32;\n\t"	\
+-	      "add %0, a1, %0"				\
+-	      : "=r" (__result) : : "a1");		\
+-     __result = (char *)__tls_get_addr (__result);	\
+-     __asm__ ("lrw %0, " #x "@TLSLDO32"			\
+-	      : "=r" (__offset));			\
+-     (int *) (__result + __offset); })
+-
+-# define TLS_GD(x)					\
+-  ({ int *__result;					\
+-     extern void *__tls_get_addr (void *);		\
+-     __asm__ ("grs a1, 1f\n"				\
+-	      "1:\tlrw %0, " #x "@TLSGD32\n\t"		\
+-	      "add %0, a1, %0"				\
+-	      : "=r" (__result) : : "a1");		\
+-     (int *)__tls_get_addr (__result); })
+diff --git a/sysdeps/generic/tls-macros.h b/sysdeps/generic/tls-macros.h
+deleted file mode 100644
+index 0a08f7c..0000000
+--- a/sysdeps/generic/tls-macros.h
++++ /dev/null
+@@ -1,12 +0,0 @@
+-/* Macros to support TLS testing in times of missing compiler support.
+-   Stub version.
+-
+-   These macros should yield int * expressions for the TLS symbol X
+-   accessed using the various TLS access models.  Macros for some machines
+-   are defined in elf/tls-macros.h, but ports can instead provide this file.
+-
+-#define TLS_LE(x)
+-#define TLS_IE(x)
+-#define TLS_LD(x)
+-#define TLS_GD(x)
+-*/
+diff --git a/sysdeps/hppa/tls-macros.h b/sysdeps/hppa/tls-macros.h
+deleted file mode 100644
+index 38edb1b..0000000
+--- a/sysdeps/hppa/tls-macros.h
++++ /dev/null
+@@ -1,114 +0,0 @@
+-/* TLS Access Macros for HP PARISC Linux */
+-
+-/* HPPA Local Exec TLS access.  */
+-#define TLS_LE(x) \
+-  ({  int * __result;  \
+-      unsigned long __tmp; \
+-      asm ( \
+-	"  mfctl %%cr27, %1\n" \
+-	"  addil LR'" #x "-$tls_leoff$, %1\n" \
+-	"  ldo RR'" #x "-$tls_leoff$(%%r1), %0\n" \
+-        : "=r" (__result), "=r" (__tmp) \
+-	: \
+-	: "r1" );  \
+-      __result;  \
+-  })
+-
+-/* HPPA Initial Exec TLS access.  */
+-#ifdef PIC
+-#  define TLS_IE(x) \
+-  ({  int * __result;  \
+-      unsigned long __tmp, __tmp2; \
+-      asm ( \
+-	"  mfctl %%cr27, %1\n" \
+-	"  addil LT'" #x "-$tls_ieoff$, %%r19\n" \
+-	"  ldw RT'" #x "-$tls_ieoff$(%%r1), %2\n" \
+-	"  add %1, %2, %0\n" \
+-	: "=r" (__result), "=r" (__tmp), "=r" (__tmp2) \
+-	: \
+-	: "r1" ); \
+-      __result;  \
+-  })
+-#else
+-#  define TLS_IE(x) \
+-  ({  int * __result;  \
+-      unsigned long __tmp, __tmp2; \
+-      asm ( \
+-	"  mfctl %%cr27, %1\n" \
+-	"  addil LR'" #x "-$tls_ieoff$, %%r27\n" \
+-	"  ldw RR'" #x "-$tls_ieoff$(%%r1), %2\n" \
+-	"  add %1, %2, %0\n" \
+-	: "=r" (__result), "=r" (__tmp), "=r" (__tmp2) \
+-	: \
+-	: "r1" ); \
+-      __result;  \
+-  })
+-#endif
+-
+-#ifdef PIC
+-/* HPPA Local Dynamic TLS access.  */
+-#  define TLS_LD(x) \
+-  ({  int * __result;  \
+-      asm (  \
+-	"  copy %%r19, %%r4\n" \
+-	"  addil LT'" #x "-$tls_ldidx$, %%r19\n" \
+-	"  bl __tls_get_addr, %%r2\n" \
+-	"  ldo RT'" #x "-$tls_ldidx$(%%r1), %%r26\n" \
+-	"  addil LR'" #x "-$tls_dtpoff$, %%r28\n" \
+-	"  ldo RR'" #x "-$tls_dtpoff$(%%r1), %0\n" \
+-	"  copy %%r4, %%r19\n" \
+-	: "=r" (__result) \
+-	: \
+-	: "r1", "r2", "r4", "r20", "r21", "r22", "r23", "r24", \
+-	  "r25", "r26", "r28", "r29", "r31" ); \
+-      __result;  \
+-  })
+-#else
+-#  define TLS_LD(x) \
+-  ({  int * __result;  \
+-      asm (  \
+-	"  addil LR'" #x "-$tls_ldidx$, %%r27\n" \
+-	"  bl __tls_get_addr, %%r2\n" \
+-	"  ldo RR'" #x "-$tls_ldidx$(%%r1), %%r26\n" \
+-	"  addil LR'" #x "-$tls_dtpoff$, %%r28\n" \
+-	"  ldo RR'" #x "-$tls_dtpoff$(%%r1), %0\n" \
+-	: "=r" (__result) \
+-	: \
+-	: "r1", "r2", "r20", "r21", "r22", "r23", "r24", \
+-	  "r25", "r26", "r28", "r29", "r31" ); \
+-      __result;  \
+-  })
+-#endif
+-
+-/* HPPA General Dynamic TLS access.  */
+-#ifdef PIC
+-#  define TLS_GD(x) \
+-  ({  int * __result;  \
+-      asm (  \
+-	"  copy %%r19, %%r4\n" \
+-        "  addil LT'" #x "-$tls_gdidx$, %%r19\n" \
+-	"  bl __tls_get_addr, %%r2\n" \
+-	"  ldo RT'" #x "-$tls_gdidx$(%%r1), %%r26\n" \
+-	"  copy %%r28, %0\n" \
+-	"  copy %%r4, %%r19\n" \
+-	: "=r" (__result) \
+-	: \
+-	: "r1", "r2", "r4", "r20", "r21", "r22", "r23", "r24", \
+-	  "r25", "r26", "r28", "r29", "r31" ); \
+-      __result;  \
+-  })
+-#else
+-#  define TLS_GD(x) \
+-  ({  int * __result;  \
+-      asm (  \
+-        "  addil LR'" #x "-$tls_gdidx$, %%r27\n" \
+-	"  bl __tls_get_addr, %%r2\n" \
+-	"  ldo RR'" #x "-$tls_gdidx$(%%r1), %%r26\n" \
+-	"  copy %%r28, %0\n" \
+-	: "=r" (__result) \
+-	: \
+-	: "r1", "r2", "r20", "r21", "r22", "r23", "r24", \
+-	  "r25", "r26", "r28", "r29", "r31" ); \
+-      __result;  \
+-  })
+-#endif
+diff --git a/sysdeps/i386/tls-macros.h b/sysdeps/i386/tls-macros.h
+deleted file mode 100644
+index 9c1303d..0000000
+--- a/sysdeps/i386/tls-macros.h
++++ /dev/null
+@@ -1,47 +0,0 @@
+-#define TLS_LE(x) \
+-  ({ int *__l;								      \
+-     asm ("movl %%gs:0,%0\n\t"						      \
+-	  "subl $" #x "@tpoff,%0"					      \
+-	  : "=r" (__l));						      \
+-     __l; })
+-
+-#define TLS_IE(x) \
+-  ({ int *__l, __b;							      \
+-     asm ("call 1f\n\t"							      \
+-	  ".subsection 1\n"						      \
+-	  "1:\tmovl (%%esp), %%ebx\n\t"					      \
+-	  "ret\n\t"							      \
+-	  ".previous\n\t"						      \
+-	  "addl $_GLOBAL_OFFSET_TABLE_, %%ebx\n\t"			      \
+-	  "movl %%gs:0,%0\n\t"						      \
+-	  "subl " #x "@gottpoff(%%ebx),%0"				      \
+-	  : "=r" (__l), "=&b" (__b));					      \
+-     __l; })
+-
+-#define TLS_LD(x) \
+-  ({ int *__l, __b, __c, __d;						      \
+-     asm ("call 1f\n\t"							      \
+-	  ".subsection 1\n"						      \
+-	  "1:\tmovl (%%esp), %%ebx\n\t"					      \
+-	  "ret\n\t"							      \
+-	  ".previous\n\t"						      \
+-	  "addl $_GLOBAL_OFFSET_TABLE_, %%ebx\n\t"			      \
+-	  "leal " #x "@tlsldm(%%ebx),%%eax\n\t"				      \
+-	  "call ___tls_get_addr@plt\n\t"				      \
+-	  "leal " #x "@dtpoff(%%eax), %%eax"				      \
+-	  : "=a" (__l), "=&b" (__b), "=&c" (__c), "=&d" (__d));		      \
+-     __l; })
+-
+-#define TLS_GD(x) \
+-  ({ int *__l, __b, __c, __d;						      \
+-     asm ("call 1f\n\t"							      \
+-	  ".subsection 1\n"						      \
+-	  "1:\tmovl (%%esp), %%ebx\n\t"					      \
+-	  "ret\n\t"							      \
+-	  ".previous\n\t"						      \
+-	  "addl $_GLOBAL_OFFSET_TABLE_, %%ebx\n\t"			      \
+-	  "leal " #x "@tlsgd(%%ebx),%%eax\n\t"				      \
+-	  "call ___tls_get_addr@plt\n\t"				      \
+-	  "nop"								      \
+-	  : "=a" (__l), "=&b" (__b), "=&c" (__c), "=&d" (__d));		      \
+-     __l; })
+diff --git a/sysdeps/ia64/tls-macros.h b/sysdeps/ia64/tls-macros.h
+deleted file mode 100644
+index 13b216d..0000000
+--- a/sysdeps/ia64/tls-macros.h
++++ /dev/null
+@@ -1,66 +0,0 @@
+-/* Macros to support TLS testing in times of missing compiler support.  */
+-
+-extern void *__tls_get_addr (void *);
+-
+-# define TLS_LE(x) \
+-  ({ void *__l;								      \
+-     asm ("mov r2=r13\n\t"						      \
+-         ";;\n\t"							      \
+-         "addl %0=@tprel(" #x "),r2\n\t"				      \
+-         : "=r" (__l) : : "r2"  ); __l; })
+-
+-# define TLS_IE(x) \
+-  ({ void *__l;								      \
+-     register long __gp asm ("gp");					      \
+-     asm (";;\n\t"							      \
+-	 "addl r16=@ltoff(@tprel(" #x ")),gp\n\t"			      \
+-         ";;\n\t"							      \
+-         "ld8 r17=[r16]\n\t"						      \
+-         ";;\n\t"							      \
+-         "add %0=r13,r17\n\t"						      \
+-         ";;\n\t"							      \
+-         : "=r" (__l) : "r" (__gp) : "r16", "r17" ); __l; })
+-
+-# define __TLS_CALL_CLOBBERS \
+-  "r2", "r3", "r8", "r9", "r10", "r11", "r14", "r15", "r16", "r17",	      \
+-  "r18", "r19", "r20", "r21", "r22", "r23", "r24", "r25", "r26",	      \
+-  "r27", "r28", "r29", "r30", "r31",					      \
+-  "p6", "p7", "p8", "p9", "p10", "p11", "p12", "p13", "p14", "p15",	      \
+-  "f6", "f7", "f8", "f9", "f10", "f11", "f12", "f13", "f14", "f15",	      \
+-  "b6", "b7",								      \
+-  "out0", "out1", "out2", "out3", "out4", "out5", "out6", "out7"
+-
+-# define TLS_LD(x) \
+-  ({ void *__l;								      \
+-     register long __gp asm ("gp");					      \
+-     asm (";;\n\t"							      \
+-	 "mov loc0=gp\n\t"						      \
+-         "addl r16=@ltoff(@dtpmod(" #x ")),gp\n\t"			      \
+-         "addl out1=@dtprel(" #x "),r0\n\t"				      \
+-         ";;\n\t"							      \
+-         "ld8 out0=[r16]\n\t"						      \
+-         "br.call.sptk.many b0=__tls_get_addr"				      \
+-         ";;\n\t"							      \
+-         "mov gp=loc0\n\t"						      \
+-         "mov %0=r8\n\t"						      \
+-         ";;\n\t"							      \
+-         : "=r" (__l) : "r" (__gp) : "loc0", __TLS_CALL_CLOBBERS);	      \
+-     __l; })
+-
+-# define TLS_GD(x) \
+-  ({ void *__l;								      \
+-     register long __gp asm ("gp");					      \
+-     asm (";;\n\t"							      \
+-	 "mov loc0=gp\n\t"						      \
+-         "addl r16=@ltoff(@dtpmod(" #x ")),gp\n\t"			      \
+-         "addl r17=@ltoff(@dtprel(" #x ")),gp\n\t"			      \
+-         ";;\n\t"							      \
+-         "ld8 out0=[r16]\n\t"						      \
+-         "ld8 out1=[r17]\n\t"						      \
+-         "br.call.sptk.many b0=__tls_get_addr"				      \
+-         ";;\n\t"							      \
+-         "mov gp=loc0\n\t"						      \
+-         "mov %0=r8\n\t"						      \
+-         ";;\n\t"							      \
+-          : "=r" (__l) : "r" (__gp) : "loc0", __TLS_CALL_CLOBBERS);	      \
+-     __l; })
+diff --git a/sysdeps/m68k/tls-macros.h b/sysdeps/m68k/tls-macros.h
+deleted file mode 100644
+index 5fe1735..0000000
+--- a/sysdeps/m68k/tls-macros.h
++++ /dev/null
+@@ -1,68 +0,0 @@
+-/* Macros for accessing thread-local storage.  m68k version.
+-   Copyright (C) 2010-2021 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Contributed by Maxim Kuvyrkov <maxim@codesourcery.com>, 2010.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <https://www.gnu.org/licenses/>.  */
+-
+-#define TLS_GD(x)							\
+-  ({									\
+-    void *__result;							\
+-    extern void *__tls_get_addr (void *);				\
+-									\
+-    asm ("movel #_GLOBAL_OFFSET_TABLE_@GOTPC, %0\n\t"			\
+-	 "lea (-6, %%pc, %0), %0\n\t"					\
+-	 "lea " #x "@TLSGD(%0), %0"					\
+-	 : "=&a" (__result));						\
+-    (int *) __tls_get_addr (__result); })
+-
+-#define TLS_LD(x)							\
+-  ({									\
+-    char *__tp;								\
+-    int __offset;							\
+-    extern void *__tls_get_addr (void *);				\
+-									\
+-    asm ("movel #_GLOBAL_OFFSET_TABLE_@GOTPC, %0\n\t"			\
+-	 "lea (-6, %%pc, %0), %0\n\t"					\
+-	 "lea " #x "@TLSLDM(%0), %0"					\
+-	 : "=&a" (__tp));						\
+-    __tp = (char *) __tls_get_addr (__tp);				\
+-    asm ("movel #" #x "@TLSLDO, %0"					\
+-	 : "=a" (__offset));						\
+-    (int *) (__tp + __offset); })
+-
+-#define TLS_IE(x)							\
+-  ({									\
+-    char *__tp;								\
+-    int __offset;							\
+-    extern void * __m68k_read_tp (void);				\
+-									\
+-    __tp = (char *) __m68k_read_tp ();					\
+-    asm ("movel #_GLOBAL_OFFSET_TABLE_@GOTPC, %0\n\t"			\
+-	 "lea (-6, %%pc, %0), %0\n\t"					\
+-	 "movel " #x "@TLSIE(%0), %0"					\
+-	 : "=&a" (__offset));						\
+-    (int *) (__tp + __offset); })
+-
+-#define TLS_LE(x)							\
+-  ({									\
+-    char *__tp;								\
+-    int __offset;							\
+-    extern void * __m68k_read_tp (void);				\
+-									\
+-    __tp = (char *) __m68k_read_tp ();					\
+-    asm ("movel #" #x "@TLSLE, %0"					\
+-	 : "=a" (__offset));						\
+-    (int *) (__tp + __offset); })
+diff --git a/sysdeps/microblaze/tls-macros.h b/sysdeps/microblaze/tls-macros.h
+deleted file mode 100644
+index f7cd59d..0000000
+--- a/sysdeps/microblaze/tls-macros.h
++++ /dev/null
+@@ -1,46 +0,0 @@
+-/* Copyright (C) 2009-2021 Free Software Foundation, Inc.
+-
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public License as
+-   published by the Free Software Foundation; either version 2.1 of the
+-   License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <https://www.gnu.org/licenses/>.  */
+-
+-#define TLS_LD(x)                                  \
+-  ({                                               \
+-    char *__result;                                \
+-    int __offset;                                  \
+-    extern void *__tls_get_addr (void *);          \
+-    asm ("mfs r20,rpc \n"                          \
+-         "addik r20,r20,_GLOBAL_OFFSET_TABLE_+8\n" \
+-         "addik %0,r20," #x "@TLSLDM"              \
+-         : "=r" (__result));                       \
+-    __result = (char *) __tls_get_addr (__result); \
+-    asm ("addik %0,r0,"#x"@TLSDTPREL"              \
+-         : "=r" (__offset));                       \
+-    (int *) (__result + __offset); })
+-
+-
+-#define TLS_GD(x)                                  \
+-  ({                                               \
+-    int *__result;                                 \
+-    extern void *__tls_get_addr (void *);          \
+-    asm ("mfs  r20,rpc\n"                          \
+-         "addik r20,r20,_GLOBAL_OFFSET_TABLE_+8\n" \
+-         "addik %0,r20," #x "@TLSGD"               \
+-         : "=r" (__result));                       \
+-    (int *) __tls_get_addr (__result); })
+-
+-#define TLS_LE(x) TLS_LD(x)
+-
+-#define TLS_IE(x) TLS_GD(x)
+diff --git a/sysdeps/mips/tls-macros.h b/sysdeps/mips/tls-macros.h
+deleted file mode 100644
+index a6fdfbc..0000000
+--- a/sysdeps/mips/tls-macros.h
++++ /dev/null
+@@ -1,130 +0,0 @@
+-/* Macros to support TLS testing in times of missing compiler support.  */
+-
+-#include <sys/cdefs.h>
+-#include <sys/asm.h>
+-#include <sysdep.h>
+-
+-#define __STRING2(X) __STRING(X)
+-#define ADDU __STRING2(PTR_ADDU)
+-#define ADDIU __STRING2(PTR_ADDIU)
+-#define LW __STRING2(PTR_L)
+-
+-/* Load the GOT pointer, which may not be in $28 in a non-PIC
+-   (abicalls pic0) function.  */
+-#ifndef __PIC__
+-# if _MIPS_SIM != _ABI64
+-#  ifndef __mips16
+-#   define LOAD_GP "move %[tmp], $28\n\tla $28, __gnu_local_gp\n\t"
+-#  else
+-#   define LOAD_GP					\
+-           "li %[tmp], %%hi(__gnu_local_gp)\n\t"	\
+-           "sll %[tmp], 16\n\t"				\
+-           "addiu %[tmp], %%lo(__gnu_local_gp)\n\t"
+-#  endif
+-# else
+-#  define LOAD_GP "move %[tmp], $28\n\tdla $28, __gnu_local_gp\n\t"
+-# endif
+-# define UNLOAD_GP "\n\tmove $28, %[tmp]"
+-#else
+-/* MIPS16 (re)creates the GP value using PC-relative instructions.  */
+-# ifdef __mips16
+-#  define LOAD_GP					\
+-           "li %[tmp], %%hi(_gp_disp)\n\t"		\
+-           "addiu %0, $pc, %%lo(_gp_disp)\n\t"		\
+-           "sll %[tmp], 16\n\t"				\
+-           "addu %[tmp], %0\n\t"
+-# else
+-#  define LOAD_GP
+-# endif
+-# define UNLOAD_GP
+-#endif
+-
+-# if __mips_isa_rev >= 2
+-#  define TLS_RDHWR "rdhwr\t%0,$29"
+-# else
+-#  define TLS_RDHWR 					\
+-	  ".set push\n\t.set mips32r2\n\t"		\
+-	  "rdhwr\t%0,$29\n\t.set pop"
+-#endif
+-
+-#ifndef __mips16
+-# define TLS_GD(x)					\
+-  ({ void *__result, *__tmp;				\
+-     extern void *__tls_get_addr (void *);		\
+-     asm (LOAD_GP ADDIU " %0, $28, %%tlsgd(" #x ")"	\
+-	  UNLOAD_GP					\
+-	  : "=r" (__result), [tmp] "=&r" (__tmp));	\
+-     (int *)__tls_get_addr (__result); })
+-# define TLS_LD(x)					\
+-  ({ void *__result, *__tmp;				\
+-     extern void *__tls_get_addr (void *);		\
+-     asm (LOAD_GP ADDIU " %0, $28, %%tlsldm(" #x ")"	\
+-	  UNLOAD_GP					\
+-	  : "=r" (__result), [tmp] "=&r" (__tmp));	\
+-     __result = __tls_get_addr (__result);		\
+-     asm ("lui $3,%%dtprel_hi(" #x ")\n\t"		\
+-	  "addiu $3,$3,%%dtprel_lo(" #x ")\n\t"		\
+-	  ADDU " %0,%0,$3"				\
+-	  : "+r" (__result) : : "$3");			\
+-     __result; })
+-# define TLS_IE(x)					\
+-  ({ void *__result, *__tmp;				\
+-     asm (TLS_RDHWR					\
+-	  : "=v" (__result));				\
+-     asm (LOAD_GP LW " $3,%%gottprel(" #x ")($28)\n\t"	\
+-	  ADDU " %0,%0,$3"				\
+-	  UNLOAD_GP					\
+-	  : "+r" (__result), [tmp] "=&r" (__tmp)	\
+-	  : : "$3");					\
+-     __result; })
+-# define TLS_LE(x)					\
+-  ({ void *__result;					\
+-     asm (TLS_RDHWR					\
+-	  : "=v" (__result));				\
+-     asm ("lui $3,%%tprel_hi(" #x ")\n\t"		\
+-	  "addiu $3,$3,%%tprel_lo(" #x ")\n\t"		\
+-	  ADDU " %0,%0,$3"				\
+-	  : "+r" (__result) : : "$3");			\
+-     __result; })
+-
+-#else /* __mips16 */
+-/* MIPS16 version.  */
+-# define TLS_GD(x)					\
+-  ({ void *__result, *__tmp;				\
+-     extern void *__tls_get_addr (void *);		\
+-     asm (LOAD_GP ADDIU " %1, %%tlsgd(" #x ")"		\
+-	  "\n\tmove %0, %1"				\
+-	  : "=d" (__result), [tmp] "=&d" (__tmp));	\
+-     (int *) __tls_get_addr (__result); })
+-# define TLS_LD(x)					\
+-  ({ void *__result, *__tmp;				\
+-     extern void *__tls_get_addr (void *);		\
+-     asm (LOAD_GP ADDIU " %1, %%tlsldm(" #x ")"		\
+-	  "\n\tmove %0, %1"				\
+-	  : "=d" (__result), [tmp] "=&d" (__tmp));	\
+-     __result = __tls_get_addr (__result);		\
+-     asm ("li $3,%%dtprel_hi(" #x ")\n\t"		\
+-	  "sll $3,16\n\t"				\
+-	  "addiu $3,%%dtprel_lo(" #x ")\n\t"		\
+-	  ADDU " %0,%0,$3"				\
+-	  : "+d" (__result) : : "$3");			\
+-     __result; })
+-# define TLS_IE(x)					\
+-  ({ void *__result, *__tmp, *__tp;			\
+-     __tp = __builtin_thread_pointer ();		\
+-     asm (LOAD_GP LW " $3,%%gottprel(" #x ")(%1)\n\t"	\
+-	  ADDU " %0,%[tp],$3"				\
+-	  : "=&d" (__result), [tmp] "=&d" (__tmp)	\
+-	  : [tp] "d" (__tp) : "$3");			\
+-     __result; })
+-# define TLS_LE(x)					\
+-  ({ void *__result, *__tp;				\
+-     __tp = __builtin_thread_pointer ();		\
+-     asm ("li $3,%%tprel_hi(" #x ")\n\t"		\
+-	  "sll $3,16\n\t"				\
+-	  "addiu $3,%%tprel_lo(" #x ")\n\t"		\
+-	  ADDU " %0,%[tp],$3"				\
+-	  : "=d" (__result) : [tp] "d" (__tp) : "$3");	\
+-     __result; })
+-
+-#endif /* __mips16 */
+diff --git a/sysdeps/nios2/tls-macros.h b/sysdeps/nios2/tls-macros.h
+deleted file mode 100644
+index 7029530..0000000
+--- a/sysdeps/nios2/tls-macros.h
++++ /dev/null
+@@ -1,46 +0,0 @@
+-#define TLS_LE(x)					\
+-  ({ int *__result;					\
+-     asm ("addi %0, r23, %%tls_le(" #x ")"		\
+-	  : "=r" (__result));		                \
+-     __result; })
+-
+-#define TLS_IE(x)					\
+-  ({ int *__result;					\
+-     int __tmp;                                         \
+-     asm ("nextpc %0 ; "                                \
+-          "1: movhi %1, %%hiadj(_gp_got - 1b) ; "	\
+-          "addi %1, %1, %%lo(_gp_got - 1b) ; "		\
+-          "add %0, %0, %1 ; "                           \
+-          "ldw %1, %%tls_ie(" #x ")(%0) ; "        	\
+-	  "add %1, r23, %1"              		\
+-          : "=&r" (__tmp), "=&r" (__result));           \
+-     __result; })
+-
+-#define TLS_LD(x)					\
+-  ({ char *__result;					\
+-     char *__result2;                                   \
+-     int *__result3;                                    \
+-     int __tmp;                                         \
+-     extern void *__tls_get_addr (void *);		\
+-     asm ("nextpc %0 ; "                                \
+-          "1: movhi %1, %%hiadj(_gp_got - 1b) ; "	\
+-          "addi %1, %1, %%lo(_gp_got - 1b) ; "		\
+-          "add %0, %0, %1 ; "                           \
+-          "addi %0, %0, %%tls_ldm(" #x ")"              \
+-          : "=r" (__result), "=r" (__tmp));             \
+-     __result2 = (char *)__tls_get_addr (__result);	\
+-     asm ("addi %0, %1, %%tls_ldo(" #x ")"              \
+-	  : "=r" (__result3) : "r" (__result2));        \
+-     __result3; })
+-
+-#define TLS_GD(x)					\
+-  ({ int *__result;					\
+-     int __tmp;                                         \
+-     extern void *__tls_get_addr (void *);		\
+-     asm ("nextpc %0 ; "                                \
+-          "1: movhi %1, %%hiadj(_gp_got - 1b) ; "	\
+-          "addi %1, %1, %%lo(_gp_got - 1b) ; "		\
+-          "add %0, %0, %1 ; "                           \
+-          "addi %0, %0, %%tls_gd(" #x ")"		\
+-	  : "=r" (__result), "=r" (__tmp));		\
+-     (int *)__tls_get_addr (__result); })
+diff --git a/sysdeps/powerpc/powerpc32/tls-macros.h b/sysdeps/powerpc/powerpc32/tls-macros.h
+deleted file mode 100644
+index ee0eac4..0000000
+--- a/sysdeps/powerpc/powerpc32/tls-macros.h
++++ /dev/null
+@@ -1,49 +0,0 @@
+-/* Include sysdeps/powerpc/tls-macros.h for __TLS_CALL_CLOBBERS  */
+-#include_next "tls-macros.h"
+-
+-/* PowerPC32 Local Exec TLS access.  */
+-#define TLS_LE(x)							      \
+-  ({ int *__result;							      \
+-     asm ("addi %0,2," #x "@tprel"					      \
+-	  : "=r" (__result));						      \
+-     __result; })
+-
+-/* PowerPC32 Initial Exec TLS access.  */
+-#define TLS_IE(x)							      \
+-  ({ int *__result;							      \
+-     asm ("bcl 20,31,1f\n1:\t"						      \
+-	  "mflr %0\n\t"							      \
+-	  "addis %0,%0,_GLOBAL_OFFSET_TABLE_-1b@ha\n\t"			      \
+-	  "addi %0,%0,_GLOBAL_OFFSET_TABLE_-1b@l\n\t"			      \
+-	  "lwz %0," #x "@got@tprel(%0)\n\t"				      \
+-	  "add %0,%0," #x "@tls"					      \
+-	  : "=b" (__result) :						      \
+-	  : "lr");							      \
+-     __result; })
+-
+-/* PowerPC32 Local Dynamic TLS access.  */
+-#define TLS_LD(x)							      \
+-  ({ int *__result;							      \
+-     asm ("bcl 20,31,1f\n1:\t"						      \
+-	  "mflr 3\n\t"							      \
+-	  "addis 3,3,_GLOBAL_OFFSET_TABLE_-1b@ha\n\t"			      \
+-	  "addi 3,3,_GLOBAL_OFFSET_TABLE_-1b@l\n\t"			      \
+-	  "addi 3,3," #x "@got@tlsld\n\t"				      \
+-	  "bl __tls_get_addr@plt\n\t"					      \
+-	  "addi %0,3," #x "@dtprel"					      \
+-	  : "=r" (__result) :						      \
+-	  : "3", __TLS_CALL_CLOBBERS);					      \
+-     __result; })
+-
+-/* PowerPC32 General Dynamic TLS access.  */
+-#define TLS_GD(x)							      \
+-  ({ register int *__result __asm__ ("r3");				      \
+-     asm ("bcl 20,31,1f\n1:\t"						      \
+-	  "mflr 3\n\t"							      \
+-	  "addis 3,3,_GLOBAL_OFFSET_TABLE_-1b@ha\n\t"			      \
+-	  "addi 3,3,_GLOBAL_OFFSET_TABLE_-1b@l\n\t"			      \
+-	  "addi 3,3," #x "@got@tlsgd\n\t"				      \
+-	  "bl __tls_get_addr@plt"					      \
+-	  : "=r" (__result) :						      \
+-	  : __TLS_CALL_CLOBBERS);					      \
+-     __result; })
+diff --git a/sysdeps/powerpc/powerpc64/tls-macros.h b/sysdeps/powerpc/powerpc64/tls-macros.h
+deleted file mode 100644
+index 79a0b25..0000000
+--- a/sysdeps/powerpc/powerpc64/tls-macros.h
++++ /dev/null
+@@ -1,42 +0,0 @@
+-/* Include sysdeps/powerpc/tls-macros.h for __TLS_CALL_CLOBBERS  */
+-#include_next "tls-macros.h"
+-
+-/* PowerPC64 Local Exec TLS access.  */
+-#define TLS_LE(x)							      \
+-  ({ int * __result;							      \
+-     asm ("addis %0,13," #x "@tprel@ha\n\t"				      \
+-	  "addi  %0,%0," #x "@tprel@l"					      \
+-	  : "=b" (__result) );						      \
+-     __result;								      \
+-  })
+-/* PowerPC64 Initial Exec TLS access.  */
+-#define TLS_IE(x)							      \
+-  ({ int * __result;							      \
+-     asm ("ld  %0," #x "@got@tprel(2)\n\t"				      \
+-	  "add %0,%0," #x "@tls"					      \
+-	  : "=r" (__result) );						      \
+-     __result;								      \
+-  })
+-
+-/* PowerPC64 Local Dynamic TLS access.  */
+-#define TLS_LD(x)							      \
+-  ({ int * __result;							      \
+-     asm ("addi  3,2," #x "@got@tlsld\n\t"				      \
+-	  "bl    __tls_get_addr\n\t"					      \
+-	  "nop   \n\t"							      \
+-	  "addis %0,3," #x "@dtprel@ha\n\t"				      \
+-	  "addi  %0,%0," #x "@dtprel@l"					      \
+-	  : "=b" (__result) :						      \
+-	  : "3", __TLS_CALL_CLOBBERS);					      \
+-     __result;								      \
+-  })
+-/* PowerPC64 General Dynamic TLS access.  */
+-#define TLS_GD(x)							      \
+-  ({ register int *__result __asm__ ("r3");				      \
+-     asm ("addi  3,2," #x "@got@tlsgd\n\t"				      \
+-	  "bl    __tls_get_addr\n\t"					      \
+-	  "nop   "							      \
+-	  : "=r" (__result) :						      \
+-	  : __TLS_CALL_CLOBBERS);					      \
+-     __result;								      \
+-  })
+diff --git a/sysdeps/powerpc/tls-macros.h b/sysdeps/powerpc/tls-macros.h
+deleted file mode 100644
+index 809ef5c..0000000
+--- a/sysdeps/powerpc/tls-macros.h
++++ /dev/null
+@@ -1,3 +0,0 @@
+-#define __TLS_CALL_CLOBBERS						      \
+-	"0", "4", "5", "6", "7", "8", "9", "10", "11", "12",		      \
+-	"lr", "ctr", "cr0", "cr1", "cr5", "cr6", "cr7"
+diff --git a/sysdeps/riscv/tls-macros.h b/sysdeps/riscv/tls-macros.h
+deleted file mode 100644
+index 90c496c..0000000
+--- a/sysdeps/riscv/tls-macros.h
++++ /dev/null
+@@ -1,47 +0,0 @@
+-/* Macros to support TLS testing in times of missing compiler support.
+-   Copyright (C) 2017-2021 Free Software Foundation, Inc.
+-
+-   This file is part of the GNU C Library.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library.  If not, see
+-   <https://www.gnu.org/licenses/>.  */
+-
+-
+-#include <sys/cdefs.h>
+-#include <sys/asm.h>
+-#include <sysdep.h>
+-#include "dl-tls.h"
+-
+-#define TLS_GD(x)					\
+-	({ void *__result;				\
+-	asm ("la.tls.gd %0, " #x "\n\t"			\
+-	     : "=r" (__result));			\
+-	__tls_get_addr (__result); })
+-
+-#define TLS_LD(x) TLS_GD(x)
+-
+-#define TLS_IE(x)					\
+-	({ void *__result;				\
+-	asm ("la.tls.ie %0, " #x "\n\t"			\
+-	     "add %0, %0, tp\n\t"			\
+-	     : "=r" (__result));			\
+-	__result; })
+-
+-#define TLS_LE(x)					\
+-	({ void *__result;				\
+-	asm ("lui %0, %%tprel_hi(" #x ")\n\t"		\
+-	     "add %0, %0, tp, %%tprel_add(" #x ")\n\t"	\
+-	     "addi %0, %0, %%tprel_lo(" #x ")\n\t"	\
+-	     : "=r" (__result));			\
+-	__result; })
+diff --git a/sysdeps/s390/s390-32/tls-macros.h b/sysdeps/s390/s390-32/tls-macros.h
+deleted file mode 100644
+index 153523a..0000000
+--- a/sysdeps/s390/s390-32/tls-macros.h
++++ /dev/null
+@@ -1,106 +0,0 @@
+-#define TLS_LE(x) \
+-  ({ unsigned long __offset;						      \
+-     __asm__ ("bras %0,1f\n"						      \
+-	      "0:\t.long " #x "@ntpoff\n"				      \
+-	      "1:\tl %0,0(%0)"						      \
+-	      : "=a" (__offset) : : "cc" );				      \
+-     (int *) (__builtin_thread_pointer() + __offset); })
+-
+-#ifdef PIC
+-# define TLS_IE(x) \
+-  ({ unsigned long __offset, __save12;					      \
+-     __asm__ ("bras %0,1f\n"						      \
+-	      "0:\t.long _GLOBAL_OFFSET_TABLE_-0b\n\t"			      \
+-	      ".long " #x "@gotntpoff\n"				      \
+-	      "1:\tlr %1,%%r12\n\t"					      \
+-	      "l %%r12,0(%0)\n\t"					      \
+-	      "la %%r12,0(%0,%%r12)\n\t"				      \
+-	      "l %0,4(%0)\n\t"						      \
+-	      "l %0,0(%0,%%r12):tls_load:" #x "\n\t"			      \
+-	      "lr %%r12,%1\n"						      \
+-	      : "=&a" (__offset), "=&a" (__save12) : : "cc" );		      \
+-     (int *) (__builtin_thread_pointer() + __offset); })
+-#else
+-# define TLS_IE(x) \
+-  ({ unsigned long  __offset;						      \
+-     __asm__ ("bras %0,1f\n"						      \
+-	      "0:\t.long " #x "@indntpoff\n"				      \
+-	      "1:\t l %0,0(%0)\n\t"					      \
+-	      "l %0,0(%0):tls_load:" #x					      \
+-	      : "=&a" (__offset) : : "cc" );				      \
+-     (int *) (__builtin_thread_pointer() + __offset); })
+-#endif
+-
+-#ifdef PIC
+-# define TLS_LD(x) \
+-  ({ unsigned long __offset, __save12;					      \
+-     __asm__ ("bras %0,1f\n"						      \
+-	      "0:\t.long _GLOBAL_OFFSET_TABLE_-0b\n\t"			      \
+-	      ".long __tls_get_offset@plt-0b\n\t"			      \
+-	      ".long " #x "@tlsldm\n\t"					      \
+-	      ".long " #x "@dtpoff\n"					      \
+-	      "1:\tlr %1,%%r12\n\t"					      \
+-	      "l %%r12,0(%0)\n\t"					      \
+-	      "la %%r12,0(%%r12,%0)\n\t"				      \
+-	      "l %%r1,4(%0)\n\t"					      \
+-	      "l %%r2,8(%0)\n\t"					      \
+-	      "bas %%r14,0(%%r1,%0):tls_ldcall:" #x "\n\t"		      \
+-	      "l %0,12(%0)\n\t"						      \
+-	      "alr %0,%%r2\n\t"						      \
+-	      "lr %%r12,%1"						      \
+-	      : "=&a" (__offset), "=&a" (__save12)			      \
+-	      : : "cc", "0", "1", "2", "3", "4", "5", "14");		      \
+-     (int *) (__builtin_thread_pointer() + __offset); })
+-#else
+-# define TLS_LD(x) \
+-  ({ unsigned long __offset;						      \
+-     __asm__ ("bras %0,1f\n"						      \
+-	      "0:\t.long _GLOBAL_OFFSET_TABLE_\n\t"			      \
+-	      ".long __tls_get_offset@plt\n\t"				      \
+-	      ".long " #x "@tlsldm\n\t"					      \
+-	      ".long " #x "@dtpoff\n"					      \
+-	      "1:\tl %%r12,0(%0)\n\t"					      \
+-	      "l %%r1,4(%0)\n\t"					      \
+-	      "l %%r2,8(%0)\n\t"					      \
+-	      "bas %%r14,0(%%r1):tls_ldcall:" #x "\n\t"			      \
+-	      "l %0,12(%0)\n\t"						      \
+-	      "alr %0,%%r2"						      \
+-	      : "=&a" (__offset)					      \
+-	      : : "cc", "0", "1", "2", "3", "4", "5", "12", "14");	      \
+-     (int *) (__builtin_thread_pointer() + __offset); })
+-#endif
+-
+-#ifdef PIC
+-# define TLS_GD(x) \
+-  ({ unsigned long __offset, __save12;					      \
+-     __asm__ ("bras %0,1f\n"						      \
+-	      "0:\t.long _GLOBAL_OFFSET_TABLE_-0b\n\t"			      \
+-	      ".long __tls_get_offset@plt-0b\n\t"			      \
+-	      ".long " #x "@tlsgd\n"					      \
+-	      "1:\tlr %1,%%r12\n\t"					      \
+-	      "l %%r12,0(%0)\n\t"					      \
+-	      "la %%r12,0(%%r12,%0)\n\t"				      \
+-	      "l %%r1,4(%0)\n\t"					      \
+-	      "l %%r2,8(%0)\n\t"					      \
+-	      "bas %%r14,0(%%r1,%0):tls_gdcall:" #x "\n\t"		      \
+-	      "lr %0,%%r2\n\t"						      \
+-	      "lr %%r12,%1"						      \
+-	      : "=&a" (__offset), "=&a" (__save12)			      \
+-	      : : "cc", "0", "1", "2", "3", "4", "5", "14");		      \
+-     (int *) (__builtin_thread_pointer() + __offset); })
+-#else
+-# define TLS_GD(x) \
+-  ({ unsigned long __offset;						      \
+-     __asm__ ("bras %0,1f\n"						      \
+-	      "0:\t.long _GLOBAL_OFFSET_TABLE_\n\t"			      \
+-	      ".long __tls_get_offset@plt\n\t"				      \
+-	      ".long " #x "@tlsgd\n"					      \
+-	      "1:\tl %%r12,0(%0)\n\t"					      \
+-	      "l %%r1,4(%0)\n\t"					      \
+-	      "l %%r2,8(%0)\n\t"					      \
+-	      "bas %%r14,0(%%r1):tls_gdcall:" #x "\n\t"			      \
+-	      "lr %0,%%r2"						      \
+-	      : "=&a" (__offset)					      \
+-	      : : "cc", "0", "1", "2", "3", "4", "5", "12", "14");	      \
+-     (int *) (__builtin_thread_pointer() + __offset); })
+-#endif
+diff --git a/sysdeps/s390/s390-64/tls-macros.h b/sysdeps/s390/s390-64/tls-macros.h
+deleted file mode 100644
+index 449a843..0000000
+--- a/sysdeps/s390/s390-64/tls-macros.h
++++ /dev/null
+@@ -1,90 +0,0 @@
+-#define TLS_LE(x) \
+-  ({ unsigned long __offset;						      \
+-     __asm__ ("bras %0,1f\n"						      \
+-	      "0:\t.quad " #x "@ntpoff\n"				      \
+-	      "1:\tlg %0,0(%0)"						      \
+-	      : "=a" (__offset) : : "cc" );				      \
+-     (int *) (__builtin_thread_pointer() + __offset); })
+-
+-#ifdef PIC
+-# define TLS_IE(x) \
+-  ({ unsigned long __offset, __save12;					      \
+-     __asm__ ("bras %0,0f\n\t"						      \
+-	      ".quad " #x "@gotntpoff\n"				      \
+-	      "0:\tlgr %1,%%r12\n\t"					      \
+-	      "larl %%r12,_GLOBAL_OFFSET_TABLE_\n\t"			      \
+-	      "lg %0,0(%0)\n\t"						      \
+-	      "lg %0,0(%0,%%r12):tls_load:" #x	"\n\t"			      \
+-	      "lgr %%r12,%1\n"						      \
+-	      : "=&a" (__offset), "=&a" (__save12) : : "cc" );		      \
+-     (int *) (__builtin_thread_pointer() + __offset); })
+-#else
+-# define TLS_IE(x) \
+-  ({ unsigned long  __offset;						      \
+-     __asm__ ("bras %0,1f\n"						      \
+-	      "0:\t.quad " #x "@indntpoff\n"				      \
+-	      "1:\t lg %0,0(%0)\n\t"					      \
+-	      "lg %0,0(%0):tls_load:" #x				      \
+-	      : "=&a" (__offset) : : "cc" );				      \
+-     (int *) (__builtin_thread_pointer() + __offset); })
+-#endif
+-
+-#ifdef PIC
+-# define TLS_LD(x) \
+-  ({ unsigned long __offset, __save12;					      \
+-     __asm__ ("bras %0,1f\n"						      \
+-	      "0:\t.quad " #x "@tlsldm\n\t"				      \
+-	      ".quad " #x "@dtpoff\n"					      \
+-	      "1:\tlgr %1,%%r12\n\t"					      \
+-	      "larl %%r12,_GLOBAL_OFFSET_TABLE_\n\t"			      \
+-	      "lg %%r2,0(%0)\n\t"					      \
+-	      "brasl %%r14,__tls_get_offset@plt:tls_ldcall:" #x "\n\t"	      \
+-	      "lg %0,8(%0)\n\t"						      \
+-	      "algr %0,%%r2\n\t"					      \
+-	      "lgr %%r12,%1"						      \
+-	      : "=&a" (__offset), "=&a" (__save12)			      \
+-	      : : "cc", "0", "1", "2", "3", "4", "5", "14" );		      \
+-     (int *) (__builtin_thread_pointer() + __offset); })
+-#else
+-# define TLS_LD(x) \
+-  ({ unsigned long __offset;						      \
+-     __asm__ ("bras %0,1f\n"						      \
+-	      "0:\t.quad " #x "@tlsldm\n\t"				      \
+-	      ".quad " #x "@dtpoff\n"					      \
+-	      "1:\tlarl %%r12,_GLOBAL_OFFSET_TABLE_\n\t"		      \
+-	      "lg %%r2,0(%0)\n\t"					      \
+-	      "brasl %%r14,__tls_get_offset@plt:tls_ldcall:" #x "\n\t"	      \
+-	      "lg %0,8(%0)\n\t"						      \
+-	      "algr %0,%%r2"						      \
+-	      : "=&a" (__offset)					      \
+-	      : : "cc", "0", "1", "2", "3", "4", "5", "12", "14" );	      \
+-     (int *) (__builtin_thread_pointer() + __offset); })
+-#endif
+-
+-#ifdef PIC
+-# define TLS_GD(x) \
+-  ({ unsigned long __offset, __save12;					      \
+-     __asm__ ("bras %0,1f\n"						      \
+-	      "0:\t.quad " #x "@tlsgd\n"				      \
+-	      "1:\tlgr %1,%%r12\n\t"					      \
+-	      "larl %%r12,_GLOBAL_OFFSET_TABLE_\n\t"			      \
+-	      "lg %%r2,0(%0)\n\t"					      \
+-	      "brasl %%r14,__tls_get_offset@plt:tls_gdcall:" #x "\n\t"	      \
+-	      "lgr %0,%%r2\n\t"						      \
+-	      "lgr %%r12,%1"						      \
+-	      : "=&a" (__offset), "=&a" (__save12)			      \
+-	      : : "cc", "0", "1", "2", "3", "4", "5", "14" );		      \
+-     (int *) (__builtin_thread_pointer() + __offset); })
+-#else
+-# define TLS_GD(x) \
+-  ({ unsigned long __offset;						      \
+-     __asm__ ("bras %0,1f\n"						      \
+-	      "0:\t.quad " #x "@tlsgd\n"				      \
+-	      "1:\tlarl %%r12,_GLOBAL_OFFSET_TABLE_\n\t"		      \
+-	      "lg %%r2,0(%0)\n\t"					      \
+-	      "brasl %%r14,__tls_get_offset@plt:tls_gdcall:" #x "\n\t"	      \
+-	      "lgr %0,%%r2"						      \
+-	      : "=&a" (__offset)					      \
+-	      : : "cc", "0", "1", "2", "3", "4", "5", "12", "14" );	      \
+-     (int *) (__builtin_thread_pointer() + __offset); })
+-#endif
+diff --git a/sysdeps/sh/tls-macros.h b/sysdeps/sh/tls-macros.h
+deleted file mode 100644
+index aa56b0a..0000000
+--- a/sysdeps/sh/tls-macros.h
++++ /dev/null
+@@ -1,143 +0,0 @@
+-#define TLS_LE(x) \
+-  ({ int *__l; void *__tp;						      \
+-     asm ("stc gbr,%1\n\t"						      \
+-	  "mov.l 1f,%0\n\t"						      \
+-	  "bra 2f\n\t"							      \
+-	  " add %1,%0\n\t"						      \
+-	  ".align 2\n\t"						      \
+-	  "1: .long " #x "@tpoff\n\t"					      \
+-	  "2:"								      \
+-	  : "=r" (__l), "=r" (__tp));					      \
+-     __l; })
+-
+-#ifdef PIC
+-# define TLS_IE(x) \
+-  ({ int *__l; void *__tp;						      \
+-     register void *__gp __asm__("r12");				      \
+-     asm ("mov.l 1f,r0\n\t"						      \
+-	  "stc gbr,%1\n\t"						      \
+-	  "mov.l @(r0,r12),%0\n\t"					      \
+-	  "bra 2f\n\t"							      \
+-	  " add %1,%0\n\t"						      \
+-	  ".align 2\n\t"						      \
+-	  "1: .long " #x "@gottpoff\n\t"				      \
+-	  "2:"								      \
+-	  : "=r" (__l), "=r" (__tp) : "r" (__gp) : "r0");		      \
+-     __l; })
+-#else
+-# define TLS_IE(x) \
+-  ({ int *__l; void *__tp;						      \
+-     asm ("mov.l r12,@-r15\n\t"						      \
+-	  "mova 0f,r0\n\t"						      \
+-	  "mov.l 0f,r12\n\t"						      \
+-	  "add r0,r12\n\t"						      \
+-	  "mov.l 1f,r0\n\t"						      \
+-	  "stc gbr,%1\n\t"						      \
+-	  "mov.l @(r0,r12),%0\n\t"					      \
+-	  "bra 2f\n\t"							      \
+-	  " add %1,%0\n\t"						      \
+-	  ".align 2\n\t"						      \
+-	  "1: .long " #x "@gottpoff\n\t"				      \
+-	  "0: .long _GLOBAL_OFFSET_TABLE_\n\t"				      \
+-	  "2: mov.l @r15+,r12"						      \
+-	  : "=r" (__l), "=r" (__tp) : : "r0");				      \
+-     __l; })
+-#endif
+-
+-#ifdef PIC
+-# define TLS_LD(x) \
+-  ({ int *__l;								      \
+-     register void *__gp __asm__("r12");				      \
+-     asm ("mov.l 1f,r4\n\t"						      \
+-	  "mova 2f,r0\n\t"						      \
+-	  "mov.l 2f,r1\n\t"						      \
+-	  "add r0,r1\n\t"						      \
+-	  "jsr @r1\n\t"							      \
+-	  " add r12,r4\n\t"						      \
+-	  "bra 4f\n\t"							      \
+-	  " nop\n\t"							      \
+-	  ".align 2\n\t"						      \
+-	  "1: .long " #x "@tlsldm\n\t"					      \
+-	  "2: .long __tls_get_addr@plt\n\t"				      \
+-	  "4: mov.l 3f,%0\n\t"						      \
+-	  "bra 5f\n\t"							      \
+-	  " add r0,%0\n\t"						      \
+-	  ".align 2\n\t"						      \
+-	  "3: .long " #x "@dtpoff\n\t"					      \
+-	  "5:"								      \
+-	  : "=r" (__l) : "r" (__gp) : "r0", "r1", "r2", "r3", "r4", "r5",     \
+-				      "r6", "r7", "pr", "t");		      \
+-     __l; })
+-#else
+-# define TLS_LD(x) \
+-  ({ int *__l;								      \
+-     asm ("mov.l r12,@-r15\n\t"						      \
+-	  "mova 0f,r0\n\t"						      \
+-	  "mov.l 0f,r12\n\t"						      \
+-	  "add r0,r12\n\t"						      \
+-	  "mov.l 1f,r4\n\t"						      \
+-	  "mova 2f,r0\n\t"						      \
+-	  "mov.l 2f,r1\n\t"						      \
+-	  "add r0,r1\n\t"						      \
+-	  "jsr @r1\n\t"							      \
+-	  " add r12,r4\n\t"						      \
+-	  "bra 4f\n\t"							      \
+-	  " nop\n\t"							      \
+-	  ".align 2\n\t"						      \
+-	  "1: .long " #x "@tlsldm\n\t"					      \
+-	  "2: .long __tls_get_addr@plt\n\t"				      \
+-	  "0: .long _GLOBAL_OFFSET_TABLE_\n\t"				      \
+-	  "4: mov.l 3f,%0\n\t"						      \
+-	  "bra 5f\n\t"							      \
+-	  " add r0,%0\n\t"						      \
+-	  ".align 2\n\t"						      \
+-	  "3: .long " #x "@dtpoff\n\t"					      \
+-	  "5: mov.l @r15+,r12"						      \
+-	  : "=r" (__l) : : "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7",    \
+-			   "pr", "t");					      \
+-     __l; })
+-#endif
+-
+-#ifdef PIC
+-# define TLS_GD(x) \
+-  ({ int *__l;								      \
+-     register void *__gp __asm__("r12");				      \
+-     asm ("mov.l 1f,r4\n\t"						      \
+-	  "mova 2f,r0\n\t"						      \
+-	  "mov.l 2f,r1\n\t"						      \
+-	  "add r0,r1\n\t"						      \
+-	  "jsr @r1\n\t"							      \
+-	  " add r12,r4\n\t"						      \
+-	  "bra 3f\n\t"							      \
+-	  " mov r0,%0\n\t"						      \
+-	  ".align 2\n\t"						      \
+-	  "1: .long " #x "@tlsgd\n\t"					      \
+-	  "2: .long __tls_get_addr@plt\n\t"				      \
+-	  "3:"								      \
+-	  : "=r" (__l) : "r" (__gp) : "r0", "r1", "r2", "r3", "r4", "r5",     \
+-				      "r6", "r7", "pr", "t");		      \
+-     __l; })
+-#else
+-# define TLS_GD(x) \
+-  ({ int *__l;								      \
+-     asm ("mov.l r12,@-r15\n\t"						      \
+-	  "mova 0f,r0\n\t"						      \
+-	  "mov.l 0f,r12\n\t"						      \
+-	  "add r0,r12\n\t"						      \
+-	  "mov.l 1f,r4\n\t"						      \
+-	  "mova 2f,r0\n\t"						      \
+-	  "mov.l 2f,r1\n\t"						      \
+-	  "add r0,r1\n\t"						      \
+-	  "jsr @r1\n\t"							      \
+-	  " add r12,r4\n\t"						      \
+-	  "bra 3f\n\t"							      \
+-	  " mov r0,%0\n\t"						      \
+-	  ".align 2\n\t"						      \
+-	  "1: .long " #x "@tlsgd\n\t"					      \
+-	  "2: .long __tls_get_addr@plt\n\t"				      \
+-	  "0: .long _GLOBAL_OFFSET_TABLE_\n\t"				      \
+-	  "3: mov.l @r15+,r12"						      \
+-	  : "=r" (__l) : : "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7",    \
+-			   "pr", "t");					      \
+-     __l; })
+-#endif
+diff --git a/sysdeps/sparc/sparc32/tls-macros.h b/sysdeps/sparc/sparc32/tls-macros.h
+deleted file mode 100644
+index 152216e..0000000
+--- a/sysdeps/sparc/sparc32/tls-macros.h
++++ /dev/null
+@@ -1,66 +0,0 @@
+-#define TLS_LE(x) \
+-  ({ int *__l;								      \
+-     asm ("sethi %%tle_hix22(" #x "), %0" : "=r" (__l));		      \
+-     asm ("xor %1, %%tle_lox10(" #x "), %0" : "=r" (__l) : "r" (__l));	      \
+-     asm ("add %%g7, %1, %0" : "=r" (__l) : "r" (__l));			      \
+-     __l; })
+-
+-#ifdef __PIC__
+-# define TLS_LOAD_PIC \
+-  ({ register long pc __asm__ ("%o7");					      \
+-     long got;								      \
+-     asm ("sethi %%hi(_GLOBAL_OFFSET_TABLE_-4), %1\n\t"			      \
+-	  "call .+8\n\t"						      \
+-	  "add %1, %%lo(_GLOBAL_OFFSET_TABLE_+4), %1\n\t"		      \
+-	  "add %1, %0, %1\n\t"						      \
+-	  : "=r" (pc), "=r" (got));					      \
+-     got; })
+-#else
+-# define TLS_LOAD_PIC \
+-   ({ long got;								      \
+-      asm (".hidden _GLOBAL_OFFSET_TABLE_\n\t"				      \
+-	   "sethi %%hi(_GLOBAL_OFFSET_TABLE_), %0\n\t"			      \
+-	   "or %0, %%lo(_GLOBAL_OFFSET_TABLE_), %0"			      \
+-	   : "=r" (got));						      \
+-      got; })
+-#endif
+-
+-#define TLS_IE(x) \
+-  ({ int *__l;								      \
+-     asm ("sethi %%tie_hi22(" #x "), %0" : "=r" (__l));			      \
+-     asm ("add %1, %%tie_lo10(" #x "), %0" : "=r" (__l) : "r" (__l));	      \
+-     asm ("ld [%1 + %2], %0, %%tie_ld(" #x ")"				      \
+-	  : "=r" (__l) : "r" (TLS_LOAD_PIC), "r" (__l));		      \
+-     asm ("add %%g7, %1, %0, %%tie_add(" #x ")" : "=r" (__l) : "r" (__l));    \
+-     __l; })
+-
+-#define TLS_LD(x) \
+-  ({ int *__l; register void *__o0 asm ("%o0");				      \
+-     long __o;								      \
+-     asm ("sethi %%tldm_hi22(" #x "), %0" : "=r" (__l));		      \
+-     asm ("add %1, %%tldm_lo10(" #x "), %0" : "=r" (__l) : "r" (__l));	      \
+-     asm ("add %1, %2, %0, %%tldm_add(" #x ")"				      \
+-	  : "=r" (__o0) : "r" (TLS_LOAD_PIC), "r" (__l));		      \
+-     asm ("call __tls_get_addr, %%tgd_call(" #x ")\n\t"			      \
+-	  " nop"							      \
+-	  : "=r" (__o0) : "0" (__o0)					      \
+-	  : "g1", "g2", "g3", "g4", "g5", "g6", "o1", "o2", "o3", "o4",	      \
+-	    "o5", "o7", "cc");						      \
+-     asm ("sethi %%tldo_hix22(" #x "), %0" : "=r" (__o));		      \
+-     asm ("xor %1, %%tldo_lox10(" #x "), %0" : "=r" (__o) : "r" (__o));	      \
+-     asm ("add %1, %2, %0, %%tldo_add(" #x ")" : "=r" (__l)		      \
+-	  : "r" (__o0), "r" (__o));					      \
+-     __l; })
+-
+-#define TLS_GD(x) \
+-  ({ int *__l; register void *__o0 asm ("%o0");				      \
+-     asm ("sethi %%tgd_hi22(" #x "), %0" : "=r" (__l));			      \
+-     asm ("add %1, %%tgd_lo10(" #x "), %0" : "=r" (__l) : "r" (__l));	      \
+-     asm ("add %1, %2, %0, %%tgd_add(" #x ")"				      \
+-	  : "=r" (__o0) : "r" (TLS_LOAD_PIC), "r" (__l));		      \
+-     asm ("call __tls_get_addr, %%tgd_call(" #x ")\n\t"			      \
+-	  " nop"							      \
+-	  : "=r" (__o0) : "0" (__o0)					      \
+-	  : "g1", "g2", "g3", "g4", "g5", "g6", "o1", "o2", "o3", "o4",	      \
+-	    "o5", "o7", "cc");						      \
+-     __o0; })
+diff --git a/sysdeps/sparc/sparc64/tls-macros.h b/sysdeps/sparc/sparc64/tls-macros.h
+deleted file mode 100644
+index bb0d803..0000000
+--- a/sysdeps/sparc/sparc64/tls-macros.h
++++ /dev/null
+@@ -1,65 +0,0 @@
+-#define TLS_LE(x) \
+-  ({ int *__l;								      \
+-     asm ("sethi %%tle_hix22(" #x "), %0" : "=r" (__l));		      \
+-     asm ("xor %1, %%tle_lox10(" #x "), %0" : "=r" (__l) : "r" (__l));	      \
+-     asm ("add %%g7, %1, %0" : "=r" (__l) : "r" (__l));			      \
+-     __l; })
+-
+-#ifdef __PIC__
+-# define TLS_LOAD_PIC \
+-  ({ long pc, got;							      \
+-     asm ("sethi %%hi(_GLOBAL_OFFSET_TABLE_-4), %1\n\t"			      \
+-	  "rd %%pc, %0\n\t"						      \
+-	  "add %1, %%lo(_GLOBAL_OFFSET_TABLE_+4), %1\n\t"		      \
+-	  "add %1, %0, %1\n\t"						      \
+-	  : "=r" (pc), "=r" (got));					      \
+-     got; })
+-#else
+-# define TLS_LOAD_PIC \
+-   ({ long got;								      \
+-      asm (".hidden _GLOBAL_OFFSET_TABLE_\n\t"				      \
+-	   "sethi %%hi(_GLOBAL_OFFSET_TABLE_), %0\n\t"			      \
+-	   "or %0, %%lo(_GLOBAL_OFFSET_TABLE_), %0"			      \
+-	   : "=r" (got));						      \
+-      got; })
+-#endif
+-
+-#define TLS_IE(x) \
+-  ({ int *__l;								      \
+-     asm ("sethi %%tie_hi22(" #x "), %0" : "=r" (__l));			      \
+-     asm ("add %1, %%tie_lo10(" #x "), %0" : "=r" (__l) : "r" (__l));	      \
+-     asm ("ldx [%1 + %2], %0, %%tie_ldx(" #x ")"			      \
+-	  : "=r" (__l) : "r" (TLS_LOAD_PIC), "r" (__l));		      \
+-     asm ("add %%g7, %1, %0, %%tie_add(" #x ")" : "=r" (__l) : "r" (__l));    \
+-     __l; })
+-
+-#define TLS_LD(x) \
+-  ({ int *__l; register void *__o0 asm ("%o0");				      \
+-     long __o;								      \
+-     asm ("sethi %%tldm_hi22(" #x "), %0" : "=r" (__l));		      \
+-     asm ("add %1, %%tldm_lo10(" #x "), %0" : "=r" (__l) : "r" (__l));	      \
+-     asm ("add %1, %2, %0, %%tldm_add(" #x ")"				      \
+-	  : "=r" (__o0) : "r" (TLS_LOAD_PIC), "r" (__l));		      \
+-     asm ("call __tls_get_addr, %%tgd_call(" #x ")\n\t"			      \
+-	  " nop"							      \
+-	  : "=r" (__o0) : "0" (__o0)					      \
+-	  : "g1", "g2", "g3", "g4", "g5", "g6", "o1", "o2", "o3", "o4",	      \
+-	    "o5", "o7", "cc");						      \
+-     asm ("sethi %%tldo_hix22(" #x "), %0" : "=r" (__o));		      \
+-     asm ("xor %1, %%tldo_lox10(" #x "), %0" : "=r" (__o) : "r" (__o));	      \
+-     asm ("add %1, %2, %0, %%tldo_add(" #x ")" : "=r" (__l)		      \
+-	  : "r" (__o0), "r" (__o));					      \
+-     __l; })
+-
+-#define TLS_GD(x) \
+-  ({ int *__l; register void *__o0 asm ("%o0");				      \
+-     asm ("sethi %%tgd_hi22(" #x "), %0" : "=r" (__l));			      \
+-     asm ("add %1, %%tgd_lo10(" #x "), %0" : "=r" (__l) : "r" (__l));	      \
+-     asm ("add %1, %2, %0, %%tgd_add(" #x ")"				      \
+-	  : "=r" (__o0) : "r" (TLS_LOAD_PIC), "r" (__l));		      \
+-     asm ("call __tls_get_addr, %%tgd_call(" #x ")\n\t"			      \
+-	  " nop"							      \
+-	  : "=r" (__o0) : "0" (__o0)					      \
+-	  : "g1", "g2", "g3", "g4", "g5", "g6", "o1", "o2", "o3", "o4",	      \
+-	    "o5", "o7", "cc");						      \
+-     __o0; })
+diff --git a/sysdeps/x86_64/tls-macros.h b/sysdeps/x86_64/tls-macros.h
+deleted file mode 100644
+index 22d2a4b..0000000
+--- a/sysdeps/x86_64/tls-macros.h
++++ /dev/null
+@@ -1,39 +0,0 @@
+-#define TLS_LE(x) \
+-  ({ int *__l;								      \
+-     asm ("mov %%fs:0,%0\n\t"						      \
+-	  "lea " #x "@tpoff(%0), %0"					      \
+-	  : "=r" (__l));						      \
+-     __l; })
+-
+-#define TLS_IE(x) \
+-  ({ int *__l;								      \
+-     asm ("mov %%fs:0,%0\n\t"						      \
+-	  "add " #x "@gottpoff(%%rip),%0"				      \
+-	  : "=r" (__l));						      \
+-     __l; })
+-
+-#define TLS_LD(x) \
+-  ({ int *__l, __c, __d;						      \
+-     asm ("leaq " #x "@tlsld(%%rip),%%rdi\n\t"				      \
+-	  "call __tls_get_addr@plt\n\t"					      \
+-	  "leaq " #x "@dtpoff(%%rax), %%rax"				      \
+-	  : "=a" (__l), "=&c" (__c), "=&d" (__d)			      \
+-	  : : "rdi", "rsi", "r8", "r9", "r10", "r11"); 			      \
+-     __l; })
+-
+-#ifdef __ILP32__
+-# define TLS_GD_PREFIX
+-#else
+-# define TLS_GD_PREFIX	".byte 0x66\n\t"
+-#endif
+-
+-#define TLS_GD(x) \
+-  ({ int *__l, __c, __d;						      \
+-     asm (TLS_GD_PREFIX							      \
+-	  "leaq " #x "@tlsgd(%%rip),%%rdi\n\t"				      \
+-	  ".word 0x6666\n\t"						      \
+-	  "rex64\n\t"							      \
+-	  "call __tls_get_addr@plt"					      \
+-	  : "=a" (__l), "=&c" (__c), "=&d" (__d)			      \
+-	  : : "rdi", "rsi", "r8", "r9", "r10", "r11"); 			      \
+-     __l; })
+-- 
+1.8.3.1
+
