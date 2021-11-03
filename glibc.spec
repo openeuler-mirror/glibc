@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	18
+Release: 	19
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -118,6 +118,7 @@ Patch31: mtrace-Fix-output-with-PIE-and-ASLR-BZ-22716.patch
 Patch32: rtld-copy-terminating-null-in-tunables_strdup-bug-28.patch
 Patch33: Use-__executable_start-as-the-lowest-address-for-pro.patch
 Patch34: x86-64-Use-testl-to-check-__x86_string_control.patch
+Patch35: AArch64-Update-A64FX-memset-not-to-degrade-at-16KB.patch
 
 #Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1307,6 +1308,9 @@ fi
 %endif
 
 %changelog
+* Fri Oct 29 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-19
+- aarch64: update a64fx memset not to degrade at 16KB
+
 * Thu Oct 28 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-18
 - use testl instead of andl to check __x86_string_control to
   avoid updating __x86_string_control
