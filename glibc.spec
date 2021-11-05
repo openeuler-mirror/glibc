@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	19
+Release: 	20
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -119,6 +119,8 @@ Patch32: rtld-copy-terminating-null-in-tunables_strdup-bug-28.patch
 Patch33: Use-__executable_start-as-the-lowest-address-for-pro.patch
 Patch34: x86-64-Use-testl-to-check-__x86_string_control.patch
 Patch35: AArch64-Update-A64FX-memset-not-to-degrade-at-16KB.patch
+Patch36: support-Add-support_wait_for_thread_exit.patch
+Patch37: nptl-pthread_kill-pthread_cancel-should-not-fail-aft.patch 
 
 #Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1308,6 +1310,11 @@ fi
 %endif
 
 %changelog
+* Thu Nov 4 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-20
+- nptl: pthread_kill and pthread_cancel return success
+        for satisfy posix standard.
+  uplink: https://sourceware.org/bugzilla/show_bug.cgi?id=19193
+
 * Fri Oct 29 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-19
 - aarch64: update a64fx memset not to degrade at 16KB
 
