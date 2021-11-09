@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	20
+Release: 	21
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -121,6 +121,11 @@ Patch34: x86-64-Use-testl-to-check-__x86_string_control.patch
 Patch35: AArch64-Update-A64FX-memset-not-to-degrade-at-16KB.patch
 Patch36: support-Add-support_wait_for_thread_exit.patch
 Patch37: nptl-pthread_kill-pthread_cancel-should-not-fail-aft.patch 
+Patch38: nptl-Fix-race-between-pthread_kill-and-thread-exit-b.patch
+Patch39: nptl-pthread_kill-needs-to-return-ESRCH-for-old-prog.patch
+Patch40: nptl-Fix-type-of-pthread_mutexattr_getrobust_np-pthr.patch
+Patch41: nptl-Avoid-setxid-deadlock-with-blocked-signals-in-t.patch
+Patch42: nptl-pthread_kill-must-send-signals-to-a-specific-th.patch
 
 #Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1310,6 +1315,14 @@ fi
 %endif
 
 %changelog
+* Mon Nov 8 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-21
+- nptl: pthread_kill race condition issues fixed.
+  uplink: https://sourceware.org/bugzilla/show_bug.cgi?id=19193
+	  https://sourceware.org/bugzilla/show_bug.cgi?id=12889
+	  https://sourceware.org/bugzilla/show_bug.cgi?id=28036
+	  https://sourceware.org/bugzilla/show_bug.cgi?id=28363
+	  https://sourceware.org/bugzilla/show_bug.cgi?id=28407
+
 * Thu Nov 4 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-20
 - nptl: pthread_kill and pthread_cancel return success
         for satisfy posix standard.
