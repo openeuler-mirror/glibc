@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	22
+Release: 	23
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -127,6 +127,7 @@ Patch40: nptl-Fix-type-of-pthread_mutexattr_getrobust_np-pthr.patch
 Patch41: nptl-Avoid-setxid-deadlock-with-blocked-signals-in-t.patch
 Patch42: nptl-pthread_kill-must-send-signals-to-a-specific-th.patch
 Patch43: iconvconfig-Fix-behaviour-with-prefix-BZ-28199.patch
+Patch44: gconv-Do-not-emit-spurious-NUL-character-in-ISO-2022.patch 
 
 #Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1316,6 +1317,11 @@ fi
 %endif
 
 %changelog
+* Wed Nov 10 2021 Qingqing Li <liqingqing3@huawei.com> - 2.34-23
+- gconv: Do not emit spurious NUL character in ISO-2022-JP-3,
+	this also fix CVE-2021-43396.
+  uplink: https://sourceware.org/bugzilla/show_bug.cgi?id=28524
+
 * Tue Nov 9 2021 Qingqing Li<liqingqing3@huawei.com> - 2.34-22
 - iconvconfig: Fix behaviour with --prefix
   uplink: https://sourceware.org/bugzilla/show_bug.cgi?id=28199
