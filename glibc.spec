@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	78
+Release: 	79
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -137,6 +137,7 @@ Patch53: backport-CVE-2021-38604-0001-librt-add-test-bug-28213.patch
 Patch54: backport-CVE-2021-38604-0002-librt-fix-null-pointer-deference.patch
 Patch55: backport-ldconfig-avoid-leak-on-empty-paths-in-config-file.patch
 Patch56: backport-rtld-copy-terminating-null-in-tunables_strdup-bug-28.patch
+Patch57: backport-gconv-Do-not-emit-spurious-NUL-character-in-ISO-2022.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1161,6 +1162,10 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Tue Nov 9 2021 Qingqing Li <liqingqing3@huawei.com> - 2.28-79
+- gconv: Do not emit spurious NUL character in ISO-2022-JP-3
+  this is also fix CVE-2021-43396
+
 * Wed Sep 29 2021 Lv Ying<lvying6@huawei.com> - 2.28-78
 - ldconfig: avoid leak on empty paths in config file
   https://sourceware.org/git/?p=glibc.git;a=commit;h=a4f5a3103fc3e7974dbe35b411cba9f670807cde
