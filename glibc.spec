@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	23
+Release: 	24
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -128,6 +128,10 @@ Patch41: nptl-Avoid-setxid-deadlock-with-blocked-signals-in-t.patch
 Patch42: nptl-pthread_kill-must-send-signals-to-a-specific-th.patch
 Patch43: iconvconfig-Fix-behaviour-with-prefix-BZ-28199.patch
 Patch44: gconv-Do-not-emit-spurious-NUL-character-in-ISO-2022.patch 
+Patch45: elf-Avoid-deadlock-between-pthread_create-and-ctors-.patch
+Patch46: ld.so-Replace-DL_RO_DYN_SECTION-with-dl_relocate_ld-.patch
+Patch47: ld.so-Initialize-bootstrap_map.l_ld_readonly-BZ-2834.patch
+Patch48: Avoid-warning-overriding-recipe-for-.-tst-ro-dynamic.patch
 
 #Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1317,6 +1321,10 @@ fi
 %endif
 
 %changelog
+* Mon Nov 15 2021 Qingqing Li <liqingqing3@huawei.com> - 2.34-24
+- elf: fix ld.so crash while loading a DSO with a read-only dynamic section
+  https://sourceware.org/bugzilla/show_bug.cgi?id=28340
+
 * Wed Nov 10 2021 Qingqing Li <liqingqing3@huawei.com> - 2.34-23
 - gconv: Do not emit spurious NUL character in ISO-2022-JP-3,
 	this also fix CVE-2021-43396.
