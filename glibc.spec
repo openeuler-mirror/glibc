@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	25
+Release: 	26
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -133,7 +133,6 @@ Patch46: ld.so-Replace-DL_RO_DYN_SECTION-with-dl_relocate_ld-.patch
 Patch47: ld.so-Initialize-bootstrap_map.l_ld_readonly-BZ-2834.patch
 Patch48: Avoid-warning-overriding-recipe-for-.-tst-ro-dynamic.patch
 Patch49: posix-Fix-attribute-access-mode-on-getcwd-BZ-27476.patch
-Patch50: Suppress-Wcast-qual-warnings-in-bsearch.patch
 
 #Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1323,6 +1322,9 @@ fi
 %endif
 
 %changelog
+* Fri Nov 19 2021 Qingqing Li <liqingqing3@huawei.com> - 2.34-26
+- revert supress -Wcast-qual warnings in bsearch
+
 * Mon Nov 15 2021 Qingqing Li <liqingqing3@huawei.com> - 2.34-25
 - fix attribute access mode on getcwd [BZ #27476]
 - supress -Wcast-qual warnings in bsearch
