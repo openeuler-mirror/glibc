@@ -1,0 +1,56 @@
+From 329ea513b451ae8322aa7a24ed84da13992af2dd Mon Sep 17 00:00:00 2001
+From: Zack Weinberg <zackw@panix.com>
+Date: Tue, 3 Apr 2018 18:26:44 -0400
+Subject: [PATCH 8/9] build extra lipthreadcond so
+
+since bb4a3143724ef3f044a4f05351fe041300ee382, Remove pause and nanosleep not cancel wrappers
+To build libtphread-2.17.so, we added it back.
+
+---
+ nptl_2_17/pause_nocancel_2_17.c | 34 +++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
+ create mode 100644 nptl_2_17/pause_nocancel_2_17.c
+
+diff --git a/nptl_2_17/pause_nocancel_2_17.c b/nptl_2_17/pause_nocancel_2_17.c
+new file mode 100644
+index 00000000..ab8e78d2
+--- /dev/null
++++ b/nptl_2_17/pause_nocancel_2_17.c
+@@ -0,0 +1,34 @@
++/* Linux pause syscall implementation -- non-cancellable.
++   Copyright (C) 2018 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library.  If not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#include <compat_pthread_2_17.h>
++#include <signal.h>
++#include <unistd.h>
++#include <sysdep-cancel.h>
++#include <not-cancel.h>
++
++int
++__pause_nocancel (void)
++{
++#ifdef __NR_pause
++  return INLINE_SYSCALL_CALL (pause);
++#else
++  return INLINE_SYSCALL_CALL (ppoll, NULL, 0, NULL, NULL);
++#endif
++}
++hidden_def (__pause_nocancel)
+-- 
+2.30.0
+

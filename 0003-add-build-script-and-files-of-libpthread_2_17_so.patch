@@ -1,0 +1,135 @@
+From 7cb15fbef45361db6ad718077a4f0a6d2dc845f2 Mon Sep 17 00:00:00 2001
+From: Yang Yanchao <yangyanchao6@huawei.com>
+Date:   Wed Nov 24 09:31:31 2021 +0800
+Subject: [PATCH 3/9] build extra lipthreadcond so
+
+Add the build script and file of libpthread-2.17.so
+
+---
+ nptl_2_17/Makefile                    | 52 +++++++++++++++++++++++++++
+ nptl_2_17/build_libpthread-2.17.so.sh | 10 ++++++
+ nptl_2_17/libpthread-2.17-aarch64.map | 14 ++++++++
+ nptl_2_17/libpthread-2.17-x86_64.map  | 14 ++++++++
+ 4 files changed, 90 insertions(+)
+ create mode 100644 nptl_2_17/Makefile
+ create mode 100644 nptl_2_17/build_libpthread-2.17.so.sh
+ create mode 100644 nptl_2_17/libpthread-2.17-aarch64.map
+ create mode 100644 nptl_2_17/libpthread-2.17-x86_64.map
+
+diff --git a/nptl_2_17/Makefile b/nptl_2_17/Makefile
+new file mode 100644
+index 00000000..f248ce56
+--- /dev/null
++++ b/nptl_2_17/Makefile
+@@ -0,0 +1,52 @@
++include libpthread-2.17_config
++subdir=libpthread-2.17
++objdir=../$(build_dir)/
++
++
++ifdef subdir
++.. := ../
++endif
++
++objpfx := $(patsubst %//,%/,$(objdir)/$(subdir)/)
++common-objpfx = $(objdir)/
++common-objdir = $(objdir)
++
++sysdep_dir := $(..)sysdeps
++export sysdep_dir := $(sysdep_dir)
++
++include $(common-objpfx)soversions.mk
++include $(common-objpfx)config.make
++
++uses-callbacks = -fexceptions
++
++sysdirs := $(foreach D,$(config-sysdirs),$(firstword $(filter /%,$D) $(..)$D))
++
+++sysdep_dirs = $(sysdirs)
+++sysdep_dirs := $(objdir) $(+sysdep_dirs)
++
+++sysdep-includes := $(foreach dir,$(+sysdep_dirs), $(addprefix -I,$(wildcard $(dir)/include) $(dir)))
++
++compile_obj = pthread_cond_wait_2_17.os pthread_cond_signal_2_17.os pthread_cond_broadcast_2_17.os pthread_cond_init_2_17.os pthread_cond_destroy_2_17.os pthread_condattr_getclock_2_17.os pthread_condattr_getpshared_2_17.os pthread_condattr_init_2_17.os pthread_condattr_setclock_2_17.os cleanup_compat_2_17.os pthread_mutex_lock_2_17.os pthread_mutex_unlock_2_17.os tpp_2_17.os vars_2_17.os pause_nocancel_2_17.os lll_timedlock_wait_2_17.os pthread_mutex_cond_lock_2_17.os cancellation_2_17.os lowlevellock_2_17.os unwind_2_17.os
++
++ifeq (x86_64, $(arch))
++compile_obj += elision-timed_2_17.os elision-trylock_2_17.os elision-lock_2_17.os elision-unlock_2_17.os
++endif
++
++exist_obj_dir = $(foreach n,$(exist_obj),../$(build_dir)/nptl/$(n))
++
++compile_obj_dir = $(foreach n,$(compile_obj),../$(build_dir)/nptl/$(n))
++
++CFLAGS = -c -std=gnu11 -fgnu89-inline -fPIE -DNDEBUG -O2 -Wall -Werror -Wp,-D_GLIBCXX_ASSERTIONS -Wundef -Wwrite-strings -fasynchronous-unwind-tables -fmerge-all-constants -frounding-math -fstack-clash-protection -fstack-protector-strong -g -mtune=generic -Wstrict-prototypes -Wold-style-definition -fno-math-errno -fPIC -fexceptions -fasynchronous-unwind-tables  -ftls-model=initial-exec  -D_FORTIFY_SOURCE=2 -DSHARED -DTOP_NAMESPACE=glibc
++
++Headers = -I../include -I../$(build_dir)/nptl $(+sysdep-includes) -I../nptl_2_17 -I../nptl -I../libio -I../. -D_LIBC_REENTRANT -include ../$(build_dir)/libc-modules.h -include include/libc-symbols.h
++
++all: libpthread-2.17.so
++
++libpthread-2.17.so : $(compile_obj) libpthread-2.17_pic.a
++	gcc -shared -static-libgcc -Wl,-O1  -Wl,-z,defs -Wl,-dynamic-linker=/usr/local/lib/$(ld.so-version) -B../$(build_dir)/csu/ -Wl,--version-script=libpthread-2.17-$(arch).map -Wl,-soname=libpthread-2.17.so.0 -Wl,-z,noexecstack -Wtrampolines -Wl,-z,combreloc -Wl,-z,relro -Wl,--hash-style=both -Wl,-z,now -Wl,--enable-new-dtags,-z,nodelete,-z,initfirst -L../$(build_dir) -L../$(build_dir)/math -L../$(build_dir)/elf -L../$(build_dir)/dlfcn -L../$(build_dir)/nss -L../$(build_dir)/nis -L../$(build_dir)/rt -L../$(build_dir)/resolv -L../$(build_dir)/mathvec -L../$(build_dir)/support -L../$(build_dir)/crypt -L../$(build_dir)/nptl -Wl,-rpath-link=../$(build_dir):../$(build_dir)/math:../$(build_dir)/elf:../$(build_dir)/dlfcn:../$(build_dir)/nss:../$(build_dir)/nis:../$(build_dir)/rt:../$(build_dir)/resolv:../$(build_dir)/mathvec:../$(build_dir)/support:../$(build_dir)/crypt:../$(build_dir)/nptl -o ../$(build_dir)/nptl/libpthread-2.17.so ../$(build_dir)/csu/abi-note.o -Wl,--whole-archive ../$(build_dir)/nptl/libpthread-2.17_pic.a -Wl,--no-whole-archive -Wl,--start-group ../$(build_dir)/libc.so ../$(build_dir)/libc_nonshared.a -Wl,--as-needed ../$(build_dir)/elf/ld.so -Wl,--no-as-needed -Wl,--end-group
++
++libpthread-2.17_pic.a : $(compile_obj_dir) $(exist_obj_dir)
++	ar cruv ../$(build_dir)/nptl/$@ $^
++
++$(compile_obj) : %.os : %.c
++	gcc $< $(CFLAGS) $(Headers) -o ../$(build_dir)/nptl/$@ -MD -MP -MF ../$(build_dir)/nptl/$@.dt -MT ../$(build_dir)/nptl/$@
+diff --git a/nptl_2_17/build_libpthread-2.17.so.sh b/nptl_2_17/build_libpthread-2.17.so.sh
+new file mode 100644
+index 00000000..bdb97d0f
+--- /dev/null
++++ b/nptl_2_17/build_libpthread-2.17.so.sh
+@@ -0,0 +1,10 @@
++#!/bin/sh
++set -e
++build_arch=$1
++build_dir=$2
++config_dir=libpthread-2.17_config
++
++echo arch=${build_arch} > ${config_dir}
++echo build_dir=${build_dir} >> ${config_dir}
++make
++rm -rf ${config_dir}
+diff --git a/nptl_2_17/libpthread-2.17-aarch64.map b/nptl_2_17/libpthread-2.17-aarch64.map
+new file mode 100644
+index 00000000..2c49fe17
+--- /dev/null
++++ b/nptl_2_17/libpthread-2.17-aarch64.map
+@@ -0,0 +1,14 @@
++GLIBC_2.17 {
++  global:
++    pthread_cond_init; pthread_cond_destroy;
++    pthread_cond_signal; pthread_cond_broadcast;
++    pthread_cond_wait; pthread_cond_timedwait;
++  local:
++    *;
++};
++GLIBC_2.34 {
++  global:
++    pthread_cond_clockwait;
++  local:
++    *;
++};
+diff --git a/nptl_2_17/libpthread-2.17-x86_64.map b/nptl_2_17/libpthread-2.17-x86_64.map
+new file mode 100644
+index 00000000..b01e7d0d
+--- /dev/null
++++ b/nptl_2_17/libpthread-2.17-x86_64.map
+@@ -0,0 +1,14 @@
++GLIBC_2.3.2 {
++  global:
++    pthread_cond_init; pthread_cond_destroy;
++    pthread_cond_signal; pthread_cond_broadcast;
++    pthread_cond_wait; pthread_cond_timedwait;
++  local:
++    *;
++};
++GLIBC_2.34 {
++  global:
++    pthread_cond_clockwait;
++  local:
++    *;
++};
+-- 
+2.30.0
+
