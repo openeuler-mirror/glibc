@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	26
+Release: 	27
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -136,7 +136,15 @@ Patch49: posix-Fix-attribute-access-mode-on-getcwd-BZ-27476.patch
 
 #Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
-Patch9002: compat-2.17-libpthreadcond-so.patch
+Patch9002: 0001-add-base-files-for-libphtread-condition-family.patch
+Patch9003: 0002-add-header-files-for-libphtread_2_17_so.patch
+Patch9004: 0003-add-build-script-and-files-of-libpthread_2_17_so.patch
+Patch9005: 0004-add-two-header-files-with-some-deleted-macros.patch
+Patch9006: 0005-add-pthread-functions_h.patch
+Patch9007: 0006-add-elsion-function-which-moved-to-libc-in-glibc-2.34.patch
+Patch9008: 0007-add-lowlevellock_2_17_c.patch
+Patch9009: 0008-add-pause_nocancel_2_17.patch
+Patch9010: 0009-add-unwind-with-longjmp.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -765,7 +773,7 @@ touch compat-2.17.filelist
       -e '\,.*/etc/\(localtime\|nsswitch.conf\|ld\.so\.conf\|ld\.so\.cache\|default\|rpc\|gai\.conf\),d' \
       -e '\,.*/%{_libdir}/lib\(pcprofile\|memusage\)\.so,d' \
 %if %{with compat_2_17}
-      -e '\,.*/%{_libdir}/libpthread-2.17.so,d' \
+      -e '\,.*%{_libdir}/libpthread-2.17.so,d' \
 %endif
       -e '\,.*/bin/\(memusage\|mtrace\|xtrace\|pcprofiledump\),d'
 } | sort > master.filelist
@@ -1322,6 +1330,10 @@ fi
 %endif
 
 %changelog
+* Wed Nov 24 2021 Yang Yanchao <yangyanchao6@huawei.com> - 2.34-27
+- Refactor the libpthread-2.17.so code and pass all test cases.
+  delete libpthread-2.17.so from glibc-devel
+
 * Fri Nov 19 2021 Qingqing Li <liqingqing3@huawei.com> - 2.34-26
 - revert supress -Wcast-qual warnings in bsearch
 
