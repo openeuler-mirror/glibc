@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	27
+Release: 	28
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -133,6 +133,7 @@ Patch46: ld.so-Replace-DL_RO_DYN_SECTION-with-dl_relocate_ld-.patch
 Patch47: ld.so-Initialize-bootstrap_map.l_ld_readonly-BZ-2834.patch
 Patch48: Avoid-warning-overriding-recipe-for-.-tst-ro-dynamic.patch
 Patch49: posix-Fix-attribute-access-mode-on-getcwd-BZ-27476.patch
+Patch50: Linux-Simplify-__opensock-and-fix-race-condition-BZ-.patch
 
 #Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1330,6 +1331,9 @@ fi
 %endif
 
 %changelog
+* Tue Nov 30 2021 Bin Wang <wangbin224@huawei.com> - 2.34-28
+- Linux: Simplify __opensock and fix race condition [BZ #28353]
+
 * Wed Nov 24 2021 Yang Yanchao <yangyanchao6@huawei.com> - 2.34-27
 - Refactor the libpthread-2.17.so code and pass all test cases.
   delete libpthread-2.17.so from glibc-devel
