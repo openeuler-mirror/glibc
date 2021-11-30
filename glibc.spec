@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	79
+Release: 	80
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -138,6 +138,7 @@ Patch54: backport-CVE-2021-38604-0002-librt-fix-null-pointer-deference.patch
 Patch55: backport-ldconfig-avoid-leak-on-empty-paths-in-config-file.patch
 Patch56: backport-rtld-copy-terminating-null-in-tunables_strdup-bug-28.patch
 Patch57: backport-gconv-Do-not-emit-spurious-NUL-character-in-ISO-2022.patch
+Patch58: backport-nss-make-sure-startp_initialized-do-first.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1162,6 +1163,12 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Tue Nov 30 2021 chengyechun <chengyechun1@huawei.com> -2.28-80
+- Type: bugfix
+- CVE: NA
+- SUG: restart
+- DESC: nss make sure startp initialized do first
+
 * Tue Nov 9 2021 Qingqing Li <liqingqing3@huawei.com> - 2.28-79
 - gconv: Do not emit spurious NUL character in ISO-2022-JP-3
   this is also fix CVE-2021-43396
