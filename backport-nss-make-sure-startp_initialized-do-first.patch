@@ -1,0 +1,26 @@
+From 9d99c240898d67e7942a9dc0b9967419118a6407 Mon Sep 17 00:00:00 2001
+From: chengyechun <chengyechun1@huawei.com>
+Date: Sat, 27 Nov 2021 10:04:03 +0800
+Subject: [PATCH] backport-nss-make-sure-startp_initialized-do-first
+
+The function atomic_read_barrier is added for preventing coredump when the script frequently invokes
+the getpwnam_r function.
+---
+ nss/getXXbyYY_r.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/nss/getXXbyYY_r.c b/nss/getXXbyYY_r.c
+index 5ebf36c..21b0d98 100644
+--- a/nss/getXXbyYY_r.c
++++ b/nss/getXXbyYY_r.c
+@@ -297,6 +297,7 @@ INTERNAL (REENTRANT_NAME) (ADD_PARAMS, LOOKUP_TYPE *resbuf, char *buffer,
+     }
+   else
+     {
++      atomic_read_barrier();
+       fct.l = start_fct;
+       nip = startp;
+ #ifdef PTR_DEMANGLE
+-- 
+1.8.3.1
+
