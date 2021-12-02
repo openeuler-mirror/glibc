@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	80
+Release: 	81
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -139,6 +139,7 @@ Patch55: backport-ldconfig-avoid-leak-on-empty-paths-in-config-file.patch
 Patch56: backport-rtld-copy-terminating-null-in-tunables_strdup-bug-28.patch
 Patch57: backport-gconv-Do-not-emit-spurious-NUL-character-in-ISO-2022.patch
 Patch58: backport-nss-make-sure-startp_initialized-do-first.patch
+Patch59: backport-glibc-fix-CVE-2019-1010023.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1163,6 +1164,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Thu Dec 2 2021 xujing <xujing99@huawei.com> - 2.28-81
+- glibc: fix CVE-2019-1010023
+
 * Tue Nov 30 2021 chengyechun <chengyechun1@huawei.com> -2.28-80
 - Type: bugfix
 - CVE: NA
