@@ -1,0 +1,40 @@
+From 4204b32bffc28772b7d026964f7ca325b00f7609 Mon Sep 17 00:00:00 2001
+From: xujing <xujing99@huawei.com>
+Date: Thu, 2 Dec 2021 11:53:30 +0800
+Subject: [PATCH] fix pthread_create and dlopen racing.
+
+reason: fix pthread_create and dlopen racing.
+---
+ elf/dl-tls.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/elf/dl-tls.c b/elf/dl-tls.c
+index c87caf13..1840f122 100644
+--- a/elf/dl-tls.c
++++ b/elf/dl-tls.c
+@@ -478,7 +478,8 @@ _dl_allocate_tls_init (void *result)
+ 
+ 	  /* Keep track of the maximum generation number.  This might
+ 	     not be the generation counter.  */
+-	  assert (listp->slotinfo[cnt].gen <= GL(dl_tls_generation));
++	  if (listp->slotinfo[cnt].gen > GL(dl_tls_generation))
++            _dl_printf("warning: listp->slotinfo[cnt].gen > GL(dl_tls_generation) !\n");
+ 	  maxgen = MAX (maxgen, listp->slotinfo[cnt].gen);
+ 
+ 	  dtv[map->l_tls_modid].pointer.val = TLS_DTV_UNALLOCATED;
+@@ -514,7 +515,11 @@ _dl_allocate_tls_init (void *result)
+ 	break;
+ 
+       listp = listp->next;
+-      assert (listp != NULL);
++      if (listp == NULL)
++      {
++        _dl_printf("warning: listp == NULL !\n");
++        break;
++      }
+     }
+ 
+   /* The DTV version is up-to-date now.  */
+-- 
+2.23.0
+
