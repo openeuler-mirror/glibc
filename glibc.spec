@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	81
+Release: 	82
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -140,6 +140,7 @@ Patch56: backport-rtld-copy-terminating-null-in-tunables_strdup-bug-28.patch
 Patch57: backport-gconv-Do-not-emit-spurious-NUL-character-in-ISO-2022.patch
 Patch58: backport-nss-make-sure-startp_initialized-do-first.patch
 Patch59: backport-glibc-fix-CVE-2019-1010023.patch
+Patch60: backport-fix-pthread_create-and-dlopen-racing.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1164,6 +1165,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Thu Dec 2 2021 xujing <xujing99@huawei.com> - 2.28-82
+- elf: fix pthread_create and dlopen racing
+
 * Thu Dec 2 2021 xujing <xujing99@huawei.com> - 2.28-81
 - glibc: fix CVE-2019-1010023
 
