@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	29
+Release: 	30
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -138,7 +138,7 @@ Patch51: linux-Simplify-get_nprocs.patch
 Patch52: misc-Add-__get_nprocs_sched.patch
 Patch53: linux-Revert-the-use-of-sched_getaffinity-on-get_npr.patch
 
-#Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
+Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
 Patch9002: 0001-add-base-files-for-libphtread-condition-family.patch
 Patch9003: 0002-add-header-files-for-libphtread_2_17_so.patch
@@ -1334,6 +1334,9 @@ fi
 %endif
 
 %changelog
+* Thu Dec 3 2021 Yang Yanchao <yangyanchao6@huawei.com> - 2.34-30
+- turn the default value of x86_rep_stosb_threshold from 2k to 1M
+
 * Thu Dec 2 2021 Qingqing Li <liqingqing3@huawei.com> - 2.34-29
 - revert the use of sched_getaffinity [BZ #28310]
 
