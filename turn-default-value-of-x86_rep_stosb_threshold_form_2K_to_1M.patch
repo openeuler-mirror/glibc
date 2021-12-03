@@ -1,0 +1,29 @@
+From 4dee2794b8c78ccd540e3f72bc07585828e0143b Mon Sep 17 00:00:00 2001
+From: Yang Yanchao <yangyanchao6@huawei.com>
+Date: Thu, 2 Dec 2021 19:56:20 +0800
+Subject: [PATCH] turn the default value of x86_rep_stosb_threshold from 2k to 1M
+
+x86_rep_stosb_threshold is designed to choose vec mov or stosb.
+For the libMicro, after set this x86_rep_stosb_threshold to 1 MB. 
+The performance of memset_256_u, memset_4k_uc, and memset_1m is improved.
+The performance deteriorates in the memset_4k and memset_10k scenarios.
+---
+ sysdeps/x86/dl-tunables.list | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sysdeps/x86/dl-tunables.list b/sysdeps/x86/dl-tunables.list
+index dd6e1d65..a4c3af69 100644
+--- a/sysdeps/x86/dl-tunables.list
++++ b/sysdeps/x86/dl-tunables.list
+@@ -54,7 +54,7 @@ glibc {
+       # stored value is fixed, larger register size has minimal impact
+       # on threshold.
+       minval: 1
+-      default: 2048
++      default: 1048576
+     }
+     x86_data_cache_size {
+       type: SIZE_T
+-- 
+2.30.0
+
