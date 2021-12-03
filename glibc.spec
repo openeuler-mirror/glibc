@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	28
+Release: 	29
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -134,6 +134,9 @@ Patch47: ld.so-Initialize-bootstrap_map.l_ld_readonly-BZ-2834.patch
 Patch48: Avoid-warning-overriding-recipe-for-.-tst-ro-dynamic.patch
 Patch49: posix-Fix-attribute-access-mode-on-getcwd-BZ-27476.patch
 Patch50: Linux-Simplify-__opensock-and-fix-race-condition-BZ-.patch
+Patch51: linux-Simplify-get_nprocs.patch
+Patch52: misc-Add-__get_nprocs_sched.patch
+Patch53: linux-Revert-the-use-of-sched_getaffinity-on-get_npr.patch
 
 #Patch9000: turn-REP_STOSB_THRESHOLD-from-2k-to-1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1331,6 +1334,9 @@ fi
 %endif
 
 %changelog
+* Thu Dec 2 2021 Qingqing Li <liqingqing3@huawei.com> - 2.34-29
+- revert the use of sched_getaffinity [BZ #28310]
+
 * Tue Nov 30 2021 Bin Wang <wangbin224@huawei.com> - 2.34-28
 - Linux: Simplify __opensock and fix race condition [BZ #28353]
 
