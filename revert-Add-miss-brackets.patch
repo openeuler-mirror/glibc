@@ -1,0 +1,35 @@
+From f8db68106391e4a7730d2de3a1ab00e7c8e62176 Mon Sep 17 00:00:00 2001
+From: Yang Yanchao <yangyanchao6@huawei.com>
+Date: Fri, 3 Dec 2021 17:34:18 +0800
+Subject: [PATCH] revert Add missing brackets.
+
+revert https://sourceware.org/bugzilla/attachment.cgi?id=9876&action=edit
+which from https://sourceware.org/bugzilla/show_bug.cgi?id=19519
+to fix CVE-2016-10228
+but might cause transcode errors may occur in certain scenarios.
+
+
+---
+ iconv/iconv_prog.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/iconv/iconv_prog.c b/iconv/iconv_prog.c
+index 67bbcff3..52e9d3f3 100644
+--- a/iconv/iconv_prog.c
++++ b/iconv/iconv_prog.c
+@@ -487,11 +487,7 @@ process_block (iconv_t cd, char *addr, size_t len, FILE **output,
+ 	  if (len == 0)
+ 	    n = 0;
+ 	  else
+-	    {
+-	      errno = E2BIG;
+-	      ++addr;
+-	      --len;
+-	    }
++	    errno = E2BIG;
+ 	}
+ 
+       if (outptr != outbuf)
+-- 
+2.23.0
+
