@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	82
+Release: 	83
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -141,6 +141,9 @@ Patch57: backport-gconv-Do-not-emit-spurious-NUL-character-in-ISO-2022.patch
 Patch58: backport-nss-make-sure-startp_initialized-do-first.patch
 Patch59: backport-glibc-fix-CVE-2019-1010023.patch
 Patch60: backport-fix-pthread_create-and-dlopen-racing.patch
+Patch61: revert-Add-miss-brackets.patch
+Patch62: Rewrite-iconv-option-parsing-BZ-19519.patch
+Patch63: intl-Handle-translation-output-codesets-with-suffixes-BZ-26383.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1165,6 +1168,11 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Fri Dec 3 2021 Yang yanchao <yangyanchao6huawei.com> - 2.28-83
+- iconv: revert Add missing brackets
+  Rewrite iconv option parsing [BZ #19519]
+  intl: Handle translation output codesets with suffixes [BZ #26383]
+
 * Thu Dec 2 2021 xujing <xujing99@huawei.com> - 2.28-82
 - elf: fix pthread_create and dlopen racing
 
