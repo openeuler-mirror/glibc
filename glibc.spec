@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	31
+Release: 	32
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -775,7 +775,7 @@ touch compat-2.17.filelist
       -e '\,.*/share/i18n/locales/.*,d' \
       -e '\,.*/share/i18n/charmaps/.*,d' \
       -e '\,.*/etc/\(localtime\|nsswitch.conf\|ld\.so\.conf\|ld\.so\.cache\|default\|rpc\|gai\.conf\),d' \
-      -e '\,.*/%{_libdir}/lib\(pcprofile\|memusage\)\.so,d' \
+      -e '\,.*%{_libdir}/lib\(pcprofile\|memusage\)\.so,d' \
 %if %{with compat_2_17}
       -e '\,.*%{_libdir}/libpthread-2.17.so,d' \
 %endif
@@ -813,7 +813,9 @@ for module in compat files dns; do
     -e "/libnss_$module(\.so\.[0-9.]+|-[0-9.]+\.so)$" \
     >> glibc.filelist
 done
-grep -e "libmemusage.so" -e "libpcprofile.so" master.filelist >> glibc.filelist
+
+echo  '%{_libdir}/libmemusage.so' >> glibc.filelist
+echo  '%{_libdir}/libpcprofile.so' >> glibc.filelist
 
 ##############################################################################
 # glibc "common" sub-package
@@ -844,10 +846,7 @@ grep '%{_libdir}/lib.*\.a' master.filelist \
 grep '%{_libdir}/.*\.o' < master.filelist >> devel.filelist
 grep '%{_libdir}/lib.*\.so' < master.filelist >> devel.filelist
 
-sed -i -e '\,libmemusage.so,d' \
-    -e '\,libpcprofile.so,d' \
-    -e '\,/libnss_[a-z]*\.so$,d' \
-    devel.filelist
+sed -i -e '\,/libnss_[a-z]*\.so$,d' devel.filelist
 
 grep '%{_prefix}/include' < master.filelist >> devel.filelist
 
@@ -1334,6 +1333,9 @@ fi
 %endif
 
 %changelog
+* Thu Dec 9 2021 Yang Yanchao <yangyanchao6@huawei.com> - 2.34-32
+- Deleted some unnecessary command when make master.filelist
+
 * Thu Dec 9 2021 Yang Yanchao <yangyanchao6@huawei.com> - 2.34-31
 - support all Chinese and English by default
   add zh_* and en_* to glibc-common
