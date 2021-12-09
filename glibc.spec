@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	30
+Release: 	31
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -1253,20 +1253,20 @@ fi
 %dir %{_prefix}/lib/locale
 %dir %{_prefix}/lib/locale/C.utf8
 %{_prefix}/lib/locale/C.utf8/*
-%{_prefix}/lib/locale/zh_CN.utf8
-%{_prefix}/lib/locale/en_US.utf8
-%{_prefix}/share/locale/zh_CN
-%{_prefix}/share/locale/en_GB
+%{_prefix}/lib/locale/zh*
+%{_prefix}/lib/locale/en*
+%{_prefix}/share/locale/zh*
+%{_prefix}/share/locale/en*
 
 %files -f libc.lang all-langpacks
 %{_prefix}/lib/locale
 %exclude %{_prefix}/lib/locale/locale-archive
 %exclude %{_prefix}/lib/locale/locale-archive.update
 %exclude %{_prefix}/lib/locale/C.utf8
-%exclude %{_prefix}/lib/locale/zh_CN.utf8
-%exclude %{_prefix}/lib/locale/en_US.utf8
-%exclude %{_prefix}/share/locale/zh_CN
-%exclude %{_prefix}/share/locale/en_GB
+%exclude %{_prefix}/lib/locale/zh*
+%exclude %{_prefix}/lib/locale/en*
+%exclude %{_prefix}/share/locale/zh*
+%exclude %{_prefix}/share/locale/en*
 
 %files locale-source
 %dir %{_prefix}/share/i18n/locales
@@ -1334,7 +1334,12 @@ fi
 %endif
 
 %changelog
-* Thu Dec 3 2021 Yang Yanchao <yangyanchao6@huawei.com> - 2.34-30
+* Thu Dec 9 2021 Yang Yanchao <yangyanchao6@huawei.com> - 2.34-31
+- support all Chinese and English by default
+  add zh_* and en_* to glibc-common
+  the size of glibc-common is increased from 1.8MB to 3.5MB
+
+* Fri Dec 3 2021 Yang Yanchao <yangyanchao6@huawei.com> - 2.34-30
 - turn the default value of x86_rep_stosb_threshold from 2k to 1M
 
 * Thu Dec 2 2021 Qingqing Li <liqingqing3@huawei.com> - 2.34-29
