@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	32
+Release: 	33
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -137,6 +137,7 @@ Patch50: Linux-Simplify-__opensock-and-fix-race-condition-BZ-.patch
 Patch51: linux-Simplify-get_nprocs.patch
 Patch52: misc-Add-__get_nprocs_sched.patch
 Patch53: linux-Revert-the-use-of-sched_getaffinity-on-get_npr.patch
+Patch54: pthread-tst-cancel28-Fix-barrier-re-init-race-condit.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1333,6 +1334,9 @@ fi
 %endif
 
 %changelog
+* Wed Dec 15 2021 Qingqing Li <liqingqing3@huawei.com> - 2.34-33
+- pthread/tst-cancel28: Fix barrier re-init race condition
+
 * Thu Dec 9 2021 Yang Yanchao <yangyanchao6@huawei.com> - 2.34-32
 - Deleted some unnecessary command when make master.filelist
 
