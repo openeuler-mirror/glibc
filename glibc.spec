@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	33
+Release: 	34
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -138,6 +138,10 @@ Patch51: linux-Simplify-get_nprocs.patch
 Patch52: misc-Add-__get_nprocs_sched.patch
 Patch53: linux-Revert-the-use-of-sched_getaffinity-on-get_npr.patch
 Patch54: pthread-tst-cancel28-Fix-barrier-re-init-race-condit.patch
+Patch55: support-Add-support_open_dev_null_range.patch
+Patch56: Use-support_open_dev_null_range-io-tst-closefrom-mis.patch
+Patch57: Fix-failing-nss-tst-nss-files-hosts-long-with-local-.patch
+Patch58: nptl-Add-one-more-barrier-to-nptl-tst-create1.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1334,6 +1338,11 @@ fi
 %endif
 
 %changelog
+* Tue Dec 21 2021 Qingqing Li <liqingqing3@huawei.com> - 2.34-34
+- tst: fix failing nss/tst-nss-files-hosts-long with local resolver
+       use support_open_dev_null_range io/tst-closefrom, mise/tst-close_range, and posix/tst-spawn5(BZ#28260)
+       nptl: add one more barrier to nptl/tst-create1
+
 * Wed Dec 15 2021 Qingqing Li <liqingqing3@huawei.com> - 2.34-33
 - pthread/tst-cancel28: Fix barrier re-init race condition
 
