@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	83
+Release: 	84
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -1168,7 +1168,10 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
-* Fri Dec 3 2021 Yang yanchao <yangyanchao6huawei.com> - 2.28-83
+* Fri Dec 24 2021 Yang yanchao <yangyanchao6@huawei.com> - 2.28-84
+- use setlocale instand of xetlocale in tst-iconv-opt
+
+* Fri Dec 3 2021 Yang yanchao <yangyanchao6@huawei.com> - 2.28-83
 - iconv: revert Add missing brackets
   Rewrite iconv option parsing [BZ #19519]
   intl: Handle translation output codesets with suffixes [BZ #26383]
