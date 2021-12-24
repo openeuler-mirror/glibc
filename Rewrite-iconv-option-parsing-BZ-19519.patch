@@ -836,7 +836,7 @@ index 0000000000..669d812a6a
 +static int
 +do_test (void)
 +{
-+  xsetlocale (LC_ALL, "en_US.UTF-8");
++  setlocale (LC_ALL, "en_US.UTF-8");
 +
 +
 +  /* 0. iconv_open should gracefully fail for invalid character sets.  */
