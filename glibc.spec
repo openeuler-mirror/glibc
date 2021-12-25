@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	35
+Release: 	36
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -143,6 +143,7 @@ Patch56: Use-support_open_dev_null_range-io-tst-closefrom-mis.patch
 Patch57: Fix-failing-nss-tst-nss-files-hosts-long-with-local-.patch
 Patch58: nptl-Add-one-more-barrier-to-nptl-tst-create1.patch
 Patch59: io-Fix-ftw-internal-realloc-buffer-BZ-28126.patch
+Patch60: Do-not-define-tgmath.h-fmaxmag-fminmag-macros-for-C2.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1339,6 +1340,9 @@ fi
 %endif
 
 %changelog
+* Fri Dec 24 2021 Qingqing Li <liqingqing3@huawei.com> - 2.34-36
+- do not define tgmath.h fmaxmag, fminmag macros for C2X (BZ #28397)
+
 * Fri Dec 24 2021 Qingqing Li <liqingqing3@huawei.com> - 2.34-35
 - io: Fix ftw internal realloc buffer (BZ #28126)
 
