@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	37
+Release: 	38
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -145,6 +145,7 @@ Patch58: nptl-Add-one-more-barrier-to-nptl-tst-create1.patch
 Patch59: io-Fix-ftw-internal-realloc-buffer-BZ-28126.patch
 Patch60: Do-not-define-tgmath.h-fmaxmag-fminmag-macros-for-C2.patch
 Patch61: ld.so-Don-t-fill-the-DT_DEBUG-entry-in-ld.so-BZ-2812.patch
+Patch62: elf-Replace-nsid-with-args.nsid-BZ-27609.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1341,6 +1342,9 @@ fi
 %endif
 
 %changelog
+* Mon Dec 27 2021 Qingqing Li <liqingqing3@huawei.com> - 2.34-38
+- elf: replace nsid with args.nsid [BZ #27609]
+
 * Sat Dec 25 2021 liusirui <liusirui@huawei.com> - 2.34-37
 - ld.so: Don't fill the DT_DEBUG entry in ld.so [BZ #28129]
 
