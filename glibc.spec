@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	38
+Release: 	39
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -146,6 +146,7 @@ Patch59: io-Fix-ftw-internal-realloc-buffer-BZ-28126.patch
 Patch60: Do-not-define-tgmath.h-fmaxmag-fminmag-macros-for-C2.patch
 Patch61: ld.so-Don-t-fill-the-DT_DEBUG-entry-in-ld.so-BZ-2812.patch
 Patch62: elf-Replace-nsid-with-args.nsid-BZ-27609.patch
+Patch63: support-Also-return-fd-when-it-is-0.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1342,6 +1343,9 @@ fi
 %endif
 
 %changelog
+* Tue Dec 28 2021 Qingqing Li <liqingqing3@huawei.com> - 2.34-39
+- support: Also return fd when it is 0.
+
 * Mon Dec 27 2021 Qingqing Li <liqingqing3@huawei.com> - 2.34-38
 - elf: replace nsid with args.nsid [BZ #27609]
 
