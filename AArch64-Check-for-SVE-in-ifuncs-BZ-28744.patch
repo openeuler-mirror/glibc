@@ -1,0 +1,55 @@
+From e5fa62b8db546f8792ec9e5c61e6419f4f8e3f4d Mon Sep 17 00:00:00 2001
+From: Wilco Dijkstra <wdijkstr@arm.com>
+Date: Thu, 6 Jan 2022 14:36:28 +0000
+Subject: [PATCH] AArch64: Check for SVE in ifuncs [BZ #28744]
+
+Add a check for SVE in the A64FX ifuncs for memcpy, memset and memmove.
+This fixes BZ #28744.
+---
+ sysdeps/aarch64/multiarch/memcpy.c  | 2 +-
+ sysdeps/aarch64/multiarch/memmove.c | 2 +-
+ sysdeps/aarch64/multiarch/memset.c  | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/sysdeps/aarch64/multiarch/memcpy.c b/sysdeps/aarch64/multiarch/memcpy.c
+index 7dac7b7..a476dd5 100644
+--- a/sysdeps/aarch64/multiarch/memcpy.c
++++ b/sysdeps/aarch64/multiarch/memcpy.c
+@@ -48,7 +48,7 @@ libc_ifunc (__libc_memcpy,
+ 		      || IS_NEOVERSE_V1 (midr)
+ 		      ? __memcpy_simd
+ # if HAVE_AARCH64_SVE_ASM
+-		     : (IS_A64FX (midr)
++		     : (IS_A64FX (midr) && sve
+ 			? __memcpy_a64fx
+ 			: __memcpy_generic))))));
+ # else
+diff --git a/sysdeps/aarch64/multiarch/memmove.c b/sysdeps/aarch64/multiarch/memmove.c
+index 48f8e46..4f7d7ee 100644
+--- a/sysdeps/aarch64/multiarch/memmove.c
++++ b/sysdeps/aarch64/multiarch/memmove.c
+@@ -48,7 +48,7 @@ libc_ifunc (__libc_memmove,
+ 		      || IS_NEOVERSE_V1 (midr)
+ 		      ? __memmove_simd
+ # if HAVE_AARCH64_SVE_ASM
+-		     : (IS_A64FX (midr)
++		     : (IS_A64FX (midr) && sve
+ 			? __memmove_a64fx
+ 			: __memmove_generic))))));
+ # else
+diff --git a/sysdeps/aarch64/multiarch/memset.c b/sysdeps/aarch64/multiarch/memset.c
+index 3692b07..c4008f3 100644
+--- a/sysdeps/aarch64/multiarch/memset.c
++++ b/sysdeps/aarch64/multiarch/memset.c
+@@ -44,7 +44,7 @@ libc_ifunc (__libc_memset,
+ 	      : (IS_EMAG (midr) && zva_size == 64
+ 		? __memset_emag
+ # if HAVE_AARCH64_SVE_ASM
+-		: (IS_A64FX (midr)
++		: (IS_A64FX (midr) && sve
+ 		  ? __memset_a64fx
+ 		  : __memset_generic))));
+ # else
+-- 
+1.8.3.1
+

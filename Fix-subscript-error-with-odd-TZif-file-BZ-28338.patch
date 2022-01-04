@@ -1,0 +1,31 @@
+From 645277434a42efc547d2cac8bfede4da10b4049f Mon Sep 17 00:00:00 2001
+From: Paul Eggert <eggert@cs.ucla.edu>
+Date: Mon, 13 Sep 2021 22:49:45 -0700
+Subject: [PATCH] Fix subscript error with odd TZif file [BZ #28338]
+
+* time/tzfile.c (__tzfile_compute): Fix unlikely off-by-one bug
+that accessed before start of an array when an oddball-but-valid
+TZif file was queried with an unusual time_t value.
+
+Reviewed-by: Adhemerval Zanella  <adhemerval.zanella@linaro.org>
+---
+ time/tzfile.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/time/tzfile.c b/time/tzfile.c
+index 4377018..190a777 100644
+--- a/time/tzfile.c
++++ b/time/tzfile.c
+@@ -765,8 +765,7 @@ __tzfile_compute (__time64_t timer, int use_localtime,
+   *leap_correct = leaps[i].change;
+ 
+   if (timer == leaps[i].transition /* Exactly at the transition time.  */
+-      && ((i == 0 && leaps[i].change > 0)
+-	  || leaps[i].change > leaps[i - 1].change))
++      && (leaps[i].change > (i == 0 ? 0 : leaps[i - 1].change)))
+     {
+       *leap_hit = 1;
+       while (i > 0
+-- 
+1.8.3.1
+
