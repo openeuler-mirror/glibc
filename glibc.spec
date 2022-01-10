@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	39
+Release: 	40
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -950,7 +950,13 @@ find_debuginfo_args="$find_debuginfo_args \
     "
 %endif
 
-/usr/lib/rpm/find-debuginfo.sh $find_debuginfo_args -o debuginfo.filelist
+if command -v find-debuginfo >/dev/null ; then
+    find_debuginfo=find-debuginfo
+else
+    find_debuginfo=/usr/lib/rpm/find-debuginfo.sh
+fi
+
+$find_debuginfo $find_debuginfo_args -o debuginfo.filelist
 
 %ifarch %{x86_arches}
 sed -i '\#^$RPM_BUILD_ROOT%{_prefix}/src/debug/#d' debuginfo_additional.filelist
@@ -1343,6 +1349,11 @@ fi
 %endif
 
 %changelog
+* Mon Jan 10 2022 Yang Yanchao <yangyanchao6@huawei.com> - 2.34-40
+- rpm-build move find-debuginfo.sh into debugedit.
+  and change the path from "/usr/lib/rpm" to "/usr/bin"
+  adapts this change
+
 * Tue Dec 28 2021 Qingqing Li <liqingqing3@huawei.com> - 2.34-39
 - support: Also return fd when it is 0.
 
