@@ -1,4 +1,5 @@
-%global __filter_GLIBC_PRIVATE 1
+%global __requires_exclude GLIBC_PRIVATE
+%global __provides_exclude GLIBC_PRIVATE
 
 %define rpm_ver_major %(eval "echo `rpm -q rpm |cut -d '-' -f2 |cut -d. -f1`")
 %define rpm_ver_minor %(eval "echo `rpm -q rpm |cut -d '-' -f2 |cut -d. -f2`")
@@ -65,7 +66,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	41
+Release: 	42
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -1360,6 +1361,10 @@ fi
 %endif
 
 %changelog
+* Tue Jan 11 2022 Yang Yanchao <yangyanchao6@huawei.com> - 2.34-42
+- delete macro __filter_GLIBC_PRIVATE which is not support in rpm-4.17
+  Use arbitrary filtering to control GLIBC_PRIVATE
+
 * Mon Jan 10 2022 Qingqing Li <liqingqing3@huawei.com> - 2.34-41
 - timex: Use 64-bit fields on 32-bit TIMESIZE=64 systems. BZ #28469
 - malloc: Handle NULL input to malloc usable size. BZ #28506
