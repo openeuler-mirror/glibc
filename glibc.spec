@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	40
+Release: 	41
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -147,6 +147,17 @@ Patch60: Do-not-define-tgmath.h-fmaxmag-fminmag-macros-for-C2.patch
 Patch61: ld.so-Don-t-fill-the-DT_DEBUG-entry-in-ld.so-BZ-2812.patch
 Patch62: elf-Replace-nsid-with-args.nsid-BZ-27609.patch
 Patch63: support-Also-return-fd-when-it-is-0.patch
+Patch64: elf-Earlier-missing-dynamic-segment-check-in-_dl_map.patch
+Patch65: Handle-NULL-input-to-malloc_usable_size-BZ-28506.patch
+Patch66: intl-plural.y-Avoid-conflicting-declarations-of-yyer.patch
+Patch67: linux-Use-proc-stat-fallback-for-__get_nprocs_conf-B.patch
+Patch68: nptl-Do-not-set-signal-mask-on-second-setjmp-return-.patch
+Patch69: nss-Use-files-dns-as-the-default-for-the-hosts-datab.patch
+Patch70: timex-Use-64-bit-fields-on-32-bit-TIMESIZE-64-system.patch
+Patch71: AArch64-Check-for-SVE-in-ifuncs-BZ-28744.patch
+Patch72: Fix-subscript-error-with-odd-TZif-file-BZ-28338.patch
+Patch73: timezone-handle-truncated-timezones-from-tzcode-2021.patch
+Patch74: timezone-test-case-for-BZ-28707.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1349,6 +1360,19 @@ fi
 %endif
 
 %changelog
+* Mon Jan 10 2022 Qingqing Li <liqingqing3@huawei.com> - 2.34-41
+- timex: Use 64-bit fields on 32-bit TIMESIZE=64 systems. BZ #28469
+- malloc: Handle NULL input to malloc usable size. BZ #28506
+- elf: Earlier missing dynamic segment check in _dl_map_object_from_fd
+- nptl: Do not set signal mask on second setjmp return. BZ #28607
+- linux: use /proc/stat fallback for __get_nprocs_conf. BZ #28624
+- nss: Use "file dns" as the default for the hosts database. BZ #28700
+- int/plural.y: Avoid conflicting declarations of yyerror and yylex
+- aarch64: Check for SVE in ifuncs BZ #28744
+- Fix subscript error with odd TZif file BZ #28338
+- timezone: handle truncated timezones from tzcode 2021
+- timezone: test case for BZ #28707
+
 * Mon Jan 10 2022 Yang Yanchao <yangyanchao6@huawei.com> - 2.34-40
 - rpm-build move find-debuginfo.sh into debugedit.
   and change the path from "/usr/lib/rpm" to "/usr/bin"
