@@ -66,7 +66,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	42
+Release: 	43
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -159,6 +159,10 @@ Patch71: AArch64-Check-for-SVE-in-ifuncs-BZ-28744.patch
 Patch72: Fix-subscript-error-with-odd-TZif-file-BZ-28338.patch
 Patch73: timezone-handle-truncated-timezones-from-tzcode-2021.patch
 Patch74: timezone-test-case-for-BZ-28707.patch
+Patch75: socket-Add-the-__sockaddr_un_set-function.patch
+Patch76: CVE-2022-23219-Buffer-overflow-in-sunrpc-clnt_create.patch
+Patch77: sunrpc-Test-case-for-clnt_create-unix-buffer-overflo.patch
+Patch78: CVE-2022-23218-Buffer-overflow-in-sunrpc-svcunix_cre.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1361,6 +1365,9 @@ fi
 %endif
 
 %changelog
+*Tue Jan 18 Qingqing Li <liqingqing3@huawei.com> - 2.34-43
+- fix CVE-2022-23218 and CVE-2022-23219
+
 * Tue Jan 11 2022 Yang Yanchao <yangyanchao6@huawei.com> - 2.34-42
 - delete macro __filter_GLIBC_PRIVATE which is not support in rpm-4.17
   Use arbitrary filtering to control GLIBC_PRIVATE
