@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	84
+Release: 	85
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -144,6 +144,10 @@ Patch60: backport-fix-pthread_create-and-dlopen-racing.patch
 Patch61: revert-Add-miss-brackets.patch
 Patch62: Rewrite-iconv-option-parsing-BZ-19519.patch
 Patch63: intl-Handle-translation-output-codesets-with-suffixes-BZ-26383.patch
+Patch64: socket-Add-the-__sockaddr_un_set-function.patch
+Patch65: CVE-2022-23219-Buffer-overflow-in-sunrpc-clnt_create.patch
+Patch66: sunrpc-Test-case-for-clnt_create-unix-buffer-overflo.patch
+Patch67: CVE-2022-23218-Buffer-overflow-in-sunrpc-svcunix_cre.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1168,6 +1172,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Wed Jan 19 2021 Qingqing Li <liqingqing3@huawei.com> - 2.28-85
+- sunrpc: fix CVE-2022-23218 and fix CVE-2022-23219
+
 * Fri Dec 24 2021 Yang yanchao <yangyanchao6@huawei.com> - 2.28-84
 - use setlocale instand of xetlocale in tst-iconv-opt
 
