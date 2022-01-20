@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	85
+Release: 	86
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -1172,6 +1172,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Thu Jan 20 2021 Qingqing Li <liqingqing3@huawei.com> - 2.28-86
+- sunrpc: fix compile error
+
 * Wed Jan 19 2021 Qingqing Li <liqingqing3@huawei.com> - 2.28-85
 - sunrpc: fix CVE-2022-23218 and fix CVE-2022-23219
 
