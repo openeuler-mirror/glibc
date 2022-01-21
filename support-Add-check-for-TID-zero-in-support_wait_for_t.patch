@@ -1,0 +1,42 @@
+From 176c88f5214d8107d330971cbbfbbba5186a111f Mon Sep 17 00:00:00 2001
+From: Florian Weimer <fweimer@redhat.com>
+Date: Fri, 1 Oct 2021 18:16:41 +0200
+Subject: [PATCH] support: Add check for TID zero in
+ support_wait_for_thread_exit
+
+Some kernel versions (observed with kernel 5.14 and earlier) can list
+"0" entries in /proc/self/task.  This happens when a thread exits
+while the task list is being constructed.  Treat this entry as not
+present, like the proposed kernel patch does:
+
+[PATCH] procfs: Do not list TID 0 in /proc/<pid>/task
+<https://lore.kernel.org/all/8735pn5dx7.fsf@oldenburg.str.redhat.com/>
+
+Fixes commit 032d74eaf6179100048a5bf0ce942e97dc8b9a60 ("support: Add
+support_wait_for_thread_exit").
+
+Reviewed-by: Carlos O'Donell <carlos@redhat.com>
+Tested-by: Carlos O'Donell <carlos@redhat.com>
+---
+ support/support_wait_for_thread_exit.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/support/support_wait_for_thread_exit.c b/support/support_wait_for_thread_exit.c
+index 658a813..5e3be42 100644
+--- a/support/support_wait_for_thread_exit.c
++++ b/support/support_wait_for_thread_exit.c
+@@ -43,7 +43,10 @@ support_wait_for_thread_exit (void)
+           return;
+         }
+ 
+-      if (strcmp (e->d_name, ".") == 0 || strcmp (e->d_name, "..") == 0)
++      /* In some kernels, "0" entries denote a thread that has just
++         exited.  */
++      if (strcmp (e->d_name, ".") == 0 || strcmp (e->d_name, "..") == 0
++          || strcmp (e->d_name, "0") == 0)
+         continue;
+ 
+       int task_tid = atoi (e->d_name);
+-- 
+1.8.3.1
+
