@@ -28,7 +28,7 @@
 #  - Default: Always run valgrind tests if there is architecture support.
 ##############################################################################
 %bcond_without testsuite
-%bcond_without benchtests
+%bcond_with benchtests
 %bcond_with bootstrap
 %bcond_with werror
 %bcond_without docs
@@ -66,7 +66,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	44
+Release: 	45
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -176,6 +176,7 @@ Patch9007: 0006-add-elsion-function-which-moved-to-libc-in-glibc-2.34.patch
 Patch9008: 0007-add-lowlevellock_2_17_c.patch
 Patch9009: 0008-add-pause_nocancel_2_17.patch
 Patch9010: 0009-add-unwind-with-longjmp.patch
+Patch9011: delete-check-installed-headers-c-and-check-installed.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1366,6 +1367,10 @@ fi
 %endif
 
 %changelog
+* Fri Jan 21 Yang Yanchao<yangyanchao6@huawei.com> - 2.34-45
+- disable check-installed-headers-c and check-installed-headers-cxx
+  and delete glibc-benchtest to improve build speed
+
 * Fri Jan 21 Qingqing Li <liqingqing3@huawei.com> - 2.34-44
 - support: Add check for TID zero in support_wait_for_thread_exit
 
