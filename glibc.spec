@@ -66,7 +66,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	43
+Release: 	44
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -163,6 +163,7 @@ Patch75: socket-Add-the-__sockaddr_un_set-function.patch
 Patch76: CVE-2022-23219-Buffer-overflow-in-sunrpc-clnt_create.patch
 Patch77: sunrpc-Test-case-for-clnt_create-unix-buffer-overflo.patch
 Patch78: CVE-2022-23218-Buffer-overflow-in-sunrpc-svcunix_cre.patch
+Patch79: support-Add-check-for-TID-zero-in-support_wait_for_t.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1365,7 +1366,10 @@ fi
 %endif
 
 %changelog
-*Tue Jan 18 Qingqing Li <liqingqing3@huawei.com> - 2.34-43
+* Fri Jan 21 Qingqing Li <liqingqing3@huawei.com> - 2.34-44
+- support: Add check for TID zero in support_wait_for_thread_exit
+
+* Tue Jan 18 Qingqing Li <liqingqing3@huawei.com> - 2.34-43
 - fix CVE-2022-23218 and CVE-2022-23219
 
 * Tue Jan 11 2022 Yang Yanchao <yangyanchao6@huawei.com> - 2.34-42
