@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	86
+Release: 	87
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -148,6 +148,7 @@ Patch64: socket-Add-the-__sockaddr_un_set-function.patch
 Patch65: CVE-2022-23219-Buffer-overflow-in-sunrpc-clnt_create.patch
 Patch66: sunrpc-Test-case-for-clnt_create-unix-buffer-overflo.patch
 Patch67: CVE-2022-23218-Buffer-overflow-in-sunrpc-svcunix_cre.patch
+Patch68: getcwd-Set-errno-to-ERANGE-for-size-1-CVE-2021-3999.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1172,10 +1173,13 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
-* Thu Jan 20 2021 Qingqing Li <liqingqing3@huawei.com> - 2.28-86
+* Tue Jan 25 2022 Qingqing Li <liqingqing3@huawei.com> - 2.28-87
+- fix CVE-2021-3999
+
+* Thu Jan 20 2022 Qingqing Li <liqingqing3@huawei.com> - 2.28-86
 - sunrpc: fix compile error
 
-* Wed Jan 19 2021 Qingqing Li <liqingqing3@huawei.com> - 2.28-85
+* Wed Jan 19 2022 Qingqing Li <liqingqing3@huawei.com> - 2.28-85
 - sunrpc: fix CVE-2022-23218 and fix CVE-2022-23219
 
 * Fri Dec 24 2021 Yang yanchao <yangyanchao6@huawei.com> - 2.28-84
