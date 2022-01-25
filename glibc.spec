@@ -66,7 +66,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	45
+Release: 	46
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -164,6 +164,13 @@ Patch76: CVE-2022-23219-Buffer-overflow-in-sunrpc-clnt_create.patch
 Patch77: sunrpc-Test-case-for-clnt_create-unix-buffer-overflo.patch
 Patch78: CVE-2022-23218-Buffer-overflow-in-sunrpc-svcunix_cre.patch
 Patch79: support-Add-check-for-TID-zero-in-support_wait_for_t.patch
+Patch80: support-Add-helpers-to-create-paths-longer-than-PATH.patch
+Patch81: stdlib-Sort-tests-in-Makefile.patch
+Patch82: stdlib-Fix-formatting-of-tests-list-in-Makefile.patch
+Patch83: realpath-Set-errno-to-ENAMETOOLONG-for-result-larger.patch
+Patch84: tst-realpath-toolong-Fix-hurd-build.patch
+Patch85: getcwd-Set-errno-to-ERANGE-for-size-1-CVE-2021-3999.patch
+Patch86: Linux-Detect-user-namespace-support-in-io-tst-getcwd.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1367,14 +1374,17 @@ fi
 %endif
 
 %changelog
-* Fri Jan 21 Yang Yanchao<yangyanchao6@huawei.com> - 2.34-45
+* Tue Jan 25 2022 Qingqing Li <liqingqing3@huawei.com> - 2.34-46
+- fix CVE-2021-3998 and CVE-2021-3999
+
+* Fri Jan 21 2022 Yang Yanchao<yangyanchao6@huawei.com> - 2.34-45
 - disable check-installed-headers-c and check-installed-headers-cxx
   and delete glibc-benchtest to improve build speed
 
-* Fri Jan 21 Qingqing Li <liqingqing3@huawei.com> - 2.34-44
+* Fri Jan 21 2022 Qingqing Li <liqingqing3@huawei.com> - 2.34-44
 - support: Add check for TID zero in support_wait_for_thread_exit
 
-* Tue Jan 18 Qingqing Li <liqingqing3@huawei.com> - 2.34-43
+* Tue Jan 18 2022 Qingqing Li <liqingqing3@huawei.com> - 2.34-43
 - fix CVE-2022-23218 and CVE-2022-23219
 
 * Tue Jan 11 2022 Yang Yanchao <yangyanchao6@huawei.com> - 2.34-42
