@@ -66,7 +66,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	46
+Release: 	47
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -171,6 +171,9 @@ Patch83: realpath-Set-errno-to-ENAMETOOLONG-for-result-larger.patch
 Patch84: tst-realpath-toolong-Fix-hurd-build.patch
 Patch85: getcwd-Set-errno-to-ERANGE-for-size-1-CVE-2021-3999.patch
 Patch86: Linux-Detect-user-namespace-support-in-io-tst-getcwd.patch
+Patch87: Disable-debuginfod-in-printer-tests-BZ-28757.patch
+Patch88: i386-Remove-broken-CAN_USE_REGISTER_ASM_EBP-bug-2877.patch
+Patch89: x86-use-default-cache-size-if-it-cannot-be-determine.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1374,6 +1377,11 @@ fi
 %endif
 
 %changelog
+* Tue Jan 25 2022 Chuang Fang <fangchuangchuang@huawei.com> - 2.34-47
+- Disable debuginfod in printer tests [BZ #28757]
+- i386: Remove broken CAN_USE_REGISTER_ASM_EBP (bug 28771)
+- x86: use default cache size if it cannot be determined [BZ #28784]
+
 * Tue Jan 25 2022 Qingqing Li <liqingqing3@huawei.com> - 2.34-46
 - fix CVE-2021-3998 and CVE-2021-3999
 
