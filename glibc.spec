@@ -66,7 +66,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	47
+Release: 	48
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -174,6 +174,8 @@ Patch86: Linux-Detect-user-namespace-support-in-io-tst-getcwd.patch
 Patch87: Disable-debuginfod-in-printer-tests-BZ-28757.patch
 Patch88: i386-Remove-broken-CAN_USE_REGISTER_ASM_EBP-bug-2877.patch
 Patch89: x86-use-default-cache-size-if-it-cannot-be-determine.patch
+Patch90: x86-Fix-__wcsncmp_avx2-in-strcmp-avx2.S-BZ-28755.patch
+Patch91: x86-Fix-__wcsncmp_evex-in-strcmp-evex.S-BZ-28755.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1377,6 +1379,10 @@ fi
 %endif
 
 %changelog
+* Fri Jan 28 2022 Qingqing Li <liqingqing3@huawei.com> - 2.34-48
+- Fix __wcsncmp_evex in strcmp-evex.S [BZ #28755]
+- Fix __wcsncmp_avx2 in strcmp-avx2.S [BZ #28755]
+
 * Tue Jan 25 2022 Chuang Fang <fangchuangchuang@huawei.com> - 2.34-47
 - Disable debuginfod in printer tests [BZ #28757]
 - i386: Remove broken CAN_USE_REGISTER_ASM_EBP (bug 28771)
