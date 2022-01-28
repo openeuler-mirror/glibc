@@ -59,7 +59,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.28
-Release: 	87
+Release: 	88
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -149,6 +149,7 @@ Patch65: CVE-2022-23219-Buffer-overflow-in-sunrpc-clnt_create.patch
 Patch66: sunrpc-Test-case-for-clnt_create-unix-buffer-overflo.patch
 Patch67: CVE-2022-23218-Buffer-overflow-in-sunrpc-svcunix_cre.patch
 Patch68: getcwd-Set-errno-to-ERANGE-for-size-1-CVE-2021-3999.patch
+Patch69: x86-Fix-__wcsncmp_avx2-in-strcmp-avx2.S-BZ-28755.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1173,6 +1174,9 @@ fi
 %doc hesiod/README.hesiod
 
 %changelog
+* Fri Jan 28 2022 Qingqing Li <liqingqing3@huawei.com> - 2.28-88
+- Fix __cscncmp_avx2 in strcmp-avx2.S [BZ#28755]
+
 * Tue Jan 25 2022 Qingqing Li <liqingqing3@huawei.com> - 2.28-87
 - fix CVE-2021-3999
 
