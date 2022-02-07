@@ -66,7 +66,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	51
+Release: 	52
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -191,6 +191,7 @@ Patch9009: 0008-add-pause_nocancel_2_17.patch
 Patch9010: 0009-add-unwind-with-longjmp.patch
 Patch9011: delete-check-installed-headers-c-and-check-installed.patch
 Patch9012: fix-CVE-2019-1010023.patch
+Patch9013: fix-tst-glibcsyscalls-due-to-kernel-reserved-some-sy.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1279,6 +1280,9 @@ fi
 %endif
 
 %changelog
+* Mon Feb 7 2022 Qingqing Li <liqingqing3@huawei.com> - 2.34-52
+- fix misc/tst-glibcsyscalls failed due to kernel reserve some syscalls
+
 * Mon Feb 7 2022 Qingqing Li <liqingqing3@huawei.com> - 2.34-51
 - Pass the actual number of bytes returned by the kernel.
   Fixes: 33099d72e41c ("linux: Simplify get_nprocs")
