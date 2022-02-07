@@ -66,7 +66,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	50
+Release: 	51
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -176,7 +176,7 @@ Patch88: i386-Remove-broken-CAN_USE_REGISTER_ASM_EBP-bug-2877.patch
 Patch89: x86-use-default-cache-size-if-it-cannot-be-determine.patch
 Patch90: x86-Fix-__wcsncmp_avx2-in-strcmp-avx2.S-BZ-28755.patch
 Patch91: x86-Fix-__wcsncmp_evex-in-strcmp-evex.S-BZ-28755.patch
-Patch92: fix-CVE-2019-1010023.patch
+Patch92: linux-__get_nprocs_sched-do-not-feed-CPU_COUNT_S-wit.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -190,6 +190,7 @@ Patch9008: 0007-add-lowlevellock_2_17_c.patch
 Patch9009: 0008-add-pause_nocancel_2_17.patch
 Patch9010: 0009-add-unwind-with-longjmp.patch
 Patch9011: delete-check-installed-headers-c-and-check-installed.patch
+Patch9012: fix-CVE-2019-1010023.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1278,6 +1279,10 @@ fi
 %endif
 
 %changelog
+* Mon Feb 7 2022 Qingqing Li <liqingqing3@huawei.com> - 2.34-51
+- Pass the actual number of bytes returned by the kernel.
+  Fixes: 33099d72e41c ("linux: Simplify get_nprocs")
+
 * Fri Jan 28 2022 Yang Yanchao <yangyanchao6@huawei.com> - 2.34-50
 - The default debuginfo management mechanism is deleted.
   Instead, Use the default macro of RPM.
