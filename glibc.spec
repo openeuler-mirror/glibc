@@ -66,7 +66,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	53
+Release: 	54
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -1292,6 +1292,9 @@ fi
 %endif
 
 %changelog
+* Tue Feb 8 2022 Yang Yanchao <yangyanchao6@huawei.com> - 2.34-54
+- disable rt/tst-cpuclock2 which often fails in CI.
+
 * Tue Feb 8 2022 Qingqing Li <liqingqing3@huawei.com> - 2.34-53
 - elf: fix glibc 2.34 ABI omission
 - x86: black list more intel cpus for TSX [BZ #27398]
