@@ -66,7 +66,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	52
+Release: 	53
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -177,6 +177,18 @@ Patch89: x86-use-default-cache-size-if-it-cannot-be-determine.patch
 Patch90: x86-Fix-__wcsncmp_avx2-in-strcmp-avx2.S-BZ-28755.patch
 Patch91: x86-Fix-__wcsncmp_evex-in-strcmp-evex.S-BZ-28755.patch
 Patch92: linux-__get_nprocs_sched-do-not-feed-CPU_COUNT_S-wit.patch
+Patch93: elf-Sort-tests-and-modules-names.patch
+Patch94: elf-Add-a-comment-after-trailing-backslashes.patch
+Patch95: elf-Makefile-Reflow-and-sort-most-variable-assignmen.patch
+Patch96: Fix-glibc-2.34-ABI-omission-missing-GLIBC_2.34-in-dy.patch
+Patch97: x86-Black-list-more-Intel-CPUs-for-TSX-BZ-27398.patch
+Patch98: x86-Use-CHECK_FEATURE_PRESENT-to-check-HLE-BZ-27398.patch
+Patch99: support-Add-support_socket_so_timestamp_time64.patch
+Patch100: linux-Fix-ancillary-64-bit-time-timestamp-conversion.patch
+Patch101: Linux-Only-generate-64-bit-timestamps-for-64-bit-tim.patch
+Patch102: socket-Do-not-use-AF_NETLINK-in-__opensock.patch
+Patch103: tst-socket-timestamp-compat.c-Check-__TIMESIZE-BZ-28.patch
+Patch104: linux-Fix-missing-__convert_scm_timestamps-BZ-28860.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1280,6 +1292,12 @@ fi
 %endif
 
 %changelog
+* Tue Feb 8 2022 Qingqing Li <liqingqing3@huawei.com> - 2.34-53
+- elf: fix glibc 2.34 ABI omission
+- x86: black list more intel cpus for TSX [BZ #27398]
+- recvmsg/recvmmsg: fix ancillary 64-bit time timestamp comversion [BZ #28349, BZ #28350]
+- socket: do not use AF_NETLINK in __opensock
+
 * Mon Feb 7 2022 Qingqing Li <liqingqing3@huawei.com> - 2.34-52
 - fix misc/tst-glibcsyscalls failed due to kernel reserve some syscalls
 
