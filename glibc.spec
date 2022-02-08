@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	38
+Release: 	39
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -406,39 +406,6 @@ This package provides memusage, a memory usage profiler, mtrace, a memory leak
 tracer and xtrace, a function call tracer, all of which is not necessory for you.
 
 ##############################################################################
-# glibc debuginfo sub-package
-##############################################################################
-%if 0%{?_enable_debug_packages}
-%define debug_package %{nil}
-%define __debug_install_post %{nil}
-%global __debug_package 1
-
-%undefine _debugsource_packages
-%undefine _debuginfo_subpackages
-%undefine _unique_debug_names
-%undefine _unique_debug_srcs
-
-%package debuginfo
-Summary: Debug information for %{name}
-AutoReqProv: no
-
-%description debuginfo
-This package provides debug information for package %{name}.
-Debug information is useful when developing applications that use this
-package or when debugging this package.
-
-%package debugsource
-Summary: Debug source for %{name}
-AutoReqProv: no
-
-%description debugsource
-This package provides debug sources for package %{name}.
-Debug sources are useful when developing applications that use this
-package or when debugging this package.
-
-%endif # 0%{?_enable_debug_packages}
-
-##############################################################################
 # glibc help sub-package
 ##############################################################################
 %package help
@@ -664,14 +631,6 @@ truncate -s 0 $RPM_BUILD_ROOT/etc/gai.conf
 truncate -s 0 $RPM_BUILD_ROOT%{_libdir}/gconv/gconv-modules.cache
 chmod 644 $RPM_BUILD_ROOT%{_libdir}/gconv/gconv-modules.cache
 
-# Install debug copies of unstripped static libraries
-%if 0%{?_enable_debug_packages}
-mkdir -p $RPM_BUILD_ROOT%{_prefix}/lib/debug%{_libdir}
-cp -a $RPM_BUILD_ROOT%{_libdir}/*.a \
-	$RPM_BUILD_ROOT%{_prefix}/lib/debug%{_libdir}/
-rm -f $RPM_BUILD_ROOT%{_prefix}/lib/debug%{_libdir}/*_p.a
-%endif
-
 # Remove any zoneinfo files; they are maintained by tzdata.
 rm -rf $RPM_BUILD_ROOT%{_prefix}/share/zoneinfo
 
@@ -755,7 +714,6 @@ touch nss-devel.filelist
 touch libnsl.filelist
 touch debugutils.filelist
 touch benchtests.filelist
-touch debuginfo.filelist
 %if %{with compat_2_17}
 touch compat-2.17.filelist
 %endif
@@ -924,53 +882,6 @@ echo "%{_prefix}/libexec/glibc-benchtests/validate_benchout.py*" >> benchtests.f
         echo "%{_libdir}/libpthread-2.17.so" >> compat-2.17.filelist
 %endif
 
-%if 0%{?_enable_debug_packages}
-##############################################################################
-# glibc debuginfo sub-package
-##############################################################################
-touch debuginfo_additional.filelist
-find_debuginfo_args='--strict-build-id -i'
-%ifarch %{x86_arches}
-find_debuginfo_args="$find_debuginfo_args \
-    -l common.filelist \
-    -l debugutils.filelist \
-    -l nscd.filelist \
-    -p '.*/(sbin|libexec)/.*' \
-    -o debuginfo_additional.filelist \
-    -l nss_modules.filelist \
-    -l libnsl.filelist \
-    -l glibc.filelist \
-%if %{with benchtests}
-    -l benchtests.filelist
-%endif
-%if %{with compat_2_17}
-    -l compat-2.17.filelist \
-%endif
-    "
-%endif
-
-/usr/lib/rpm/find-debuginfo.sh $find_debuginfo_args -o debuginfo.filelist
-
-%ifarch %{x86_arches}
-sed -i '\#^$RPM_BUILD_ROOT%{_prefix}/src/debug/#d' debuginfo_additional.filelist
-cat debuginfo_additional.filelist >> debuginfo.filelist
-find $RPM_BUILD_ROOT%{_prefix}/src/debug \
-     \( -type d -printf '%%%%dir ' \) , \
-     -printf '%{_prefix}/src/debug/%%P\n' >> debuginfo.filelist
-
-add_dir=%{_prefix}/lib/debug%{_libdir}
-find $RPM_BUILD_ROOT$add_dir -name "*.a" -printf "$add_dir/%%P\n" >> debuginfo.filelist
-%endif # %{x86_arches}
-
-remove_dir="%{_prefix}/src/debug"
-remove_dir="$remove_dir $(echo %{_prefix}/lib/debug{,/%{_lib},/bin,/sbin})"
-remove_dir="$remove_dir $(echo %{_prefix}/lib/debug%{_prefix}{,/%{_lib},/libexec,/bin,/sbin})"
-
-for d in $(echo $remove_dir | sed 's/ /\n/g'); do
-    sed -i "\|^%%dir $d/\?$|d" debuginfo.filelist
-done
-
-%endif # 0%{?_enable_debug_packages}
 ##############################################################################
 # Run the glibc testsuite
 ##############################################################################
@@ -1321,14 +1232,6 @@ fi
 %files -f benchtests.filelist benchtests
 %endif
 
-%if 0%{?_enable_debug_packages}
-%files -f debuginfo.filelist debuginfo
- 
-%files debugsource
-%endif
-
-
-%files help
 #Doc of glibc package
 %doc README NEWS INSTALL elf/rtld-debugger-interface.txt
 #Doc of common sub-package
@@ -1342,6 +1245,10 @@ fi
 %endif
 
 %changelog
+* Fri Jan 28 2022 Yang Yanchao <yangyanchao6@huawei.com> - 2.34-39
+- refactor the generation mode of the debug package and
+  add correct files to the glibc-debugsource sync form 22.03-LTS
+
 * Tue Jan 4 2022 Yang Yanchao <yangyanchao6@huawei.com> - 2.34-38
 - testsuit: delete check-installed-headers-c and check-installed-headers-cxx
             which are checked in CI to improves the compilation speed.
