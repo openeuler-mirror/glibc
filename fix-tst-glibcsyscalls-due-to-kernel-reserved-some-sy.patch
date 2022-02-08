@@ -1,0 +1,55 @@
+From 34d9611a38eceba7adf7270d0318629b4a325f56 Mon Sep 17 00:00:00 2001
+From: Qingqing Li <liqingqing3@huawei.com>
+Date: Mon, 7 Feb 2022 20:37:25 +0800
+Subject: [PATCH] fix tst-glibcsyscalls due to kernel reserved some syscalls
+kernel has resolved kabi_reserved441 ~ kabi_reserved456, and this will cause
+misc/tst-glibcsyscalls failed, errors are like below:
+
+[ 1241s] =====FAIL: misc/tst-glibcsyscalls.out=====
+[ 1241s] info: glibc syscall 'mount_setattr' not known to kernel
+[ 1241s] info: glibc syscall 'epoll_pwait2' not known to kernel
+[ 1241s] info: glibc syscall 'landlock_add_rule' not known to kernel
+[ 1241s] info: glibc syscall 'landlock_restrict_self' not known to kernel
+[ 1241s] info: glibc syscall 'landlock_create_ruleset' not known to kernel
+[ 1241s] error: kernel syscall 'kabi_reserved454' (454) not known to glibc
+[ 1241s] error: kernel syscall 'kabi_reserved442' (442) not known to glibc
+[ 1241s] error: kernel syscall 'kabi_reserved448' (448) not known to glibc
+[ 1241s] error: kernel syscall 'kabi_reserved447' (447) not known to glibc
+[ 1241s] error: kernel syscall 'kabi_reserved450' (450) not known to glibc
+[ 1241s] error: kernel syscall 'kabi_reserved456' (456) not known to glibc
+[ 1241s] error: kernel syscall 'kabi_reserved441' (441) not known to glibc
+[ 1241s] error: kernel syscall 'kabi_reserved443' (443) not known to glibc
+[ 1241s] error: kernel syscall 'kabi_reserved449' (449) not known to glibc
+[ 1241s] error: kernel syscall 'kabi_reserved455' (455) not known to glibc
+[ 1241s] error: kernel syscall 'kabi_reserved444' (444) not known to glibc
+[ 1241s] error: kernel syscall 'kabi_reserved452' (452) not known to glibc
+[ 1241s] error: kernel syscall 'kabi_reserved453' (453) not known to glibc
+[ 1241s] error: kernel syscall 'kabi_reserved445' (445) not known to glibc
+[ 1241s] error: kernel syscall 'kabi_reserved451' (451) not known to glibc
+[ 1241s] error: kernel syscall 'kabi_reserved446' (446) not known to glibc
+
+---
+ sysdeps/unix/sysv/linux/tst-glibcsyscalls.py | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/sysdeps/unix/sysv/linux/tst-glibcsyscalls.py b/sysdeps/unix/sysv/linux/tst-glibcsyscalls.py
+index 4a00bbab..d2d74c9c 100644
+--- a/sysdeps/unix/sysv/linux/tst-glibcsyscalls.py
++++ b/sysdeps/unix/sysv/linux/tst-glibcsyscalls.py
+@@ -67,9 +67,10 @@ def main():
+     # superset of the kernel system call set.
+     if glibc_names.kernel_version >= kernel_version:
+         for name in kernel_constants.keys() - glibc_constants.keys():
+-            print("error: kernel syscall {!r} ({}) not known to glibc"
+-                  .format(name, kernel_constants[name]))
+-            errors = 1
++            if 'kabi_reserved' not in name: 
++                print("error: kernel syscall {!r} ({}) not known to glibc"
++                      .format(name, kernel_constants[name]))
++                errors = 1
+     else:
+         for name in kernel_constants.keys() - glibc_constants.keys():
+             print("warning: kernel syscall {!r} ({}) not known to glibc"
+-- 
+2.27.0
+
