@@ -66,7 +66,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	54
+Release: 	55
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -189,6 +189,7 @@ Patch101: Linux-Only-generate-64-bit-timestamps-for-64-bit-tim.patch
 Patch102: socket-Do-not-use-AF_NETLINK-in-__opensock.patch
 Patch103: tst-socket-timestamp-compat.c-Check-__TIMESIZE-BZ-28.patch
 Patch104: linux-Fix-missing-__convert_scm_timestamps-BZ-28860.patch
+Patch105: linux-fix-accuracy-of-get_nprocs-and-get_nprocs_conf.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1292,6 +1293,9 @@ fi
 %endif
 
 %changelog
+* Wed Feb 9 2022 Qingqing Li <liqingqing3@huawei.com> - 2.34-55
+- linux: fix accurarcy of get_nprocs and get_nprocs_conf [BZ #28865]
+
 * Tue Feb 8 2022 Yang Yanchao <yangyanchao6@huawei.com> - 2.34-54
 - disable rt/tst-cpuclock2 which often fails in CI.
 
