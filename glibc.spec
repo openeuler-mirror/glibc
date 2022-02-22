@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.35
-Release: 	2
+Release: 	3
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -93,6 +93,7 @@ Source8:   testsuite_whitelist.%{_target_cpu}
 #Patch9008: 0007-add-lowlevellock_2_17_c.patch
 #Patch9009: 0008-add-pause_nocancel_2_17.patch
 #Patch9010: 0009-add-unwind-with-longjmp.patch
+Patch9011: use-region-to-instead-of-country-for-extract-timezon.patch
 
 Obsoletes: nscd < 2.35
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
@@ -1106,6 +1107,9 @@ fi
 %endif
 
 %changelog
+* Tue Feb 22 2022 Qingqing Li <liqingqing3@huawei.com> - 2.35-3
+- tzselect: use region to select timezone
+
 * Thu Feb 10 2022 jiangheng12 <jiangheng12@huawei.com> - 2.35-2
 - remove nscd; The functionality nscd currently provides can be
   achieved by using systemd-resolved for DNS caching and the sssd
