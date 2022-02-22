@@ -1,0 +1,152 @@
+From 1c20cf491471a4a70f103a9d052fcca993eaa341 Mon Sep 17 00:00:00 2001
+From: Qingqing Li <liqingqing3@huawei.com>
+Date: Tue, 22 Feb 2022 15:00:55 +0800
+Subject: [PATCH] use region to instead of country for extract timezone
+ selection.
+Co-authored-by: liusirui <liusirui@huawei.com>
+---
+ timezone/tzselect.ksh | 97 +++++++++----------------------------------
+ 1 file changed, 20 insertions(+), 77 deletions(-)
+
+diff --git a/timezone/tzselect.ksh b/timezone/tzselect.ksh
+index 18fce27e..414bfa2a 100755
+--- a/timezone/tzselect.ksh
++++ b/timezone/tzselect.ksh
+@@ -51,7 +51,7 @@ say() {
+ 
+ coord=
+ location_limit=10
+-zonetabtype=zone1970
++zonetabtype=zone
+ 
+ usage="Usage: tzselect [--version] [--help] [-c COORD] [-n LIMIT]
+ Select a timezone interactively.
+@@ -398,94 +398,38 @@ while
+ 		    '`
+ 		    ;;
+ 		*)
+-		# Get list of names of countries in the continent or ocean.
+-		countries=`$AWK \
++		# Get list of regions in the continent or ocean.
++		timezones=`$AWK \
+ 			-v continent="$continent" \
+ 			-v TZ_COUNTRY_TABLE="$TZ_COUNTRY_TABLE" \
+ 		'
+ 			BEGIN { FS = "\t" }
+ 			/^#/ { next }
+ 			$3 ~ ("^" continent "/") {
+-			    ncc = split($1, cc, /,/)
++			    ncc = split($3, cc, /,/)
+ 			    for (i = 1; i <= ncc; i++)
+ 				if (!cc_seen[cc[i]]++) cc_list[++ccs] = cc[i]
+ 			}
+ 			END {
+-				while (getline <TZ_COUNTRY_TABLE) {
+-					if ($0 !~ /^#/) cc_name[$1] = $2
+-				}
+ 				for (i = 1; i <= ccs; i++) {
+-					country = cc_list[i]
+-					if (cc_name[country]) {
+-					  country = cc_name[country]
+-					}
+-					print country
++					print cc_list[i]
+ 				}
+ 			}
+ 		' <"$TZ_ZONE_TABLE" | sort -f`
+ 
+-
+-		# If there's more than one country, ask the user which one.
+-		case $countries in
+-		*"$newline"*)
+-			echo >&2 'Please select a country' \
+-				'whose clocks agree with yours.'
+-			doselect $countries
+-			country=$select_result;;
+-		*)
+-			country=$countries
+-		esac
+-
+-
+-		# Get list of timezones in the country.
+-		regions=`$AWK \
+-			-v country="$country" \
+-			-v TZ_COUNTRY_TABLE="$TZ_COUNTRY_TABLE" \
+-		'
+-			BEGIN {
+-				FS = "\t"
+-				cc = country
+-				while (getline <TZ_COUNTRY_TABLE) {
+-					if ($0 !~ /^#/  &&  country == $2) {
+-						cc = $1
+-						break
+-					}
+-				}
+-			}
+-			/^#/ { next }
+-			$1 ~ cc { print $4 }
+-		' <"$TZ_ZONE_TABLE"`
+-
+-
+-		# If there's more than one region, ask the user which one.
+-		case $regions in
+-		*"$newline"*)
+-			echo >&2 'Please select one of the following timezones.'
+-			doselect $regions
+-			region=$select_result;;
+-		*)
+-			region=$regions
+-		esac
++	        regions=[]
++        	index=0
++	        for item in $timezones; do
++            	    regions[$index]=`echo $item | awk  -F '/'  '{print $2}'`
++            	    index=$(($index+1))
++        	done
++        	echo >&2 'Please select a timezone' \
++            	    'whose clocks agree with yours.'
++        	doselect ${regions[@]}
++        	region=$select_result
+ 
+ 		# Determine TZ from country and region.
+-		TZ=`$AWK \
+-			-v country="$country" \
+-			-v region="$region" \
+-			-v TZ_COUNTRY_TABLE="$TZ_COUNTRY_TABLE" \
+-		'
+-			BEGIN {
+-				FS = "\t"
+-				cc = country
+-				while (getline <TZ_COUNTRY_TABLE) {
+-					if ($0 !~ /^#/  &&  country == $2) {
+-						cc = $1
+-						break
+-					}
+-				}
+-			}
+-			/^#/ { next }
+-			$1 ~ cc && $4 == region { print $3 }
+-		' <"$TZ_ZONE_TABLE"`
++		TZ=$continent/$region
+ 		esac
+ 
+ 		# Make sure the corresponding zoneinfo file exists.
+@@ -523,11 +467,10 @@ Universal Time is now:	$UTdate."
+ 	echo >&2 ""
+ 	echo >&2 "The following information has been given:"
+ 	echo >&2 ""
+-	case $country%$region%$coord in
+-	?*%?*%)	say >&2 "	$country$newline	$region";;
+-	?*%%)	say >&2 "	$country";;
+-	%?*%?*) say >&2 "	coord $coord$newline	$region";;
+-	%%?*)	say >&2 "	coord $coord";;
++        case $region%$coord in
++        ?*%)    say >&2 "       $region";;
++        ?*%?*)  say >&2 "       coord $coord$newline    $region";;
++        %?*)    say >&2 "       coord $coord";;	
+ 	*)	say >&2 "	TZ='$TZ'"
+ 	esac
+ 	say >&2 ""
+-- 
+2.27.0
+
