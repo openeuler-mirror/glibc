@@ -66,7 +66,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	57
+Release: 	58
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -80,7 +80,8 @@ Source6:   LicenseList
 Source7:   replace_same_file_to_hard_link.py
 
 %if %{with testsuite}
-Source8:   testsuite_whitelist.%{_target_cpu}
+Source8:   testsuite_whitelist.aarch64
+Source9:   testsuite_whitelist.x86_64
 %endif
 
 Patch1: glibc-c-utf8-locale.patch
@@ -928,7 +929,7 @@ fi
 grep -v ^PASS: tests.sum | grep -v ^UNSUPPORTED > rpmbuild.tests.sum.not-passing || true
 
 # Delete the testsuite from the whitelist
-cp %{SOURCE8} testsuite_whitelist
+cp $RPM_SOURCE_DIR/testsuite_whitelist.%{_target_cpu} testsuite_whitelist
 omit_testsuite testsuite_whitelist
 rm -rf testsuite_whitelist
 
@@ -1218,6 +1219,10 @@ fi
 %endif
 
 %changelog
+* Wed Feb 23 2022 Yang Yanchao<yangyanchao6@huawei.com> - 2.34-58
+- The release of glibc.src.rpm in OpenEuler is not based on the architecture.
+  Developers only have glibc.src.rpm in the ARM, so add all testsuite_whitelist in glibc.src.rpm.
+
 * Tue Feb 22 2022 Qingqing Li <liqingqing3@huawei.com> - 2.34-57
 - tzselect: use region to instead of country for extract timezone selection.
 
