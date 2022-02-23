@@ -66,7 +66,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	58
+Release: 	59
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -205,6 +205,7 @@ Patch9011: delete-check-installed-headers-c-and-check-installed.patch
 Patch9012: fix-CVE-2019-1010023.patch
 Patch9013: fix-tst-glibcsyscalls-due-to-kernel-reserved-some-sy.patch
 Patch9014: use-region-to-instead-of-country-for-extract-timezon.patch
+Patch9015: strcmp-delete-align-for-loop_aligned.patch
 
 Obsoletes: nscd < 2.35
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
@@ -1219,6 +1220,9 @@ fi
 %endif
 
 %changelog
+* Wed Feb 23 2022 Yang Yanchao<yangyanchao6@huawei.com> - 2.34-59
+- strcmp: delete align for loop_aligned
+
 * Wed Feb 23 2022 Yang Yanchao<yangyanchao6@huawei.com> - 2.34-58
 - The release of glibc.src.rpm in OpenEuler is not based on the architecture.
   Developers only have glibc.src.rpm in the ARM, so add all testsuite_whitelist in glibc.src.rpm.
