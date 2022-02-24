@@ -66,7 +66,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	59
+Release: 	60
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -949,7 +949,9 @@ if test -s rpmbuild.tests.sum.not-passing ; then
       fi
     done
   done <rpmbuild.tests.sum.not-passing
+%if 0%{?glibc_abort_after_test_fail}
   exit 1
+%endif
 fi
 
 # Unconditonally dump differences in the system call list.
@@ -1220,6 +1222,9 @@ fi
 %endif
 
 %changelog
+* Thu Feb 24 2022 Yang Yanchao<yangyanchao6@huawei.com> - 2.34-60
+- Only in the CI environment, the build is interrupted due to test case failure.
+
 * Wed Feb 23 2022 Yang Yanchao<yangyanchao6@huawei.com> - 2.34-59
 - strcmp: delete align for loop_aligned
 
