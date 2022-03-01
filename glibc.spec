@@ -66,7 +66,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	60
+Release: 	61
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -189,6 +189,15 @@ Patch102: socket-Do-not-use-AF_NETLINK-in-__opensock.patch
 Patch103: tst-socket-timestamp-compat.c-Check-__TIMESIZE-BZ-28.patch
 Patch104: linux-Fix-missing-__convert_scm_timestamps-BZ-28860.patch
 Patch105: linux-fix-accuracy-of-get_nprocs-and-get_nprocs_conf.patch
+Patch106: rseq-nptl-Add-thread_pointer.h-for-defining-__thread_poin.patch
+Patch107: rseq-nptl-Introduce-tcb-access.h-for-THREAD_-accessors.patch
+Patch108: rseq-nptl-Introduce-THREAD_GETMEM_VOLATILE.patch
+Patch109: rseq-nptl-Add-rseq-registration.patch
+Patch110: rseq-Linux-Use-rseq-to-accelerate-sched_getcpu.patch
+Patch111: rseq-nptl-Add-glibc.pthread.rseq-tunable-to-control-rseq-.patch
+Patch112: rseq-nptl-Add-public-rseq-symbols-and-sys-rseq.h.patch
+Patch113: rseq-nptl-rseq-failure-after-registration-on-main-thread-.patch
+Patch114: rseq-Linux-Use-ptrdiff_t-for-__rseq_offset.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1222,6 +1231,9 @@ fi
 %endif
 
 %changelog
+* Fri Feb 25 2022 qinyu<qinyu16@huawei.com> - 2.34-61
+- add rseq support
+
 * Thu Feb 24 2022 Yang Yanchao<yangyanchao6@huawei.com> - 2.34-60
 - Only in the CI environment, the build is interrupted due to test case failure.
 
