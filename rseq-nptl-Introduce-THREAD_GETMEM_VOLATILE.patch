@@ -1,0 +1,56 @@
+From 6a8628eca8c8b22ccfd1422f2eb27bb665cfd660 Mon Sep 17 00:00:00 2001
+From: Florian Weimer <fweimer@redhat.com>
+Date: Thu, 9 Dec 2021 09:49:32 +0100
+Subject: [PATCH 3/9] nptl: Introduce THREAD_GETMEM_VOLATILE
+
+This will be needed for rseq TCB access.
+
+Reviewed-by: Szabolcs Nagy <szabolcs.nagy@arm.com>
+---
+ sysdeps/i386/nptl/tcb-access.h   | 2 ++
+ sysdeps/nptl/tcb-access.h        | 2 ++
+ sysdeps/x86_64/nptl/tcb-access.h | 2 ++
+ 3 files changed, 6 insertions(+)
+
+diff --git a/sysdeps/i386/nptl/tcb-access.h b/sysdeps/i386/nptl/tcb-access.h
+index 6c6d561e..5ddd8322 100644
+--- a/sysdeps/i386/nptl/tcb-access.h
++++ b/sysdeps/i386/nptl/tcb-access.h
+@@ -41,6 +41,8 @@
+        }								      \
+      __value; })
+ 
++/* THREAD_GETMEM already forces a read.  */
++#define THREAD_GETMEM_VOLATILE(descr, member) THREAD_GETMEM (descr, member)
+ 
+ /* Same as THREAD_GETMEM, but the member offset can be non-constant.  */
+ #define THREAD_GETMEM_NC(descr, member, idx) \
+diff --git a/sysdeps/nptl/tcb-access.h b/sysdeps/nptl/tcb-access.h
+index b4137b8a..bbe20b72 100644
+--- a/sysdeps/nptl/tcb-access.h
++++ b/sysdeps/nptl/tcb-access.h
+@@ -22,6 +22,8 @@
+ 
+ #define THREAD_GETMEM(descr, member) \
+   descr->member
++#define THREAD_GETMEM_VOLATILE(descr, member) \
++  (*(volatile __typeof (descr->member) *)&descr->member)
+ #define THREAD_GETMEM_NC(descr, member, idx) \
+   descr->member[idx]
+ #define THREAD_SETMEM(descr, member, value) \
+diff --git a/sysdeps/x86_64/nptl/tcb-access.h b/sysdeps/x86_64/nptl/tcb-access.h
+index 18848a72..e4d2d07a 100644
+--- a/sysdeps/x86_64/nptl/tcb-access.h
++++ b/sysdeps/x86_64/nptl/tcb-access.h
+@@ -39,6 +39,8 @@
+        }								      \
+      __value; })
+ 
++/* THREAD_GETMEM already forces a read.  */
++#define THREAD_GETMEM_VOLATILE(descr, member) THREAD_GETMEM (descr, member)
+ 
+ /* Same as THREAD_GETMEM, but the member offset can be non-constant.  */
+ # define THREAD_GETMEM_NC(descr, member, idx) \
+-- 
+2.23.0
+
