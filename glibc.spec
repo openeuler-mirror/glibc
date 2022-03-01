@@ -66,7 +66,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	62
+Release: 	63
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -80,8 +80,7 @@ Source6:   LicenseList
 Source7:   replace_same_file_to_hard_link.py
 
 %if %{with testsuite}
-Source8:   testsuite_whitelist.aarch64
-Source9:   testsuite_whitelist.x86_64
+Source8:   testsuite_whitelist
 %endif
 
 Patch1: glibc-c-utf8-locale.patch
@@ -966,14 +965,11 @@ set -e
 %if %{with testsuite}
 
 omit_testsuite() {
-  whitelist=$1
-  sed -i '/^#/d' $whitelist
-  sed -i '/^[\s]*$/d' $whitelist
   while read testsuite; do
     testsuite_escape=$(echo "$testsuite" | \
                        sed 's/\([.+?^$\/\\|()\[]\|\]\)/\\\0/g')
     sed -i "/${testsuite_escape}/d" rpmbuild.tests.sum.not-passing
-  done < "$whitelist"
+  done
 }
 
 # Increase timeouts
@@ -996,9 +992,10 @@ fi
 grep -v ^PASS: tests.sum | grep -v ^UNSUPPORTED > rpmbuild.tests.sum.not-passing || true
 
 # Delete the testsuite from the whitelist
-cp $RPM_SOURCE_DIR/testsuite_whitelist.%{_target_cpu} testsuite_whitelist
-omit_testsuite testsuite_whitelist
-rm -rf testsuite_whitelist
+cat %{SOURCE8} | \
+	grep -v "^$\|^#" | \
+	awk -F':' '{if($2 == "" || $2 ~ /'%{_target_cpu}'/ ) {print $1}}' |\
+	omit_testsuite
 
 set +x
 if test -s rpmbuild.tests.sum.not-passing ; then
@@ -1288,6 +1285,9 @@ fi
 %endif
 
 %changelog
+* Tue Mar 1 2022 Yang Yanchao<yangyanchao6@huawei.com> - 2.34-63
+- Merge testsuite_whitelist.aarch64 and testsuite_whitelist.x86_64 to testsuite_whitelist.
+
 * Tue Mar 1 2022 Qingqing Li <liqingqing3@huawei.com> - 2.34-62
 - remove shared library's RPATH/RUNPATH for security
 
