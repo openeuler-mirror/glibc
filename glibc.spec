@@ -66,7 +66,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.34
-Release: 	61
+Release: 	62
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -902,6 +902,63 @@ echo "%{_prefix}/libexec/glibc-benchtests/validate_benchout.py*" >> benchtests.f
         echo "%{_libdir}/libpthread-2.17.so" >> compat-2.17.filelist
 %endif
 
+reliantlib=""
+
+function findReliantLib()
+{
+        local library=$1
+        reliantlib=$(readelf -d $library | grep "(NEEDED)" | awk -F "Shared library" '{print $2}')$reliantlib
+}
+
+# remove gconv rpath/runpath
+function removeLoadPath()
+{
+        local file=$1
+        local rpathInfo=$(chrpath -l $file | grep "RPATH=")
+        local runpathInfo=$(chrpath -l $file | grep "RUNPATH=")
+
+        local currPath=""
+        if [ x"$rpathInfo" != x"" ]; then
+                currPath=$(echo $rpathInfo | awk -F "RPATH=" '{print $2}')
+        fi
+
+        if [ x"$runpathInfo" != x"" ]; then
+                currPath=$(echo $runpathInfo | awk -F "RUNPATH=" '{print $2}')
+        fi
+
+        if [ x"$currPath" == x"\$ORIGIN" ]; then
+                chrpath -d $file
+
+                findReliantLib $file
+        fi
+}
+
+set +e
+
+# find and remove RPATH/RUNPATH
+for file in $(find $RPM_BUILD_ROOT%{_libdir}/gconv/ -name "*.so" -exec file {} ';' | grep "\<ELF\>" | awk -F ':' '{print $1}')
+do
+        removeLoadPath $file
+done
+
+function createSoftLink()
+{
+        # pick up the dynamic libraries and create softlink for them
+        local tmplib=$(echo $reliantlib | sed 's/://g' | sed 's/ //g' | sed 's/\[//g' | sed 's/]/\n/g' | sort | uniq)
+
+        for temp in $tmplib
+        do
+                if [ -f "$RPM_BUILD_ROOT%{_libdir}/gconv/$temp" ]; then
+                        ln -sf %{_libdir}/gconv/$temp $RPM_BUILD_ROOT%{_libdir}/$temp
+                        echo %{_libdir}/$temp >> glibc.filelist
+                fi
+        done
+}
+
+# create soft link for the reliant libraries
+createSoftLink
+set -e
+
 ##############################################################################
 # Run the glibc testsuite
 ##############################################################################
@@ -1231,6 +1288,9 @@ fi
 %endif
 
 %changelog
+* Tue Mar 1 2022 Qingqing Li <liqingqing3@huawei.com> - 2.34-62
+- remove shared library's RPATH/RUNPATH for security
+
 * Fri Feb 25 2022 qinyu<qinyu16@huawei.com> - 2.34-61
 - add rseq support
 
