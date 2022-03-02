@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.35
-Release: 	4
+Release: 	5
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -101,7 +101,7 @@ Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 BuildRequires: audit-libs-devel >= 1.1.3, sed >= 3.95, libcap-devel, gettext
 BuildRequires: procps-ng, util-linux, gawk, systemtap-sdt-devel, systemd, python3
 BuildRequires: make >= 4.0, bison >= 2.7, binutils >= 2.30-17, gcc >= 7.2.1-6
-BuildRequires: m4 gcc_secure
+BuildRequires: m4, gcc_secure, chrpath
 
 %if %{without bootstrap}
 BuildRequires: gd-devel libpng-devel zlib-devel
@@ -1164,6 +1164,9 @@ fi
 %endif
 
 %changelog
+* Wed Mar 2 2022 Qingqing Li <liqingqing3@huawei.com> - 2.35-5
+- add chrpath to build requires for removing RPATH/RUNPATH
+
 * Tue Mar 1 2022 Qingqing Li <liqingqing3@huawei.com> - 2.35-4
 - remove shared library's RPATH/RUNPATH for security
 
