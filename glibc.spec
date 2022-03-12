@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.35
-Release: 	5
+Release: 	6
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -94,6 +94,7 @@ Source8:   testsuite_whitelist.%{_target_cpu}
 #Patch9009: 0008-add-pause_nocancel_2_17.patch
 #Patch9010: 0009-add-unwind-with-longjmp.patch
 Patch9011: use-region-to-instead-of-country-for-extract-timezon.patch
+Patch9012: malloc-use-__get_nprocs-replace-__get_nprocs_sched.patch
 
 Obsoletes: nscd < 2.35
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
@@ -1164,6 +1165,9 @@ fi
 %endif
 
 %changelog
+* Sat Mar 12 2022 Qingqing Li <liqingqing3@huawei.com> - 2.35-6
+- malloc: use __get_nprocs replace __get_nprocs_sched.
+
 * Wed Mar 2 2022 Qingqing Li <liqingqing3@huawei.com> - 2.35-5
 - add chrpath to build requires for removing RPATH/RUNPATH
 
