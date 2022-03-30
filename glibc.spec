@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.35
-Release: 	7
+Release: 	8
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -102,7 +102,7 @@ Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 BuildRequires: audit-libs-devel >= 1.1.3, sed >= 3.95, libcap-devel, gettext
 BuildRequires: procps-ng, util-linux, gawk, systemtap-sdt-devel, systemd, python3
 BuildRequires: make >= 4.0, bison >= 2.7, binutils >= 2.30-17, gcc >= 7.2.1-6
-BuildRequires: m4, gcc_secure, chrpath
+BuildRequires: m4, chrpath
 
 %if %{without bootstrap}
 BuildRequires: gd-devel libpng-devel zlib-devel
@@ -366,8 +366,9 @@ touch locale/programs/*-kw.h
 ##############################################################################
 %build
 
-BuildFlags="-O2 -g"
-BuildFlags="$BuildFlags -DNDEBUG"
+BuildFlags="-O2 -g -DNDEBUG -fPIC -fPIE -fstack-protector-strong"
+LinkFlags="-pie -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack"
+
 reference=" \
         "-Wp,-D_GLIBCXX_ASSERTIONS" \
         "-fasynchronous-unwind-tables" \
@@ -406,11 +407,12 @@ builddir=build-%{target}
 rm -rf $builddir
 mkdir $builddir
 pushd $builddir
-../configure CC="%GCC" CXX="%GXX" CFLAGS="$BuildFlags" \
+../configure CC="%GCC" CXX="%GXX" CFLAGS="$BuildFlags" LDFLAGS="$LinkFlags" \
 	--prefix=%{_prefix} \
 	--with-headers=%{_prefix}/include $EnableKernel \
 	--with-nonshared-cflags=-Wp,-D_FORTIFY_SOURCE=2 \
 	--enable-bind-now \
+	--enable-shared \
 	--build=%{target} \
 	--enable-stack-protector=strong \
 %ifarch %{pie_arches}
@@ -1166,6 +1168,9 @@ fi
 %endif
 
 %changelog
+* Wed Mar 30 2022 Yang Yanchao <yangyanchao@huawei.com> - 2.35-8
+- delete the BuildRequires:gcc_secure.
+
 * Tue Mar 29 2022 Yang Yanchao <yangyanchao@huawei.com> - 2.35-7
 - mv libc.info.gz* to the package glibc-help
 
