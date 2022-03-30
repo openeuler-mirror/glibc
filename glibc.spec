@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.35
-Release: 	6
+Release: 	7
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -231,7 +231,6 @@ it from the "local-archive".
 Summary:  The devel for %{name}
 Requires: %{name} = %{version}-%{release}
 Requires: libgcc%{_isa}
-Requires(pre): info
 Requires(pre): kernel-headers
 Requires(pre): coreutils
 Requires: kernel-headers >= 3.2
@@ -334,7 +333,7 @@ Buildarch: noarch
 Requires: man info
 
 %description help
-This package provides al doc and man files of %{name}
+This package provides all doc, man and info files of %{name}
 
 ##############################################################################
 # glibc compat-2.17 sub-package
@@ -621,6 +620,7 @@ touch nss-devel.filelist
 touch libnsl.filelist
 touch debugutils.filelist
 touch benchtests.filelist
+touch help.filelist
 %if %{with compat_2_17}
 touch compat-2.17.filelist
 %endif
@@ -708,7 +708,7 @@ grep '%{_prefix}/share' master.filelist \
 # glibc "devel" sub-package
 ###############################################################################
 %if %{with docs}
-grep '%{_infodir}' master.filelist | grep -v '%{_infodir}/dir' > devel.filelist
+grep '%{_infodir}' master.filelist | grep -v '%{_infodir}/dir' > help.filelist
 %endif
 
 grep '%{_libdir}/lib.*\.a' master.filelist \
@@ -1152,6 +1152,7 @@ fi
 %files -f benchtests.filelist benchtests
 %endif
 
+%files -f help.filelist help
 #Doc of glibc package
 %doc README NEWS INSTALL elf/rtld-debugger-interface.txt
 #Doc of common sub-package
@@ -1165,6 +1166,9 @@ fi
 %endif
 
 %changelog
+* Tue Mar 29 2022 Yang Yanchao <yangyanchao@huawei.com> - 2.35-7
+- mv libc.info.gz* to the package glibc-help
+
 * Sat Mar 12 2022 Qingqing Li <liqingqing3@huawei.com> - 2.35-6
 - malloc: use __get_nprocs replace __get_nprocs_sched.
 
