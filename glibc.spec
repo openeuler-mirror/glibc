@@ -65,12 +65,13 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.35
-Release: 	8
+Release: 	9
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
 
 Source0:   https://ftp.gnu.org/gnu/glibc/%{name}-%{version}.tar.xz
+Source1:   nscd.conf
 Source2:   nsswitch.conf
 Source3:   bench.mk
 Source4:   glibc-bench-compare
@@ -81,6 +82,8 @@ Source7:   replace_same_file_to_hard_link.py
 %if %{with testsuite}
 Source8:   testsuite_whitelist.%{_target_cpu}
 %endif
+
+Patch0: glibc-1070416.patch
 
 #Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 #Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -96,7 +99,6 @@ Source8:   testsuite_whitelist.%{_target_cpu}
 Patch9011: use-region-to-instead-of-country-for-extract-timezon.patch
 Patch9012: malloc-use-__get_nprocs-replace-__get_nprocs_sched.patch
 
-Obsoletes: nscd < 2.35
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
 BuildRequires: audit-libs-devel >= 1.1.3, sed >= 3.95, libcap-devel, gettext
@@ -253,6 +255,24 @@ Obsoletes: %{name}-headers = 2.28
 The glibc-devel package contains the object files necessary for developing
 programs which use the standard C libraries. Besides, it contains the
 headers. Thus, it is necessory to install glibc-devel if you ned develop programs.
+
+##############################################################################
+# glibc "nscd" sub-package
+##############################################################################
+%package -n nscd
+Summary:  Name caching service daemon.
+Requires: %{name} = %{version}-%{release}
+%if %{without bootstrap}
+Requires: libselinux >= 1.17.10-1
+%endif
+Requires: audit-libs >= 1.1.3
+Requires(pre): shadow-utils, coreutils
+Requires: systemd
+Requires(postun): shadow-utils
+
+%description -n nscd
+The nscd package is able to daemon caches name service lookups and improve
+the performance with LDAP.
 
 ##############################################################################
 # nss modules sub-package
@@ -440,8 +460,7 @@ pushd $builddir
 %if 0%{rpm_version_ge_412}
 	--disable-crypt \
 %endif
-        --disable-build-nscd \
-        --disable-nscd ||
+	||
 	{ cat config.log; false; }
 
 make %{?_smp_mflags} -O -r %{glibc_make_flags}
@@ -533,11 +552,20 @@ install -p -m 644 %{SOURCE2} $RPM_BUILD_ROOT/etc/nsswitch.conf
 install -p -m 755  build-%{target}/nptl/libpthread-2.17.so $RPM_BUILD_ROOT%{_libdir}
 %endif
 
+# This is for ncsd - in glibc 2.2
+install -m 644 nscd/nscd.conf $RPM_BUILD_ROOT/etc
+mkdir -p $RPM_BUILD_ROOT%{_tmpfilesdir}
+install -m 644 %{SOURCE1} %{buildroot}%{_tmpfilesdir}
+mkdir -p $RPM_BUILD_ROOT/lib/systemd/system
+install -m 644 nscd/nscd.service nscd/nscd.socket $RPM_BUILD_ROOT/lib/systemd/system
+
 # Include ld.so.conf
 echo 'include ld.so.conf.d/*.conf' > $RPM_BUILD_ROOT/etc/ld.so.conf
 truncate -s 0 $RPM_BUILD_ROOT/etc/ld.so.cache
 chmod 644 $RPM_BUILD_ROOT/etc/ld.so.conf
 mkdir -p $RPM_BUILD_ROOT/etc/ld.so.conf.d
+mkdir -p $RPM_BUILD_ROOT/etc/sysconfig
+truncate -s 0 $RPM_BUILD_ROOT/etc/sysconfig/nscd
 truncate -s 0 $RPM_BUILD_ROOT/etc/gai.conf
 
 # Include %{_libdir}/gconv/gconv-modules.cache
@@ -589,6 +617,10 @@ popd
 rm -f $RPM_BUILD_ROOT%{_infodir}/dir
 %endif
 
+mkdir -p $RPM_BUILD_ROOT/var/{db,run}/nscd
+touch $RPM_BUILD_ROOT/var/{db,run}/nscd/{passwd,group,hosts,services}
+touch $RPM_BUILD_ROOT/var/run/nscd/{socket,nscd.pid}
+
 mkdir -p $RPM_BUILD_ROOT%{_libdir}
 mv -f $RPM_BUILD_ROOT/%{_lib}/lib{pcprofile,memusage}.so \
 	$RPM_BUILD_ROOT%{_libdir}
@@ -617,6 +649,7 @@ touch master.filelist
 touch glibc.filelist
 touch common.filelist
 touch devel.filelist
+touch nscd.filelist
 touch nss_modules.filelist
 touch nss-devel.filelist
 touch libnsl.filelist
@@ -671,6 +704,7 @@ cat master.filelist \
     -e '%{_libdir}/lib.*\.a' \
         -e '%{_libdir}/.*\.o' \
     -e '%{_libdir}/lib.*\.so' \
+    -e 'nscd' \
     -e '%{_prefix}/bin' \
     -e '%{_prefix}/lib/locale' \
     -e '%{_prefix}/sbin/[^i]' \
@@ -697,7 +731,8 @@ echo  '%{_libdir}/libpcprofile.so' >> glibc.filelist
 ##############################################################################
 grep '%{_prefix}/bin' master.filelist > common.filelist
 grep '%{_prefix}/sbin' master.filelist \
-       | grep -v '%{_prefix}/sbin/iconvconfig'  >> common.filelist
+       | grep -v '%{_prefix}/sbin/iconvconfig' \
+	| grep -v 'nscd' >> common.filelist
 
 grep '%{_prefix}/share' master.filelist \
 	| grep -v \
@@ -728,6 +763,11 @@ grep '%{_libdir}/lib.*\.a' < master.filelist \
   | grep -v '/lib\(\(c\|pthread\|nldbl\|mvec\)_nonshared\|g\|ieee\|mcheck\)\.a$' \
   >> devel.filelist
 
+
+##############################################################################
+# glibc "nscd" sub-package
+##############################################################################
+echo '%{_prefix}/sbin/nscd' > nscd.filelist
 
 ##############################################################################
 # nss modules sub-package
@@ -1091,6 +1131,24 @@ if [ -L %{_prefix}/include/scsi ] ; then
   rm -f %{_prefix}/include/scsi
 fi
 
+%pre -n nscd
+getent group nscd >/dev/null || /usr/sbin/groupadd -g 28 -r nscd
+getent passwd nscd >/dev/null ||
+  /usr/sbin/useradd -M -o -r -d / -s /sbin/nologin \
+		    -c "NSCD Daemon" -u 28 -g nscd nscd
+
+%post -n nscd
+%systemd_post nscd.service
+
+%preun -n nscd
+%systemd_preun nscd.service
+
+%postun -n nscd
+if test $1 = 0; then
+  /usr/sbin/userdel nscd > /dev/null 2>&1 || :
+fi
+%systemd_postun_with_restart nscd.service
+
 ##############################################################################
 # Files list
 ##############################################################################
@@ -1140,6 +1198,25 @@ fi
 
 %files -f devel.filelist devel
 
+%files -f nscd.filelist -n nscd
+%config(noreplace) /etc/nscd.conf
+%dir %attr(0755,root,root) /var/run/nscd
+%dir %attr(0755,root,root) /var/db/nscd
+/lib/systemd/system/nscd.service
+/lib/systemd/system/nscd.socket
+%{_tmpfilesdir}/nscd.conf
+%attr(0644,root,root) %verify(not md5 size mtime) %ghost %config(missingok,noreplace) /var/run/nscd/nscd.pid
+%attr(0666,root,root) %verify(not md5 size mtime) %ghost %config(missingok,noreplace) /var/run/nscd/socket
+%attr(0600,root,root) %verify(not md5 size mtime) %ghost %config(missingok,noreplace) /var/run/nscd/passwd
+%attr(0600,root,root) %verify(not md5 size mtime) %ghost %config(missingok,noreplace) /var/run/nscd/group
+%attr(0600,root,root) %verify(not md5 size mtime) %ghost %config(missingok,noreplace) /var/run/nscd/hosts
+%attr(0600,root,root) %verify(not md5 size mtime) %ghost %config(missingok,noreplace) /var/run/nscd/services
+%attr(0600,root,root) %verify(not md5 size mtime) %ghost %config(missingok,noreplace) /var/db/nscd/passwd
+%attr(0600,root,root) %verify(not md5 size mtime) %ghost %config(missingok,noreplace) /var/db/nscd/group
+%attr(0600,root,root) %verify(not md5 size mtime) %ghost %config(missingok,noreplace) /var/db/nscd/hosts
+%attr(0600,root,root) %verify(not md5 size mtime) %ghost %config(missingok,noreplace) /var/db/nscd/services
+%ghost %config(missingok,noreplace) /etc/sysconfig/nscd
+
 %files -f nss_modules.filelist -n nss_modules
 /var/db/Makefile
 
@@ -1168,6 +1245,9 @@ fi
 %endif
 
 %changelog
+* Thu May 12 2022 jiangheng <jiangheng14@huawei.com> - 2.35-9
+- restore nscd
+
 * Wed Mar 30 2022 Yang Yanchao <yangyanchao@huawei.com> - 2.35-8
 - delete the BuildRequires:gcc_secure.
 
