@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.35
-Release: 	9
+Release: 	10
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -540,7 +540,15 @@ $olddir/build-%{target}/elf/ld.so \
 # Due to the change of the packing mode, the locale-archive fails to be
 # replaced during the upgrade. Therefore, a backup file is required to
 # replace the locale-archive.
-ln locale-archive locale-archive.update
+mv locale-archive locale-archive.update
+
+$olddir/build-%{target}/elf/ld.so \
+        --library-path $olddir/build-%{target}/ \
+        $olddir/build-%{target}/locale/localedef \
+        --alias-file=$olddir/intl/locale.alias  \
+        --prefix $RPM_BUILD_ROOT --add-to-archive \
+        zh_* en_*
+mv locale-archive locale-archive.default
 popd
 mv  $RPM_BUILD_ROOT%{_prefix}/lib/locale/libc.lang .
 
@@ -1103,27 +1111,35 @@ else
   io.stdout:write ("Error: Missing " .. iconv_cache .. " file.\n")
 end
 
+%postun common
+archive_path="%{_prefix}/lib/locale/locale-archive"
+if [ -f "$archive_path" ];then
+    unlink "$archive_path"
+fi
+
+%posttrans common
+archive_path="%{_prefix}/lib/locale/locale-archive"
+default_path="%{_prefix}/lib/locale/locale-archive.default"
+if [ -f "$archive_path" ];then
+    unlink "$archive_path"
+fi
+ln "$default_path" "$archive_path"
+
+%postun locale-archive
+archive_path="%{_prefix}/lib/locale/locale-archive"
+default_path="%{_prefix}/lib/locale/locale-archive.default"
+if [ -f "$archive_path" ];then
+    unlink "$archive_path"
+fi
+ln "$default_path" "$archive_path"
+
 %posttrans locale-archive
 archive_path="%{_prefix}/lib/locale/locale-archive"
 update_path="%{_prefix}/lib/locale/locale-archive.update"
-save_path="%{_prefix}/lib/locale/locale-archive.rpmsave"
-archive_stat=`stat --format="%D %i" "$archive_path" 2>/dev/null || echo "null"`
-update_stat=`stat --format="%D %i" "$update_path" || echo "null"`
-# When the hard link does not match, use locale-archive.update
-if [ "$archive_stat" != "null" ] &&
-   [ "$update_stat" != "null" ] &&
-   [ "$archive_stat" != "$update_stat" ];then
-    unlink $archive_path
-    archive_stat="null"
+if [ -f "$archive_path" ];then
+    unlink "$archive_path"
 fi
-# Regenerate a file if it does not exist
-if [ "$archive_stat" == "null" ];then
-   ln "$update_path" "$archive_path"
-fi
-# Delete the .rpmsave
-if [ -f "$save_path" ];then
-    unlink $save_path
-fi
+ln "$update_path" "$archive_path"
 
 %pre devel
 # this used to be a link and it is causing nightmares now
@@ -1171,20 +1187,14 @@ fi
 %dir %{_prefix}/lib/locale
 %dir %{_prefix}/lib/locale/C.utf8
 %{_prefix}/lib/locale/C.utf8/*
-%{_prefix}/lib/locale/zh*
-%{_prefix}/lib/locale/en*
-%{_prefix}/share/locale/zh*
-%{_prefix}/share/locale/en*
+%attr(0644,root,root) %config(noreplace) %{_prefix}/lib/locale/locale-archive.default
 
 %files -f libc.lang all-langpacks
 %{_prefix}/lib/locale
 %exclude %{_prefix}/lib/locale/locale-archive
 %exclude %{_prefix}/lib/locale/locale-archive.update
+%exclude %{_prefix}/lib/locale/locale-archive.default
 %exclude %{_prefix}/lib/locale/C.utf8
-%exclude %{_prefix}/lib/locale/zh*
-%exclude %{_prefix}/lib/locale/en*
-%exclude %{_prefix}/share/locale/zh*
-%exclude %{_prefix}/share/locale/en*
 
 %files locale-source
 %dir %{_prefix}/share/i18n/locales
@@ -1193,7 +1203,6 @@ fi
 %{_prefix}/share/i18n/charmaps/*
 
 %files locale-archive
-%attr(0644,root,root) %{_prefix}/lib/locale/locale-archive
 %attr(0644,root,root) %{_prefix}/lib/locale/locale-archive.update
 
 %files -f devel.filelist devel
@@ -1245,6 +1254,9 @@ fi
 %endif
 
 %changelog
+* Wed Jun 1 2022 Qingqing Li <liqingqing3@huawei.com> - 2.35-10
+- use locale-archive to prevent basic command performance regression
+
 * Thu May 12 2022 jiangheng <jiangheng14@huawei.com> - 2.35-9
 - restore nscd
 
