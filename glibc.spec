@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.35
-Release: 	10
+Release: 	11
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -1111,35 +1111,27 @@ else
   io.stdout:write ("Error: Missing " .. iconv_cache .. " file.\n")
 end
 
-%postun common
-archive_path="%{_prefix}/lib/locale/locale-archive"
-if [ -f "$archive_path" ];then
-    unlink "$archive_path"
-fi
+%postun -p <lua> common
+archive_path = "%{_prefix}/lib/locale/locale-archive"
+os.remove (archive_path)
 
-%posttrans common
-archive_path="%{_prefix}/lib/locale/locale-archive"
-default_path="%{_prefix}/lib/locale/locale-archive.default"
-if [ -f "$archive_path" ];then
-    unlink "$archive_path"
-fi
-ln "$default_path" "$archive_path"
+%posttrans -p <lua> common
+archive_path = "%{_prefix}/lib/locale/locale-archive"
+default_path = "%{_prefix}/lib/locale/locale-archive.default"
+os.remove (archive_path)
+posix.link(default_path, archive_path)
 
-%postun locale-archive
-archive_path="%{_prefix}/lib/locale/locale-archive"
-default_path="%{_prefix}/lib/locale/locale-archive.default"
-if [ -f "$archive_path" ];then
-    unlink "$archive_path"
-fi
-ln "$default_path" "$archive_path"
+%postun -p <lua> locale-archive
+archive_path = "%{_prefix}/lib/locale/locale-archive"
+default_path = "%{_prefix}/lib/locale/locale-archive.default"
+os.remove (archive_path)
+posix.link(default_path, archive_path)
 
-%posttrans locale-archive
-archive_path="%{_prefix}/lib/locale/locale-archive"
-update_path="%{_prefix}/lib/locale/locale-archive.update"
-if [ -f "$archive_path" ];then
-    unlink "$archive_path"
-fi
-ln "$update_path" "$archive_path"
+%posttrans -p <lua> locale-archive
+archive_path = "%{_prefix}/lib/locale/locale-archive"
+update_path = "%{_prefix}/lib/locale/locale-archive.update"
+os.remove (archive_path)
+posix.link(update_path, archive_path)
 
 %pre devel
 # this used to be a link and it is causing nightmares now
@@ -1254,6 +1246,9 @@ fi
 %endif
 
 %changelog
+* Tue Jun 14 2022 Yang Yanchao <yangyanchao6@huawei.com> - 2.35-11
+- Use Lua to compile the installation scripts of glibc-common and glibc-locale-archive.
+
 * Wed Jun 1 2022 Qingqing Li <liqingqing3@huawei.com> - 2.35-10
 - use locale-archive to prevent basic command performance regression
 
