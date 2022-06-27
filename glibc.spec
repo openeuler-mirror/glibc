@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.35
-Release: 	11
+Release: 	12
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -98,6 +98,7 @@ Patch0: glibc-1070416.patch
 #Patch9010: 0009-add-unwind-with-longjmp.patch
 Patch9011: use-region-to-instead-of-country-for-extract-timezon.patch
 Patch9012: malloc-use-__get_nprocs-replace-__get_nprocs_sched.patch
+Patch9013: x86-use-total-l3cache-for-non_temporal_threshold.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1246,6 +1247,9 @@ fi
 %endif
 
 %changelog
+* Mon Jun 27 2022 Qingqing Li <liqingqing3@huawei.com> - 2.35-12
+- x86: use total l3cache size for non_temporal_threshold
+
 * Tue Jun 14 2022 Yang Yanchao <yangyanchao6@huawei.com> - 2.35-11
 - Use Lua to compile the installation scripts of glibc-common and glibc-locale-archive.
 

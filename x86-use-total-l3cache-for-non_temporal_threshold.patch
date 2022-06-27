@@ -1,0 +1,74 @@
+From af0606f5d626b92d6e59da3a797548e9daab5580 Mon Sep 17 00:00:00 2001
+From: Qingqing Li <liqingqing3@huawei.com>
+Date: Sat, 25 Jun 2022 15:36:44 +0800
+Subject: [PATCH] x86: use total l3cache for non_temporal_threshold
+
+Below glibc upstream patch modified the default behavoir for large size of memcpy,
+such as 1M~10M. revert it and use GLIBC_TUNABLES="glibc.cpu.x86_non_temporal_threshold=xxx"
+to tune the application when needed.
+
+d3c57027470b78dba79c6d931e4e409b1fecfc80
+Author: Patrick McGehearty <patrick.mcgehearty@oracle.com>
+Date:   Mon Sep 28 20:11:28 2020 +0000
+
+    Reversing calculation of __x86_shared_non_temporal_threshold
+    
+    The __x86_shared_non_temporal_threshold determines when memcpy on x86
+    uses non_temporal stores to avoid pushing other data out of the last
+    level cache.
+    uses non_temporal stores to avoid pushing other data out of the last
+    level cache.
+    
+    This patch proposes to revert the calculation change made by H.J. Lu's
+    patch of June 2, 2017.
+    
+    H.J. Lu's patch selected a threshold suitable for a single thread
+    getting maximum performance. It was tuned using the single threaded
+    large memcpy micro benchmark on an 8 core processor. The last change
+    changes the threshold from using 3/4 of one thread's share of the
+    cache to using 3/4 of the entire cache of a multi-threaded system
+    before switching to non-temporal stores. Multi-threaded systems with
+    more than a few threads are server-class and typically have many
+    active threads. If one thread consumes 3/4 of the available cache for
+    all threads, it will cause other active threads to have data removed
+    from the cache. Two examples show the range of the effect. John
+    McCalpin's widely parallel Stream benchmark, which runs in parallel
+    and fetches data sequentially, saw a 20% slowdown with this patch on
+    an internal system test of 128 threads. This regression was discovered
+    when comparing OL8 performance to OL7.  An example that compares
+    normal stores to non-temporal stores may be found at
+    https://vgatherps.github.io/2018-09-02-nontemporal/.  A simple test
+    shows performance loss of 400 to 500% due to a failure to use
+    nontemporal stores. These performance losses are most likely to occur
+    when the system load is heaviest and good performance is critical.
+    
+    The tunable x86_non_temporal_threshold can be used to override the
+    default for the knowledgable user who really wants maximum cache
+    allocation to a single thread in a multi-threaded system.
+    The manual entry for the tunable has been expanded to provide
+    more information about its purpose.
+
+            modified: sysdeps/x86/cacheinfo.c
+            modified: manual/tunables.texi
+---
+ sysdeps/x86/dl-cacheinfo.h | 4 ++++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/sysdeps/x86/dl-cacheinfo.h b/sysdeps/x86/dl-cacheinfo.h
+index e6c94dfd..c5e8deb3 100644
+--- a/sysdeps/x86/dl-cacheinfo.h
++++ b/sysdeps/x86/dl-cacheinfo.h
+@@ -926,6 +926,10 @@ dl_init_cacheinfo (struct cpu_features *cpu_features)
+   if (tunable_size != 0)
+     shared = tunable_size;
+ 
++  /* keep x86 to use the same non_temporal_threshold like glibc2.28 */
++  if (threads != 0)
++    non_temporal_threshold *= threads;
++
+   tunable_size = TUNABLE_GET (x86_non_temporal_threshold, long int, NULL);
+   /* NB: Ignore the default value 0.  */
+   if (tunable_size != 0)
+-- 
+2.30.0
+
