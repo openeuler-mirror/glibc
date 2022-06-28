@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.35
-Release: 	12
+Release: 	13
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -389,6 +389,10 @@ touch locale/programs/*-kw.h
 
 BuildFlags="-O2 -g -DNDEBUG -fPIC -fPIE -fstack-protector-strong"
 LinkFlags="-pie -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack"
+
+%ifarch aarch64
+BuildFlags="$BuildFlags -mno-outline-atomics"
+%endif
 
 reference=" \
         "-Wp,-D_GLIBCXX_ASSERTIONS" \
@@ -1247,6 +1251,9 @@ fi
 %endif
 
 %changelog
+* Tue Jun 28 2022 Qingqing Li <liqingqing3@huawei.com> - 2.35-13
+- aarch64: add -mno-outline-atomics to prevent mallocT2_xx performance regression
+
 * Mon Jun 27 2022 Qingqing Li <liqingqing3@huawei.com> - 2.35-12
 - x86: use total l3cache size for non_temporal_threshold
 
