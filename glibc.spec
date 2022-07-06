@@ -29,7 +29,7 @@
 %bcond_without testsuite
 %bcond_with benchtests
 %bcond_with bootstrap
-%bcond_with werror
+%bcond_without werror
 %bcond_without docs
 %ifarch x86_64 aarch64
 %bcond_with compat_2_17
@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.35
-Release: 	14
+Release: 	15
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -84,6 +84,7 @@ Source8:   testsuite_whitelist.%{_target_cpu}
 %endif
 
 Patch0: glibc-1070416.patch
+Patch1: elf-Fix-compile-error-with-Werror-and-DNDEBUG.patch
 
 #Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 #Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
@@ -1257,6 +1258,9 @@ fi
 %endif
 
 %changelog
+* Wed Jul 7 2022 Qingqing Li <liqingqing3@huawei.com> - 2.35-15
+- enable -werror by default
+
 * Tue Jul 5 2022 Yang Yanchao <yangyanchao6@huawei.com> - 2.35-14
 - add libpthread_nonshared.a in glibc-compat-2.17 for old applications
 
