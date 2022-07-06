@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.35
-Release: 	13
+Release: 	14
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -365,7 +365,8 @@ Summary: provides pthread library with glibc-2.17
 
 %description compat-2.17
 This subpackage to provide the function of the glibc-2.17 pthread library.
-Currently, provide pthread_condition function..
+Currently, provide pthread_condition function.
+To keep older applications compatible, glibc-compat-2.17 provides libpthread_nonshared.a
 %endif
 
 ##############################################################################
@@ -563,6 +564,10 @@ install -p -m 644 %{SOURCE2} $RPM_BUILD_ROOT/etc/nsswitch.conf
 # This is for compat-2.17
 %if %{with compat_2_17}
 install -p -m 755  build-%{target}/nptl/libpthread-2.17.so $RPM_BUILD_ROOT%{_libdir}
+# Build an empty libpthread_nonshared.a for compatiliby with applications
+# that have old linker scripts that reference this file.
+ar cr %{glibc_sysroot}%{_prefix}/%{_lib}/libpthread_nonshared.a
+
 %endif
 
 # This is for ncsd - in glibc 2.2
@@ -835,6 +840,7 @@ echo "%{_prefix}/libexec/glibc-benchtests/validate_benchout.py*" >> benchtests.f
 # glibc compat-2.17 sub-package
 ##############################################################################
         echo "%{_libdir}/libpthread-2.17.so" >> compat-2.17.filelist
+	echo "%{_libdir}/libpthread_nonshared.a" >> compat-2.17.filelist
 %endif
 
 reliantlib=""
@@ -1251,6 +1257,9 @@ fi
 %endif
 
 %changelog
+* Tue Jul 5 2022 Yang Yanchao <yangyanchao6@huawei.com> - 2.35-14
+- add libpthread_nonshared.a in glibc-compat-2.17 for old applications
+
 * Tue Jun 28 2022 Qingqing Li <liqingqing3@huawei.com> - 2.35-13
 - aarch64: add -mno-outline-atomics to prevent mallocT2_xx performance regression
 
