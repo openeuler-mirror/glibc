@@ -1,0 +1,36 @@
+From 5e89ed42fd8997414732525c9460878d65363b3f Mon Sep 17 00:00:00 2001
+From: Yang Yanchao <yangyanchao6@huawei.com>
+Date: Fri, 15 Apr 2022 17:25:05 +0800
+Subject: [PATCH] elf: Fix compile error with -Werror and -DNDEBUG
+
+Using -Werror and -DNDEBUG at the same time will trigger the
+following compiler error:
+
+cache.c: In function 'save_cache':
+cache.c:758:15: error: unused variable 'old_offset' [-Werror=unused-variable]
+  758 |       off64_t old_offset = lseek64 (fd, extension_offset, SEEK_SET);
+      |               ^~~~~~~~~~
+
+-DNDEBUG disables the assertion, making old_offset unused.
+Use __attribute__ ((unused)) to disable this warning.
+---
+ elf/cache.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/elf/cache.c b/elf/cache.c
+index abe2e49..3d7d3a6 100644
+--- a/elf/cache.c
++++ b/elf/cache.c
+@@ -727,7 +727,8 @@ save_cache (const char *cache_name)
+   if (opt_format != opt_format_old)
+     {
+       /* Align file position to 4.  */
+-      off64_t old_offset = lseek64 (fd, extension_offset, SEEK_SET);
++      __attribute__ ((unused)) off64_t old_offset
++        = lseek64 (fd, extension_offset, SEEK_SET);
+       assert ((unsigned long long int) (extension_offset - old_offset) < 4);
+       write_extensions (fd, str_offset, extension_offset);
+     }
+-- 
+1.8.3.1
+
