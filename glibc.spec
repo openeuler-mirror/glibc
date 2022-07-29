@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.35
-Release: 	15
+Release: 	16
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -184,7 +184,7 @@ Summary: All language packs for %{name}.
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
 Provides: %{name}-langpack = %{version}-%{release}
-Obsoletes: %{name}-minimal-langpack = 2.28
+Obsoletes: %{name}-minimal-langpack <= 2.28
 
 %{lua:
 -- List the Symbol provided by all-langpacks
@@ -192,7 +192,7 @@ lang_provides = {}
 for line in io.lines(rpm.expand("%{SOURCE5}")) do
     print(rpm.expand([[
 Provides:]]..line..[[ = %{version}-%{release} 
-Obsoletes:]]..line..[[ = 2.28 
+Obsoletes:]]..line..[[ <= 2.28
 ]]))
 end
 }
@@ -250,8 +250,8 @@ Provides: %{name}-headers = %{version}-%{release}
 Provides: %{name}-headers(%{_target_cpu})
 Provides: %{name}-headers%{_isa} = %{version}-%{release}
 
-Obsoletes: %{name}-static = 2.28
-Obsoletes: %{name}-headers = 2.28
+Obsoletes: %{name}-static <= 2.28
+Obsoletes: %{name}-headers <= 2.28
 
 %description devel
 The glibc-devel package contains the object files necessary for developing
@@ -286,7 +286,7 @@ Provides: nss_db = %{version}-%{release}
 Provides: nss_db%{_isa} = %{version}-%{release}
 Provides: nss_hesiod = %{version}-%{release}
 Provides: nss_hesiod%{_isa} = %{version}-%{release}
-Obsoletes: nss_db = 2.28, nss_hesiod = 2.28
+Obsoletes: nss_db <= 2.28, nss_hesiod <= 2.28
 
 %description -n nss_modules
 This package contains nss_db and nss_hesiod. The former uses hash-indexed files
@@ -340,7 +340,7 @@ Requires: %{name} = %{version}-%{release}
 Provides: %{name}-utils = %{version}-%{release}
 Provides: %{name}-utils%{_isa} = %{version}-%{release}
 
-Obsoletes: %{name}-utils = 2.28
+Obsoletes: %{name}-utils <= 2.28
 
 %description debugutils
 This package provides memusage, a memory usage profiler, mtrace, a memory leak
@@ -1258,6 +1258,9 @@ fi
 %endif
 
 %changelog
+* Thu Jul 28 2022 Qingqing Li <liqingqing3@huawei.com> - 2.35-16
+- optimize Obsoletes version
+
 * Wed Jul 7 2022 Qingqing Li <liqingqing3@huawei.com> - 2.35-15
 - enable -werror by default
 
