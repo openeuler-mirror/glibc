@@ -64,8 +64,8 @@
 # glibc - The GNU C Library (glibc) core package.
 ##############################################################################
 Name: 	 	glibc
-Version: 	2.35
-Release: 	16
+Version: 	2.36
+Release: 	1
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -84,10 +84,9 @@ Source8:   testsuite_whitelist.%{_target_cpu}
 %endif
 
 Patch0: glibc-1070416.patch
-Patch1: elf-Fix-compile-error-with-Werror-and-DNDEBUG.patch
 
-#Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
-#Patch9001: delete-no-hard-link-to-avoid-all_language-package-to.patch 
+Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
+Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
 #Patch9002: 0001-add-base-files-for-libphtread-condition-family.patch
 #Patch9003: 0002-add-header-files-for-libphtread_2_17_so.patch
 #Patch9004: 0003-add-build-script-and-files-of-libpthread_2_17_so.patch
@@ -1258,6 +1257,9 @@ fi
 %endif
 
 %changelog
+* Tue Aug 2 2022 Qingqing Li <liqingqing3@huawei.com> - 2.36-1
+- upgrade to 2.36
+
 * Thu Jul 28 2022 Qingqing Li <liqingqing3@huawei.com> - 2.35-16
 - optimize Obsoletes version
 

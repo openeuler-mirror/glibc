@@ -1,0 +1,26 @@
+From 6b462949b0cb8265c44c2f9ddbc0758af2279345 Mon Sep 17 00:00:00 2001
+From: liqingqing_1229 <liqingqing3@huawei.com>
+Date: Tue, 2 Aug 2022 15:10:32 +0800
+Subject: [PATCH] locale: delete --no-hard-link to avoid all_language packages
+ too large
+
+---
+ localedata/Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/localedata/Makefile b/localedata/Makefile
+index da92b67..eb4c3d8 100644
+--- a/localedata/Makefile
++++ b/localedata/Makefile
+@@ -476,7 +476,7 @@ $(INSTALL-SUPPORTED-LOCALE-ARCHIVE): install-locales-dir
+ 	$(build-one-locale)
+ 
+ $(INSTALL-SUPPORTED-LOCALE-FILES): install-locales-dir
+-	@flags="--no-archive --no-hard-links"; \
++	@flags="--no-archive"; \
+ 	$(build-one-locale)
+ 
+ tst-setlocale-ENV = LC_ALL=ja_JP.EUC-JP
+-- 
+1.8.3.1
+
