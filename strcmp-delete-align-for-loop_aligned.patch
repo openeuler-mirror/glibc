@@ -1,0 +1,32 @@
+From 9bbffed83b93f633b272368fc536a4f24e9942e6 Mon Sep 17 00:00:00 2001
+From: Yang Yanchao <yangyanchao6@huawei.com>
+Date: Mon, 21 Feb 2022 14:25:25 +0800
+Subject: [PATCH] strcmp: delete align for loop_aligned
+
+In Kunpeng-920, the performance of strcmp deteriorates only
+when the 16 to 23 characters are different.Or the string is
+only 16-23 characters.That shows 2 misses per iteration which
+means this is a branch predictor issue indeed.
+In the preceding scenario, strcmp performance is 300% worse than expected.
+
+Fortunately, this problem can be solved by modifying the alignment of the functions.
+---
+ sysdeps/aarch64/strcmp.S | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/sysdeps/aarch64/strcmp.S b/sysdeps/aarch64/strcmp.S
+index f225d718..7a048b66 100644
+--- a/sysdeps/aarch64/strcmp.S
++++ b/sysdeps/aarch64/strcmp.S
+@@ -71,8 +71,6 @@ ENTRY(strcmp)
+ 	b.ne	L(misaligned8)
+ 	cbnz	tmp, L(mutual_align)
+ 
+-	.p2align 4
+-
+ L(loop_aligned):
+ 	ldr	data2, [src1, off2]
+ 	ldr	data1, [src1], 8
+-- 
+2.33.0
+

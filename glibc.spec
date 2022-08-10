@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.36
-Release: 	1
+Release: 	2
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -99,6 +99,7 @@ Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch
 Patch9011: use-region-to-instead-of-country-for-extract-timezon.patch
 Patch9012: malloc-use-__get_nprocs-replace-__get_nprocs_sched.patch
 Patch9013: x86-use-total-l3cache-for-non_temporal_threshold.patch
+Patch9014: strcmp-delete-align-for-loop_aligned.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1257,6 +1258,9 @@ fi
 %endif
 
 %changelog
+* Wed Aug 10 2022 Qingqing Li <liqingqing3@huawei.com> - 2.36-2
+- aarch64: strcmp delete align for better unixbench performance
+
 * Tue Aug 2 2022 Qingqing Li <liqingqing3@huawei.com> - 2.36-1
 - upgrade to 2.36
 
