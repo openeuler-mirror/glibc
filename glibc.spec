@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.36
-Release: 	2
+Release: 	3
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -80,7 +80,7 @@ Source6:   LicenseList
 Source7:   replace_same_file_to_hard_link.py
 
 %if %{with testsuite}
-Source8:   testsuite_whitelist.%{_target_cpu}
+Source8:   testsuite_whitelist
 %endif
 
 Patch0: glibc-1070416.patch
@@ -908,14 +908,11 @@ set -e
 %if %{with testsuite}
 
 omit_testsuite() {
-  whitelist=$1
-  sed -i '/^#/d' $whitelist
-  sed -i '/^[\s]*$/d' $whitelist
   while read testsuite; do
     testsuite_escape=$(echo "$testsuite" | \
                        sed 's/\([.+?^$\/\\|()\[]\|\]\)/\\\0/g')
     sed -i "/${testsuite_escape}/d" rpmbuild.tests.sum.not-passing
-  done < "$whitelist"
+  done
 }
 
 # Increase timeouts
@@ -938,9 +935,10 @@ fi
 grep -v ^PASS: tests.sum | grep -v ^UNSUPPORTED > rpmbuild.tests.sum.not-passing || true
 
 # Delete the testsuite from the whitelist
-#cp %{SOURCE8} testsuite_whitelist
-#omit_testsuite testsuite_whitelist
-#rm -rf testsuite_whitelist
+cat %{SOURCE8} | \
+	grep -v "^$\|^#" | \
+	awk -F':' '{if($2 == "" || $2 ~ /'%{_target_cpu}'/ ) {print $1}}' |\
+	omit_testsuite
 
 set +x
 if test -s rpmbuild.tests.sum.not-passing ; then
@@ -957,7 +955,9 @@ if test -s rpmbuild.tests.sum.not-passing ; then
       fi
     done
   done <rpmbuild.tests.sum.not-passing
+%if 0%{?glibc_abort_after_test_fail}
   #exit 1
+%endif
 fi
 
 # Unconditonally dump differences in the system call list.
@@ -1258,6 +1258,9 @@ fi
 %endif
 
 %changelog
+* Mon Aug 15 2022 Qingqing Li <liqingqing3@huawei.com> - 2.36-3
+- refactoring testsuite whitelist
+
 * Wed Aug 10 2022 Qingqing Li <liqingqing3@huawei.com> - 2.36-2
 - aarch64: strcmp delete align for better unixbench performance
 
