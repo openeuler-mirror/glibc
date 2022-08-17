@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.36
-Release: 	4
+Release: 	5
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -86,6 +86,7 @@ Source8:   testsuite_whitelist
 Patch0: glibc-1070416.patch
 Patch1: linux-Mimic-kernel-defition-for-BLOCK_SIZE.patch
 Patch2: linux-Fix-sys-mount.h-usage-with-kernel-headers.patch
+Patch3: Linux-Fix-enum-fsconfig_command-detection-in-sys-mou.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
@@ -1260,6 +1261,9 @@ fi
 %endif
 
 %changelog
+* Tue Aug 16 2022 Qingqing Li <liqingqing3@huawei.com> - 2.36-5
+- linux: Fix enum fsconfig_command detection in <sys/mount.h>
+
 * Mon Aug 15 2022 Qingqing Li <liqingqing3@huawei.com> - 2.36-4
 - linux: Fix sys/mount.h usage with kernel headers
 
