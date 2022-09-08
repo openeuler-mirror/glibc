@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.36
-Release: 	6
+Release: 	7
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -357,6 +357,7 @@ tracer and xtrace, a function call tracer, all of which is not necessory for you
 Summary: The doc and man for %{name}
 Buildarch: noarch
 Requires: man info
+Requires: %{name} = %{version}-%{release}
 
 %description help
 This package provides all doc, man and info files of %{name}
@@ -1262,6 +1263,9 @@ fi
 %endif
 
 %changelog
+* Thu Sep 8 2022 Qingqing Li <liqingqing3@huawei.com> - 2.36-7
+- add requires between glibc-info and glibc
+
 * Thu Sep 1 2022 Qingqing Li <liqingqing3@huawei.com> - 2.36-6
 - syslog:Fix large messages (BZ#29536/CVE-2022-39046)
 
