@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.36
-Release: 	7
+Release: 	8
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -88,6 +88,7 @@ Patch1: linux-Mimic-kernel-defition-for-BLOCK_SIZE.patch
 Patch2: linux-Fix-sys-mount.h-usage-with-kernel-headers.patch
 Patch3: Linux-Fix-enum-fsconfig_command-detection-in-sys-mou.patch
 Patch4: syslog-Fix-large-messages-BZ-29536.patch
+Patch5: Linux-Do-not-skip-d_ino-0-entries-in-readdir-readdir.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
@@ -1263,6 +1264,9 @@ fi
 %endif
 
 %changelog
+* Tue Sep 20 2022 SuperHugePan <zhangpan26@huawei.com> - 2.36-8
+- linux: Do not skip d_ino==0 entries in readdir, readdir64(bug 12165)
+
 * Thu Sep 8 2022 Qingqing Li <liqingqing3@huawei.com> - 2.36-7
 - add requires between glibc-info and glibc
 
