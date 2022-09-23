@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.36
-Release: 	8
+Release: 	9
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -89,6 +89,7 @@ Patch2: linux-Fix-sys-mount.h-usage-with-kernel-headers.patch
 Patch3: Linux-Fix-enum-fsconfig_command-detection-in-sys-mou.patch
 Patch4: syslog-Fix-large-messages-BZ-29536.patch
 Patch5: Linux-Do-not-skip-d_ino-0-entries-in-readdir-readdir.patch
+Patch6: 0001-gconv-Use-64-bit-interfaces-in-gconv_parseconfdir-bu.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
@@ -1264,6 +1265,9 @@ fi
 %endif
 
 %changelog
+* Fri Sep 23 2022 Xu Wu<wuxu.wu@huawei.com> - 2.36-9
+- gconv: Use 64-bit interfaces in gconv_parseconfdir (bug 29583)
+
 * Tue Sep 20 2022 SuperHugePan <zhangpan26@huawei.com> - 2.36-8
 - linux: Do not skip d_ino==0 entries in readdir, readdir64(bug 12165)
 
