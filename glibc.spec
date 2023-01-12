@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.36
-Release: 	10
+Release: 	11
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -91,6 +91,7 @@ Patch4: syslog-Fix-large-messages-BZ-29536.patch
 Patch5: Linux-Do-not-skip-d_ino-0-entries-in-readdir-readdir.patch
 Patch6: 0001-gconv-Use-64-bit-interfaces-in-gconv_parseconfdir-bu.patch
 Patch7: 0001-syslog-Remove-extra-whitespace-between-timestamp-and.patch
+Patch8: Makerules-fix-MAKEFLAGS-assignment-for-upcoming-make.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
@@ -1266,6 +1267,9 @@ fi
 %endif
 
 %changelog
+* Thu Jan 12 2023 Qingqing Li <liqingqing3@huawei.com> - 2.36-11
+- Makerules: fix MAKEFLAGS assignment for upcoming make-4.4
+
 * Sat Sep 24 2022 Xu Wu<wuxu.wu@huawei.com> - 2.36-10
 - syslog: Fix large messages (BZ#29536)
 
@@ -1299,7 +1303,7 @@ fi
 * Thu Jul 28 2022 Qingqing Li <liqingqing3@huawei.com> - 2.35-16
 - optimize Obsoletes version
 
-* Wed Jul 7 2022 Qingqing Li <liqingqing3@huawei.com> - 2.35-15
+* Thu Jul 7 2022 Qingqing Li <liqingqing3@huawei.com> - 2.35-15
 - enable -werror by default
 
 * Tue Jul 5 2022 Yang Yanchao <yangyanchao6@huawei.com> - 2.35-14
