@@ -1,0 +1,66 @@
+From e6569a3c53c25916f5c04ccc3d6a467c57d4eab8 Mon Sep 17 00:00:00 2001
+From: Yang Yanchao <yangyanchao6@huawei.com>
+Date: Thu, 19 Jan 2023 21:40:08 +0800
+Subject: [PATCH] add pthread_cond_clockwait@GLIBC_2_28
+
+Since the pthread_cond_clockwait@GLIBC_2_28 is introduced in earlier
+versions, this symbol is required to keep the previous items compatible.
+
+---
+ nptl/Versions                                   | 1 +
+ nptl/pthread_cond_wait.c                        | 4 ++++
+ sysdeps/unix/sysv/linux/aarch64/libc.abilist    | 1 +
+ sysdeps/unix/sysv/linux/x86_64/64/libc.abilist  | 1 +
+ 5 files changed, 9 insertions(+)
+
+diff --git a/nptl/Versions b/nptl/Versions
+index 3221de89..dc341f9d 100644
+--- a/nptl/Versions
++++ b/nptl/Versions
+@@ -231,6 +231,7 @@ libc {
+     tss_delete;
+     tss_get;
+     tss_set;
++    pthread_cond_clockwait;
+   }
+   GLIBC_2.30 {
+     pthread_cond_clockwait;
+diff --git a/nptl/pthread_cond_wait.c b/nptl/pthread_cond_wait.c
+index dc8c511f..04eeff34 100644
+--- a/nptl/pthread_cond_wait.c
++++ b/nptl/pthread_cond_wait.c
+@@ -709,3 +709,7 @@ versioned_symbol (libc, ___pthread_cond_clockwait,
+ compat_symbol (libpthread, ___pthread_cond_clockwait,
+ 	       pthread_cond_clockwait, GLIBC_2_30);
+ #endif
++#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_28, GLIBC_2_34)
++compat_symbol (libpthread, ___pthread_cond_clockwait,
++		pthread_cond_clockwait, GLIBC_2_28);
++#endif
+diff --git a/sysdeps/unix/sysv/linux/aarch64/libc.abilist b/sysdeps/unix/sysv/linux/aarch64/libc.abilist
+index a4262419..a0795a80 100644
+--- a/sysdeps/unix/sysv/linux/aarch64/libc.abilist
++++ b/sysdeps/unix/sysv/linux/aarch64/libc.abilist
+@@ -383,6 +383,7 @@ GLIBC_2.28 mtx_lock F
+ GLIBC_2.28 mtx_timedlock F
+ GLIBC_2.28 mtx_trylock F
+ GLIBC_2.28 mtx_unlock F
++GLIBC_2.28 pthread_cond_clockwait F
+ GLIBC_2.28 renameat2 F
+ GLIBC_2.28 statx F
+ GLIBC_2.28 thrd_create F
+diff --git a/sysdeps/unix/sysv/linux/x86_64/64/libc.abilist b/sysdeps/unix/sysv/linux/x86_64/64/libc.abilist
+index 095e914b..0eaab342 100644
+--- a/sysdeps/unix/sysv/linux/x86_64/64/libc.abilist
++++ b/sysdeps/unix/sysv/linux/x86_64/64/libc.abilist
+@@ -2413,6 +2413,7 @@ GLIBC_2.28 mtx_lock F
+ GLIBC_2.28 mtx_timedlock F
+ GLIBC_2.28 mtx_trylock F
+ GLIBC_2.28 mtx_unlock F
++GLIBC_2.28 pthread_cond_clockwait F
+ GLIBC_2.28 renameat2 F
+ GLIBC_2.28 statx F
+ GLIBC_2.28 thrd_create F
+-- 
+2.33.0
+
