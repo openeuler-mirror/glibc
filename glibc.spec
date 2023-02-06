@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.36
-Release: 	11
+Release: 	12
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -108,6 +108,7 @@ Patch9011: use-region-to-instead-of-country-for-extract-timezon.patch
 Patch9012: malloc-use-__get_nprocs-replace-__get_nprocs_sched.patch
 Patch9013: x86-use-total-l3cache-for-non_temporal_threshold.patch
 Patch9014: strcmp-delete-align-for-loop_aligned.patch
+Patch9015: add-pthread_cond_clockwait-GLIBC_2_28.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1267,6 +1268,10 @@ fi
 %endif
 
 %changelog
+* Wed Feb 1 2023 Yang Yanchao <yangyanchao6@huawei.com> - 2.36-12
+- Since the pthread_cond_clockwait@GLIBC_2_28 is introduced in earlier
+  versions, this symbol is required to keep the previous items compatible.
+
 * Thu Jan 12 2023 Qingqing Li <liqingqing3@huawei.com> - 2.36-11
 - Makerules: fix MAKEFLAGS assignment for upcoming make-4.4
 
