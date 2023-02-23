@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.36
-Release: 	12
+Release: 	13
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -92,6 +92,7 @@ Patch5: Linux-Do-not-skip-d_ino-0-entries-in-readdir-readdir.patch
 Patch6: 0001-gconv-Use-64-bit-interfaces-in-gconv_parseconfdir-bu.patch
 Patch7: 0001-syslog-Remove-extra-whitespace-between-timestamp-and.patch
 Patch8: Makerules-fix-MAKEFLAGS-assignment-for-upcoming-make.patch
+Patch9: gmon-Fix-allocated-buffer-overflow-bug-29444.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
@@ -1268,6 +1269,9 @@ fi
 %endif
 
 %changelog
+* Thu Feb 23 2023 Qingqing Li <liqingqing3@huawei.com> - 2.36-13
+- gmon: Fix allocated buffer overflow (bug 29444)
+
 * Wed Feb 1 2023 Yang Yanchao <yangyanchao6@huawei.com> - 2.36-12
 - Since the pthread_cond_clockwait@GLIBC_2_28 is introduced in earlier
   versions, this symbol is required to keep the previous items compatible.
