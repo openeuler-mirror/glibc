@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.36
-Release: 	13
+Release: 	14
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -93,6 +93,9 @@ Patch6: 0001-gconv-Use-64-bit-interfaces-in-gconv_parseconfdir-bu.patch
 Patch7: 0001-syslog-Remove-extra-whitespace-between-timestamp-and.patch
 Patch8: Makerules-fix-MAKEFLAGS-assignment-for-upcoming-make.patch
 Patch9: gmon-Fix-allocated-buffer-overflow-bug-29444.patch
+Patch10: stdlib-strfrom-Add-copysign-to-fix-NAN-issue-on-risc.patch
+Patch11: Assume-only-FLAG_ELF_LIBC6-suport.patch
+Patch12: elf-Restore-ldconfig-libc6-implicit-soname-logic-BZ-.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
@@ -1269,6 +1272,12 @@ fi
 %endif
 
 %changelog
+* Mon May 08 2023 laokz <zhangkai@iscas.ac.cn> - 2.36-14
+- Backport RISC-V patches:
+  - stdlib/strfrom: Add copysign to fix NAN issue (from v2.37)
+  - Assume only FLAG_ELF_LIBC6 suport (from v2.37)
+  - Restore libc6 implicit soname logic (from v2.38)
+
 * Thu Feb 23 2023 Qingqing Li <liqingqing3@huawei.com> - 2.36-13
 - gmon: Fix allocated buffer overflow (bug 29444)
 
