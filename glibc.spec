@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.36
-Release: 	14
+Release: 	15
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -113,6 +113,7 @@ Patch9012: malloc-use-__get_nprocs-replace-__get_nprocs_sched.patch
 Patch9013: x86-use-total-l3cache-for-non_temporal_threshold.patch
 Patch9014: strcmp-delete-align-for-loop_aligned.patch
 Patch9015: add-pthread_cond_clockwait-GLIBC_2_28.patch
+Patch9016: add-GB18030-2022-charmap.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1272,6 +1273,9 @@ fi
 %endif
 
 %changelog
+* Wed May 10 2023 lijianglin<lijianglin2@huawei.com> - 2.36-15
+- add GB18030-2022 charmap
+
 * Mon May 08 2023 laokz <zhangkai@iscas.ac.cn> - 2.36-14
 - Backport RISC-V patches:
   - stdlib/strfrom: Add copysign to fix NAN issue (from v2.37)
