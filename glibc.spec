@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.36
-Release: 	15
+Release: 	16
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -1273,6 +1273,9 @@ fi
 %endif
 
 %changelog
+* Mon Jun 5 2023 li-miaomiao_zhr <mmlidc@isoftstone.com> - 2.36-16
+- processing of annotated patch files in spec files
+
 * Wed May 10 2023 lijianglin<lijianglin2@huawei.com> - 2.36-15
 - add GB18030-2022 charmap
 
