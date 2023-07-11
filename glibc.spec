@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.36
-Release: 	16
+Release: 	17
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -96,6 +96,7 @@ Patch9: gmon-Fix-allocated-buffer-overflow-bug-29444.patch
 Patch10: stdlib-strfrom-Add-copysign-to-fix-NAN-issue-on-risc.patch
 Patch11: Assume-only-FLAG_ELF_LIBC6-suport.patch
 Patch12: elf-Restore-ldconfig-libc6-implicit-soname-logic-BZ-.patch
+Patch13: 0001-Optimizing-__random-for-single-threaded-scenarios.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
@@ -1273,6 +1274,9 @@ fi
 %endif
 
 %changelog
+* Tue Jul 11 2023 jiangyingxin<jiangyingxin1@huawei.com> - 2.36-17
+- Optimizing __random for single-threaded scenarios
+
 * Mon Jun 5 2023 li-miaomiao_zhr <mmlidc@isoftstone.com> - 2.36-16
 - processing of annotated patch files in spec files
 
