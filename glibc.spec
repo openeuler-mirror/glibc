@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.36
-Release: 	17
+Release: 	18
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -1274,8 +1274,11 @@ fi
 %endif
 
 %changelog
-* Tue Jul 11 2023 jiangyingxin<jiangyingxin1@huawei.com> - 2.36-17
+* Tue Jul 11 2023 jiangyingxin<jiangyingxin1@huawei.com> - 2.36-18
 - Optimizing __random for single-threaded scenarios
+
+* Tue Jul 11 2023 lijianglin<lijianglin2@huawei.com> - 2.36-17
+- add the test of the entire GB18030 charmap
 
 * Mon Jun 5 2023 li-miaomiao_zhr <mmlidc@isoftstone.com> - 2.36-16
 - processing of annotated patch files in spec files
