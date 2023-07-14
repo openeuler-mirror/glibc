@@ -96,7 +96,6 @@ Patch9: gmon-Fix-allocated-buffer-overflow-bug-29444.patch
 Patch10: stdlib-strfrom-Add-copysign-to-fix-NAN-issue-on-risc.patch
 Patch11: Assume-only-FLAG_ELF_LIBC6-suport.patch
 Patch12: elf-Restore-ldconfig-libc6-implicit-soname-logic-BZ-.patch
-Patch13: 0001-Optimizing-__random-for-single-threaded-scenarios.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
@@ -115,6 +114,7 @@ Patch9013: x86-use-total-l3cache-for-non_temporal_threshold.patch
 Patch9014: strcmp-delete-align-for-loop_aligned.patch
 Patch9015: add-pthread_cond_clockwait-GLIBC_2_28.patch
 Patch9016: add-GB18030-2022-charmap-BZ-30243.patch
+Patch9017: 0001-Optimizing-__random-for-single-threaded-scenarios.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
