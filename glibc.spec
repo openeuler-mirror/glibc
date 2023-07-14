@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.36
-Release: 	17
+Release: 	18
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -114,6 +114,7 @@ Patch9013: x86-use-total-l3cache-for-non_temporal_threshold.patch
 Patch9014: strcmp-delete-align-for-loop_aligned.patch
 Patch9015: add-pthread_cond_clockwait-GLIBC_2_28.patch
 Patch9016: add-GB18030-2022-charmap-BZ-30243.patch
+Patch9017: 0001-Optimizing-__random-for-single-threaded-scenarios.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1273,6 +1274,9 @@ fi
 %endif
 
 %changelog
+* Tue Jul 11 2023 jiangyingxin<jiangyingxin1@huawei.com> - 2.36-18
+- Optimizing __random for single-threaded scenarios
+
 * Tue Jul 11 2023 lijianglin<lijianglin2@huawei.com> - 2.36-17
 - add the test of the entire GB18030 charmap
 

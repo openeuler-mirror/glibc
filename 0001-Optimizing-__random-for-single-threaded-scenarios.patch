@@ -1,0 +1,44 @@
+From f54e1ddea12343991b402abf28be2b94ffbac2c5 Mon Sep 17 00:00:00 2001
+From: Tian Tao <tiantao6@hisilicon.com>
+Date: Tue, 11 Jul 2023 08:42:56 +0800
+Subject: [PATCH] Optimizing __random for single-threaded scenarios
+
+The __random function does not need to be locked by __libc_lock_lock and
+unlocked by __libc_lock_unlock in a single-threaded scenario, so we can
+remove these locks in a single-threaded scenario to improve performance.
+
+Signed-off-by: Tian Tao <tiantao6@hisilicon.com>
+---
+ stdlib/random.c | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/stdlib/random.c b/stdlib/random.c
+index 62f22fac8d..9035df8d18 100644
+--- a/stdlib/random.c
++++ b/stdlib/random.c
+@@ -288,11 +288,19 @@ __random (void)
+ {
+   int32_t retval;
+ 
+-  __libc_lock_lock (lock);
++  if (__libc_single_threaded) {
+ 
+-  (void) __random_r (&unsafe_state, &retval);
++	(void) __random_r (&unsafe_state, &retval);
+ 
+-  __libc_lock_unlock (lock);
++  } else {
++
++	 __libc_lock_lock (lock);
++
++	(void) __random_r (&unsafe_state, &retval);
++
++	__libc_lock_unlock (lock);
++
++  }
+ 
+   return retval;
+ }
+-- 
+2.33.0
+
