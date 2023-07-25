@@ -67,8 +67,8 @@ index e6c94dfd..c5e8deb3 100644
 +    non_temporal_threshold *= threads;
 +
    tunable_size = TUNABLE_GET (x86_non_temporal_threshold, long int, NULL);
-   /* NB: Ignore the default value 0.  */
-   if (tunable_size != 0)
+   if (tunable_size > minimum_non_temporal_threshold
+       && tunable_size <= maximum_non_temporal_threshold)
 -- 
 2.30.0
 
