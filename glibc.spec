@@ -64,8 +64,8 @@
 # glibc - The GNU C Library (glibc) core package.
 ##############################################################################
 Name: 	 	glibc
-Version: 	2.36
-Release: 	18
+Version: 	2.38
+Release: 	1
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -84,18 +84,6 @@ Source8:   testsuite_whitelist
 %endif
 
 Patch0: glibc-1070416.patch
-Patch1: linux-Mimic-kernel-defition-for-BLOCK_SIZE.patch
-Patch2: linux-Fix-sys-mount.h-usage-with-kernel-headers.patch
-Patch3: Linux-Fix-enum-fsconfig_command-detection-in-sys-mou.patch
-Patch4: syslog-Fix-large-messages-BZ-29536.patch
-Patch5: Linux-Do-not-skip-d_ino-0-entries-in-readdir-readdir.patch
-Patch6: 0001-gconv-Use-64-bit-interfaces-in-gconv_parseconfdir-bu.patch
-Patch7: 0001-syslog-Remove-extra-whitespace-between-timestamp-and.patch
-Patch8: Makerules-fix-MAKEFLAGS-assignment-for-upcoming-make.patch
-Patch9: gmon-Fix-allocated-buffer-overflow-bug-29444.patch
-Patch10: stdlib-strfrom-Add-copysign-to-fix-NAN-issue-on-risc.patch
-Patch11: Assume-only-FLAG_ELF_LIBC6-suport.patch
-Patch12: elf-Restore-ldconfig-libc6-implicit-soname-logic-BZ-.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
@@ -1274,6 +1262,9 @@ fi
 %endif
 
 %changelog
+* Tue Jul 25 2023 chenhaixiang<chenhaixiang3@huawei.com> - 2.38-1
+- Update to glibc-2.38
+
 * Tue Jul 11 2023 jiangyingxin<jiangyingxin1@huawei.com> - 2.36-18
 - Optimizing __random for single-threaded scenarios
 
