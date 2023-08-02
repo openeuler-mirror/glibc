@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.38
-Release: 	1
+Release: 	2
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -1262,8 +1262,11 @@ fi
 %endif
 
 %changelog
+* Wed Aug 2 2023 chenhaixiang<chenhaixiang3@huawei.com> - 2.38-2
+- use the released glibc 2.38 version
+
 * Tue Jul 25 2023 chenhaixiang<chenhaixiang3@huawei.com> - 2.38-1
-- Update to glibc-2.38
+- Pre Update to glibc-2.38
 
 * Tue Jul 11 2023 jiangyingxin<jiangyingxin1@huawei.com> - 2.36-18
 - Optimizing __random for single-threaded scenarios
