@@ -1,0 +1,40 @@
+From f5b9e0f2a8ada29cebeb6e51cbcbea396375ab26 Mon Sep 17 00:00:00 2001
+From: huangyu <huangyu106@huawei.com>
+Date: Wed, 7 Dec 2022 14:35:26 +0800
+Subject: [PATCH] fix Segmentation fault in nss module
+
+Signed-off-by: huangyu <huangyu106@huawei.com>
+---
+ nss/nss_module.c | 2 +-
+ nss/nsswitch.c   | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/nss/nss_module.c b/nss/nss_module.c
+index b28cb94a..bb2807e9 100644
+--- a/nss/nss_module.c
++++ b/nss/nss_module.c
+@@ -352,7 +352,7 @@ nss_load_all_libraries (enum nss_database service)
+ {
+   nss_action_list ni = NULL;
+ 
+-  if (__nss_database_get (service, &ni))
++  if (__nss_database_get (service, &ni) && ni != NULL)
+     while (ni->module != NULL)
+       {
+         __nss_module_load (ni->module);
+diff --git a/nss/nsswitch.c b/nss/nsswitch.c
+index 6b7d4c78..c9d7e372 100644
+--- a/nss/nsswitch.c
++++ b/nss/nsswitch.c
+@@ -133,7 +133,7 @@ libc_hidden_def (__nss_next2)
+ void *
+ __nss_lookup_function (nss_action_list ni, const char *fct_name)
+ {
+-  if (ni->module == NULL)
++  if (ni == NULL || ni->module == NULL)
+     return NULL;
+   return __nss_module_get_function (ni->module, fct_name);
+ }
+-- 
+2.33.0
+
