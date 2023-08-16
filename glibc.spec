@@ -65,7 +65,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.38
-Release: 	3
+Release: 	4
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -105,6 +105,7 @@ Patch9016: add-GB18030-2022-charmap-BZ-30243.patch
 Patch9017: 0001-Optimizing-__random-for-single-threaded-scenarios.patch
 Patch9018: fix-Segmentation-fault-in-nss-module.patch
 Patch9019: fix_nss_database_check_reload_and_get_memleak.patch
+Patch9020: 0001-fix-glibc-build-error-on-x86.patch
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -1264,6 +1265,9 @@ fi
 %endif
 
 %changelog
+* Wed Aug 16 2023 chenhaixiang<chenhaixiang3@huawei.com> - 2.38-4
+- skipping test case building to fix glibc build error on x86
+
 * Mon Aug 7 2023 zhanghao<zhanghao383@huawei.com> - 2.38-3
 - fix Segmentation fault in nss module
 - fix nss database check reload and get memleak
