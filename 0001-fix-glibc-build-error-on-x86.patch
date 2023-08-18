@@ -1,0 +1,56 @@
+From a2150b0d854b6ce3100d7823e3e48b2710161bfc Mon Sep 17 00:00:00 2001
+From: chenhaixiang <chenhaixiang3@huawei.com>
+Date: Wed, 16 Aug 2023 15:47:44 +0800
+Subject: [PATCH] skipping test case building fix glibc build error on x86
+
+Due to the upgrade of binutils to version 2.40,
+support for the -z pack-relative-relocs 
+compilation option was added during glibc building.
+This caused the linking failure of the test cases
+tst-protected1a, tst-protected1b, and vismain.
+These files are only compiled when have-protected-data
+ is set to 'yes'.
+To ensure the successful building of glibc, these files are temporarily skipped.
+
+---
+ elf/Makefile | 19 -------------------
+ 1 file changed, 19 deletions(-)
+
+diff --git a/elf/Makefile b/elf/Makefile
+index c00e2ccf..8cd01845 100644
+--- a/elf/Makefile
++++ b/elf/Makefile
+@@ -986,30 +986,11 @@ tst-gnu2-tls1mod.so-no-z-defs = yes
+ CFLAGS-tst-gnu2-tls1mod.c += -mtls-dialect=gnu2
+ endif # $(have-mtls-dialect-gnu2)
+ 
+-ifeq (yes,$(have-protected-data))
+-modules-names += tst-protected1moda tst-protected1modb
+-tests += tst-protected1a tst-protected1b
+-$(objpfx)tst-protected1a: $(addprefix $(objpfx),tst-protected1moda.so tst-protected1modb.so)
+-$(objpfx)tst-protected1b: $(addprefix $(objpfx),tst-protected1modb.so tst-protected1moda.so)
+-tst-protected1modb.so-no-z-defs = yes
+-# These tests fail with GCC versions prior to 5.1 and with some versions
+-# of binutils.  See https://sourceware.org/bugzilla/show_bug.cgi?id=17709
+-# and https://gcc.gnu.org/bugzilla/show_bug.cgi?id=65248 for details.
+-# Perhaps in future we can make these XFAILs conditional on some detection
+-# of compiler/linker behavior/version.
+-test-xfail-tst-protected1a = yes
+-test-xfail-tst-protected1b = yes
+-endif
+ ifeq (yesyes,$(have-fpie)$(build-shared))
+ modules-names += tst-piemod1
+ tests += tst-pie1 tst-pie2 tst-dlopen-pie tst-dlopen-tlsmodid-pie \
+   tst-dlopen-self-pie
+ tests-pie += tst-pie1 tst-pie2 tst-dlopen-tlsmodid-pie tst-dlopen-self-pie
+-ifeq (yes,$(have-protected-data))
+-tests += vismain
+-tests-pie += vismain
+-CFLAGS-vismain.c += $(PIE-ccflag)
+-endif
+ endif
+ modules-execstack-yes = tst-execstack-mod
+ extra-test-objs += $(addsuffix .os,$(strip $(modules-names)))
+-- 
+2.41.0
+
