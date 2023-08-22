@@ -48,6 +48,8 @@
 %undefine with_valgrind
 %endif
 
+%global ENABLE_RELOC 1
+
 # Only some architectures have static PIE support
 %define pie_arches %{ix86} x86_64 aarch64
 
@@ -65,7 +67,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.38
-Release: 	4
+Release: 	5
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -106,6 +108,10 @@ Patch9017: 0001-Optimizing-__random-for-single-threaded-scenarios.patch
 Patch9018: fix-Segmentation-fault-in-nss-module.patch
 Patch9019: fix_nss_database_check_reload_and_get_memleak.patch
 Patch9020: 0001-fix-glibc-build-error-on-x86.patch
+
+%if %{ENABLE_RELOC}
+Patch9021: reserve-relocation-information-for-sysboost.patch
+%endif
 
 Provides: ldconfig rtld(GNU_HASH) bundled(gnulib)
 
@@ -377,6 +383,19 @@ Currently, provide pthread_condition function.
 To keep older applications compatible, glibc-compat-2.17 provides libpthread_nonshared.a
 %endif
 
+%if %{ENABLE_RELOC}
+##############################################################################
+# glibc reloc sub-package
+##############################################################################
+%package relocation
+Summary: Relocations for %{name}
+Requires: %{name} = %{version}-%{release}
+BuildRequires: native-turbo-tools
+
+%description relocation
+This package contains relocations for %{name}.
+%endif
+
 ##############################################################################
 # Prepare for the build.
 ##############################################################################
@@ -478,6 +497,9 @@ pushd $builddir
 	{ cat config.log; false; }
 
 make %{?_smp_mflags} -O -r %{glibc_make_flags}
+%if %{ENABLE_RELOC}
+objreloc libc.so.6
+%endif
 popd
 
 ##############################################################################
@@ -671,6 +693,11 @@ for i in $RPM_BUILD_ROOT%{_prefix}/bin/{xtrace,memusage}; do
       -i $i
 done
 
+%if %{ENABLE_RELOC}
+mkdir -p ${RPM_BUILD_ROOT}/usr/lib/relocation/%{_libdir}
+install -p ${RPM_BUILD_DIR}/%{name}-%{version}/build-%{target}/libc.so.6.relocation ${RPM_BUILD_ROOT}/usr/lib/relocation/%{_libdir}
+%endif
+
 touch master.filelist
 touch glibc.filelist
 touch common.filelist
@@ -789,6 +816,7 @@ grep '%{_libdir}/lib.*\.a' < master.filelist \
   | grep -v '/lib\(\(c\|pthread\|nldbl\|mvec\)_nonshared\|g\|ieee\|mcheck\)\.a$' \
   >> devel.filelist
 
+sed -i '/.relocation/d' devel.filelist
 
 ##############################################################################
 # glibc "nscd" sub-package
@@ -1237,6 +1265,13 @@ fi
 %attr(0600,root,root) %verify(not md5 size mtime) %ghost %config(missingok,noreplace) /var/db/nscd/services
 %ghost %config(missingok,noreplace) /etc/sysconfig/nscd
 
+%if %{ENABLE_RELOC}
+%files relocation
+%dir %attr(500, root, root) /usr/lib/relocation
+%dir %attr(500, root, root) /usr/lib/relocation/%{_libdir}
+%attr(400, root, root) /usr/lib/relocation/%{_libdir}/libc.so.6.relocation
+%endif
+
 %files -f nss_modules.filelist -n nss_modules
 /var/db/Makefile
 
@@ -1265,6 +1300,9 @@ fi
 %endif
 
 %changelog
+* Mon Aug 21 2023 longwei<longwei27@huawei.com> - 2.38-5
+- add libc.so relocation file for sysboost
+
 * Wed Aug 16 2023 chenhaixiang<chenhaixiang3@huawei.com> - 2.38-4
 - skipping test case building to fix glibc build error on x86
 

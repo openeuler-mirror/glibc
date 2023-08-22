@@ -1,0 +1,25 @@
+From b44dbe791e801b4ef40352849b83264e8ad9415b Mon Sep 17 00:00:00 2001
+From: lw <longwei27@huawei.com>
+Date: Mon, 21 Aug 2023 15:28:09 +0800
+Subject: [PATCH] reserve relocation information for sysboost
+
+---
+ Makerules | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makerules b/Makerules
+index 018780c8..a4603f68 100644
+--- a/Makerules
++++ b/Makerules
+@@ -534,7 +534,7 @@ lib%.so: lib%_pic.a $(+preinit) $(+postinit) $(link-libc-deps)
+ 	$(call after-link,$@)
+ 
+ define build-shlib-helper
+-$(LINK.o) -shared -static-libgcc -Wl,-O1 $(sysdep-LDFLAGS) \
++$(LINK.o) -shared -static-libgcc -Wl,-O1 $(sysdep-LDFLAGS) -Wl,--emit-relocs \
+ 	  $(if $($(@F)-no-z-defs)$(no-z-defs),,-Wl,-z,defs) $(rtld-LDFLAGS) \
+ 	  $(if $($(@F)-no-dt-relr),$(no-dt-relr-ldflag),$(dt-relr-ldflag)) \
+ 	  $(extra-B-$(@F:lib%.so=%).so) -B$(csu-objpfx) \
+-- 
+2.33.0
+
