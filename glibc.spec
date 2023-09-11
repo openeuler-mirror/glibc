@@ -67,7 +67,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.38
-Release: 	6
+Release: 	7
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -87,6 +87,18 @@ Source8:   testsuite_whitelist
 
 Patch0: glibc-1070416.patch
 Patch1: stdlib-Improve-tst-realpath-compatibility-with-sourc.patch
+Patch2: 0001-x86-Fix-for-cache-computation-on-AMD-legacy-cpus.patch
+Patch3: 0002-nscd-Do-not-rebuild-getaddrinfo-bug-30709.patch
+Patch4: 0003-x86-Fix-incorrect-scope-of-setting-shared_per_thread.patch
+Patch5: 0004-x86_64-Fix-build-with-disable-multiarch-BZ-30721.patch
+Patch6: 0005-i686-Fix-build-with-disable-multiarch.patch
+Patch7: 0006-malloc-Enable-merging-of-remainders-in-memalign-bug-.patch
+Patch8: 0007-malloc-Remove-bin-scanning-from-memalign-bug-30723.patch
+Patch9: 0008-sysdeps-tst-bz21269-fix-test-parameter.patch
+Patch10: 0009-sysdeps-tst-bz21269-handle-ENOSYS-skip-appropriately.patch
+Patch11: 0010-sysdeps-tst-bz21269-fix-Wreturn-type.patch
+Patch12: 0011-io-Fix-record-locking-contants-for-powerpc64-with-__.patch
+Patch13: 0012-libio-Fix-oversized-__io_vtables.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
@@ -1301,6 +1313,9 @@ fi
 %endif
 
 %changelog
+* Mon Sep 11 2023 Qingqing Li <liqingqing3@huawei.com> - 2.38-7
+- backport patches from glibc upstream 2.38 branch
+
 * Mon Sep 11 2023 Qingqing Li <liqingqing3@huawei.com> - 2.38-6
 - stdlib: Improve tst-realpath compatibility with source fortification
 
