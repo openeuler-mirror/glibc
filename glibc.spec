@@ -67,7 +67,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.38
-Release: 	5
+Release: 	6
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -86,6 +86,7 @@ Source8:   testsuite_whitelist
 %endif
 
 Patch0: glibc-1070416.patch
+Patch1: stdlib-Improve-tst-realpath-compatibility-with-sourc.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
@@ -1300,6 +1301,9 @@ fi
 %endif
 
 %changelog
+* Mon Sep 11 2023 Qingqing Li <liqingqing3@huawei.com> - 2.38-6
+- stdlib: Improve tst-realpath compatibility with source fortification
+
 * Mon Aug 21 2023 longwei<longwei27@huawei.com> - 2.38-5
 - add libc.so relocation file for sysboost
 
