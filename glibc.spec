@@ -67,7 +67,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.38
-Release: 	7
+Release: 	8
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -99,6 +99,12 @@ Patch10: 0009-sysdeps-tst-bz21269-handle-ENOSYS-skip-appropriately.patch
 Patch11: 0010-sysdeps-tst-bz21269-fix-Wreturn-type.patch
 Patch12: 0011-io-Fix-record-locking-contants-for-powerpc64-with-__.patch
 Patch13: 0012-libio-Fix-oversized-__io_vtables.patch
+Patch14: 0001-elf-Do-not-run-constructors-for-proxy-objects.patch
+Patch15: 0002-elf-Always-call-destructors-in-reverse-constructor-o.patch
+Patch16: elf-Fix-_dl_close_worker-compile-error-with-Werror-a.patch
+Patch17: 0003-elf-Remove-unused-l_text_end-field-from-struct-link_.patch
+Patch18: 0004-elf-Move-l_init_called_next-to-old-place-of-l_text_e.patch
+Patch19: 0005-NEWS-Add-the-2.38.1-bug-list.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
@@ -1313,6 +1319,9 @@ fi
 %endif
 
 %changelog
+* Mon Sep 11 2023 Qingqing Li <liqingqing3@huawei.com> - 2.38-8
+- backport patches from glibc upstream 2.38 branch
+
 * Mon Sep 11 2023 Qingqing Li <liqingqing3@huawei.com> - 2.38-7
 - backport patches from glibc upstream 2.38 branch
 
