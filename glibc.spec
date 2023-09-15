@@ -67,7 +67,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.38
-Release: 	8
+Release: 	9
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -105,6 +105,7 @@ Patch16: elf-Fix-_dl_close_worker-compile-error-with-Werror-a.patch
 Patch17: 0003-elf-Remove-unused-l_text_end-field-from-struct-link_.patch
 Patch18: 0004-elf-Move-l_init_called_next-to-old-place-of-l_text_e.patch
 Patch19: 0005-NEWS-Add-the-2.38.1-bug-list.patch
+Patch20: CVE-2023-4527-Stack-read-overflow-with-large-TCP-res.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
@@ -1319,6 +1320,9 @@ fi
 %endif
 
 %changelog
+* Fri Sep 15 2023 Qingqing Li <liqingqing3@huawei.com> - 2.38-9
+- fix CVE-2023-4527
+
 * Mon Sep 11 2023 Qingqing Li <liqingqing3@huawei.com> - 2.38-8
 - backport patches from glibc upstream 2.38 branch
 
