@@ -67,7 +67,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.38
-Release: 	9
+Release: 	10
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -106,6 +106,10 @@ Patch17: 0003-elf-Remove-unused-l_text_end-field-from-struct-link_.patch
 Patch18: 0004-elf-Move-l_init_called_next-to-old-place-of-l_text_e.patch
 Patch19: 0005-NEWS-Add-the-2.38.1-bug-list.patch
 Patch20: CVE-2023-4527-Stack-read-overflow-with-large-TCP-res.patch
+Patch21: 0001-getaddrinfo-Fix-use-after-free-in-getcanonname-CVE-2.patch
+Patch22: 0002-iconv-restore-verbosity-with-unrecognized-encoding-n.patch
+Patch23: 0003-string-Fix-tester-build-with-fortify-enable-with-gcc.patch
+Patch24: 0004-manual-jobs.texi-Add-missing-item-EPERM-for-getpgid.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
@@ -124,10 +128,9 @@ Patch9013: x86-use-total-l3cache-for-non_temporal_threshold.patch
 Patch9014: strcmp-delete-align-for-loop_aligned.patch
 Patch9015: add-pthread_cond_clockwait-GLIBC_2_28.patch
 Patch9016: add-GB18030-2022-charmap-BZ-30243.patch
-Patch9017: 0001-Optimizing-__random-for-single-threaded-scenarios.patch
-Patch9018: fix-Segmentation-fault-in-nss-module.patch
-Patch9019: fix_nss_database_check_reload_and_get_memleak.patch
-Patch9020: 0001-fix-glibc-build-error-on-x86.patch
+Patch9017: fix-Segmentation-fault-in-nss-module.patch
+Patch9018: fix_nss_database_check_reload_and_get_memleak.patch
+Patch9019: 0001-fix-glibc-build-error-on-x86.patch
 
 %if %{ENABLE_RELOC}
 Patch9021: reserve-relocation-information-for-sysboost.patch
@@ -1320,6 +1323,10 @@ fi
 %endif
 
 %changelog
+* Sat Sep 16 2023 Qingqing Li <liqingqing3@huawei.com> - 2.38-10
+- backport patches from glibc upstream 2.38 branch
+- revert some customization modification
+
 * Fri Sep 15 2023 Qingqing Li <liqingqing3@huawei.com> - 2.38-9
 - fix CVE-2023-4527
 
