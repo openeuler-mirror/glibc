@@ -67,7 +67,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.38
-Release: 	10
+Release: 	11
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -110,6 +110,10 @@ Patch21: 0001-getaddrinfo-Fix-use-after-free-in-getcanonname-CVE-2.patch
 Patch22: 0002-iconv-restore-verbosity-with-unrecognized-encoding-n.patch
 Patch23: 0003-string-Fix-tester-build-with-fortify-enable-with-gcc.patch
 Patch24: 0004-manual-jobs.texi-Add-missing-item-EPERM-for-getpgid.patch
+Patch25: 0001-Fix-leak-in-getaddrinfo-introduced-by-the-fix-for-CV.patch
+Patch26: 0002-Document-CVE-2023-4806-and-CVE-2023-5156-in-NEWS.patch
+Patch27: 0003-Propagate-GLIBC_TUNABLES-in-setxid-binaries.patch
+Patch28: 0004-tunables-Terminate-if-end-of-input-is-reached-CVE-20.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
@@ -1323,6 +1327,9 @@ fi
 %endif
 
 %changelog
+* Sat Oct 7 2023 Qingqing Li <liqingqing3@huawei.com> - 2.38-11
+- backport patches from glibc upstream 2.38 branch
+
 * Sat Sep 16 2023 Qingqing Li <liqingqing3@huawei.com> - 2.38-10
 - backport patches from glibc upstream 2.38 branch
 - revert some customization modification
