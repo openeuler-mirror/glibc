@@ -67,7 +67,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.38
-Release: 	11
+Release: 	12
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -101,19 +101,21 @@ Patch12: 0011-io-Fix-record-locking-contants-for-powerpc64-with-__.patch
 Patch13: 0012-libio-Fix-oversized-__io_vtables.patch
 Patch14: 0001-elf-Do-not-run-constructors-for-proxy-objects.patch
 Patch15: 0002-elf-Always-call-destructors-in-reverse-constructor-o.patch
-Patch16: elf-Fix-_dl_close_worker-compile-error-with-Werror-a.patch
-Patch17: 0003-elf-Remove-unused-l_text_end-field-from-struct-link_.patch
-Patch18: 0004-elf-Move-l_init_called_next-to-old-place-of-l_text_e.patch
-Patch19: 0005-NEWS-Add-the-2.38.1-bug-list.patch
-Patch20: CVE-2023-4527-Stack-read-overflow-with-large-TCP-res.patch
-Patch21: 0001-getaddrinfo-Fix-use-after-free-in-getcanonname-CVE-2.patch
-Patch22: 0002-iconv-restore-verbosity-with-unrecognized-encoding-n.patch
-Patch23: 0003-string-Fix-tester-build-with-fortify-enable-with-gcc.patch
-Patch24: 0004-manual-jobs.texi-Add-missing-item-EPERM-for-getpgid.patch
-Patch25: 0001-Fix-leak-in-getaddrinfo-introduced-by-the-fix-for-CV.patch
-Patch26: 0002-Document-CVE-2023-4806-and-CVE-2023-5156-in-NEWS.patch
-Patch27: 0003-Propagate-GLIBC_TUNABLES-in-setxid-binaries.patch
-Patch28: 0004-tunables-Terminate-if-end-of-input-is-reached-CVE-20.patch
+Patch16: 0003-elf-Remove-unused-l_text_end-field-from-struct-link_.patch
+Patch17: 0004-elf-Move-l_init_called_next-to-old-place-of-l_text_e.patch
+Patch18: 0005-NEWS-Add-the-2.38.1-bug-list.patch
+Patch19: CVE-2023-4527-Stack-read-overflow-with-large-TCP-res.patch
+Patch20: 0001-getaddrinfo-Fix-use-after-free-in-getcanonname-CVE-2.patch
+Patch21: 0002-iconv-restore-verbosity-with-unrecognized-encoding-n.patch
+Patch22: 0003-string-Fix-tester-build-with-fortify-enable-with-gcc.patch
+Patch23: 0004-manual-jobs.texi-Add-missing-item-EPERM-for-getpgid.patch
+Patch24: 0001-Fix-leak-in-getaddrinfo-introduced-by-the-fix-for-CV.patch
+Patch25: 0002-Document-CVE-2023-4806-and-CVE-2023-5156-in-NEWS.patch
+Patch26: 0003-Propagate-GLIBC_TUNABLES-in-setxid-binaries.patch
+Patch27: 0004-tunables-Terminate-if-end-of-input-is-reached-CVE-20.patch
+Patch28: 0001-Revert-elf-Remove-unused-l_text_end-field-from-struc.patch
+Patch29: 0002-Revert-elf-Always-call-destructors-in-reverse-constr.patch
+Patch30: 0003-Revert-elf-Move-l_init_called_next-to-old-place-of-l.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
@@ -1327,6 +1329,9 @@ fi
 %endif
 
 %changelog
+* Tue Oct 24 2023 Qingqing Li <liqingqing3@huawei.com> - 2.38-12
+- weekly backport patches from glibc upstream 2.38 branch
+
 * Sat Oct 7 2023 Qingqing Li <liqingqing3@huawei.com> - 2.38-11
 - backport patches from glibc upstream 2.38 branch
 
