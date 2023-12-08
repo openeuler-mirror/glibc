@@ -67,7 +67,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.38
-Release: 	13
+Release: 	14
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -117,6 +117,7 @@ Patch28: 0001-Revert-elf-Remove-unused-l_text_end-field-from-struc.patch
 Patch29: 0002-Revert-elf-Always-call-destructors-in-reverse-constr.patch
 Patch30: 0003-Revert-elf-Move-l_init_called_next-to-old-place-of-l.patch
 Patch31: sysdeps-sem_open-Clear-O_CREAT-when-semaphore-file-i.patch
+Patch32: elf-Fix-wrong-break-removal-from-8ee878592c.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
@@ -1330,6 +1331,9 @@ fi
 %endif
 
 %changelog
+* Fri Dec 8 2023 Qingqing Li <liqingqing3@huawei.com> - 2.38-14
+- elf: Fix wrong break removal from 8ee878592c
+
 * Thu Dec 7 2023 Qingqing Li <liqingqing3@huawei.com> - 2.38-13
 - sysdeps: sem_open: Clear O_CREAT when semaphore file is
   expected to exist [BZ #30789]
