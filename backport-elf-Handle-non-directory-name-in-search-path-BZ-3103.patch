@@ -1,0 +1,220 @@
+From a8dcffb30680d6db5704f9ce2fc30621ceb454e7 Mon Sep 17 00:00:00 2001
+From: Adhemerval Zanella <adhemerval.zanella@linaro.org>
+Date: Fri, 10 Nov 2023 10:43:12 -0300
+Subject: [PATCH] elf: Handle non-directory name in search path (BZ 31035)
+
+The open_path stops if a relative path in search path contains a
+component that is a non directory (for instance, if the component
+is an existing file).
+
+For instance:
+
+  $ cat > lib.c <<EOF
+  > void foo (void) {}
+  > EOF
+  $ gcc -shared -fPIC -o lib.so lib.c
+  $ cat > main.c <<EOF
+  extern void foo ();
+  int main () { foo (); return 0; }
+  EOF
+  $ gcc -o main main.c lib.so
+  $ LD_LIBRARY_PATH=. ./main
+  $ LD_LIBRARY_PATH=non-existing/path:. ./main
+  $ LD_LIBRARY_PATH=$(pwd)/main:. ./main
+  $ LD_LIBRARY_PATH=./main:. ./main
+  ./main: error while loading shared libraries: lib.so: cannot open shared object file: No such file or directory
+
+The invalid './main' should be ignored as a non-existent one,
+instead as a valid but non accessible file.
+
+Absolute paths do not trigger this issue because their status are
+initialized as 'unknown' and open_path check if this is a directory.
+
+Checked on x86_64-linux-gnu.
+
+Reviewed-by: Szabolcs Nagy <szabolcs.nagy@arm.com>
+---
+ elf/Makefile                  | 12 ++++++
+ elf/dl-load.c                 |  9 ++--
+ elf/tst-non-directory-mod.c   |  1 +
+ elf/tst-non-directory-path.c  |  7 ++++
+ elf/tst-non-directory-path.sh | 77 +++++++++++++++++++++++++++++++++++
+ 5 files changed, 103 insertions(+), 3 deletions(-)
+ create mode 100644 elf/tst-non-directory-mod.c
+ create mode 100644 elf/tst-non-directory-path.c
+ create mode 100755 elf/tst-non-directory-path.sh
+
+diff --git a/elf/Makefile b/elf/Makefile
+index 8cd01845..00ac7430 100644
+--- a/elf/Makefile
++++ b/elf/Makefile
+@@ -427,6 +427,7 @@ tests += \
+   tst-nodelete-opened \
+   tst-nodelete2 \
+   tst-noload \
++  tst-non-directory-path \
+   tst-null-argv \
+   tst-p_align1 \
+   tst-p_align2 \
+@@ -855,6 +856,7 @@ modules-names += \
+   tst-nodelete-dlclose-plugin \
+   tst-nodelete-opened-lib \
+   tst-nodelete2mod \
++  tst-non-directory-mod \
+   tst-null-argv-lib \
+   tst-p_alignmod-base \
+   tst-p_alignmod3 \
+@@ -1102,6 +1104,7 @@ ifeq (yes,$(build-shared))
+ ifeq ($(run-built-tests),yes)
+ tests-special += \
+   $(objpfx)argv0test.out \
++  $(objpfx)tst-non-directory-path.out \
+   $(objpfx)tst-pathopt.out \
+   $(objpfx)tst-rtld-help.out \
+   $(objpfx)tst-rtld-load-self.out \
+@@ -2990,3 +2993,12 @@ LDFLAGS-tst-dlclose-lazy-mod1.so = -Wl,-z,lazy,--no-as-needed
+ $(objpfx)tst-dlclose-lazy-mod1.so: $(objpfx)tst-dlclose-lazy-mod2.so
+ $(objpfx)tst-dlclose-lazy.out: \
+   $(objpfx)tst-dlclose-lazy-mod1.so $(objpfx)tst-dlclose-lazy-mod2.so
++
++LDFLAGS-tst-non-directory-mod.so = -Wl,-soname,tst-non-directory-mod.so
++$(objpfx)tst-non-directory-path: $(objpfx)tst-non-directory-mod.so
++$(objpfx)tst-non-directory-path.out: tst-non-directory-path.sh \
++	$(objpfx)tst-non-directory-path
++	$(SHELL) tst-non-directory-path.sh $(objpfx)ld.so $(objpfx)tst-non-directory-path \
++	    '$(test-wrapper-env)' '$(run_program_env)' \
++		    '$(rpath-link)' $(objpfx) > $@; \
++	$(evaluate-test)
+diff --git a/elf/dl-load.c b/elf/dl-load.c
+index 9a87fda9..7caa405b 100644
+--- a/elf/dl-load.c
++++ b/elf/dl-load.c
+@@ -1810,7 +1810,6 @@ open_path (const char *name, size_t namelen, int mode,
+       size_t cnt;
+       char *edp;
+       int here_any = 0;
+-      int err;
+ 
+       /* If we are debugging the search for libraries print the path
+ 	 now if it hasn't happened now.  */
+@@ -1911,8 +1910,12 @@ open_path (const char *name, size_t namelen, int mode,
+ 	      return -1;
+ 	    }
+ 	}
+-      if (here_any && (err = errno) != ENOENT && err != EACCES)
+-	/* The file exists and is readable, but something went wrong.  */
++
++      /* Continue the search if the file does not exist (ENOENT), if it can
++	 not be accessed (EACCES), or if the a component in the path is not a
++	 directory (for instance, if the component is a existing file meaning
++	 essentially that the pathname is invalid - ENOTDIR).  */
++      if (here_any && errno != ENOENT && errno != EACCES && errno != ENOTDIR)
+ 	return -1;
+ 
+       /* Remember whether we found anything.  */
+diff --git a/elf/tst-non-directory-mod.c b/elf/tst-non-directory-mod.c
+new file mode 100644
+index 00000000..aa6d4c27
+--- /dev/null
++++ b/elf/tst-non-directory-mod.c
+@@ -0,0 +1 @@
++void foo (void) {}
+diff --git a/elf/tst-non-directory-path.c b/elf/tst-non-directory-path.c
+new file mode 100644
+index 00000000..1016a97a
+--- /dev/null
++++ b/elf/tst-non-directory-path.c
+@@ -0,0 +1,7 @@
++extern void foo (void);
++
++int main (int argc, char *argv[])
++{
++  foo ();
++  return 0;
++}
+diff --git a/elf/tst-non-directory-path.sh b/elf/tst-non-directory-path.sh
+new file mode 100755
+index 00000000..e804a445
+--- /dev/null
++++ b/elf/tst-non-directory-path.sh
+@@ -0,0 +1,77 @@
++#!/bin/sh
++# Test if library search path does not terminates with non-directory
++# components.
++# Copyright (C) 2023 Free Software Foundation, Inc.
++# This file is part of the GNU C Library.
++#
++# The GNU C Library is free software; you can redistribute it and/or
++# modify it under the terms of the GNU Lesser General Public
++# License as published by the Free Software Foundation; either
++# version 2.1 of the License, or (at your option) any later version.
++#
++# The GNU C Library is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++# Lesser General Public License for more details.
++#
++# You should have received a copy of the GNU Lesser General Public
++# License along with the GNU C Library; if not, see
++# <https://www.gnu.org/licenses/>.
++
++set -e
++
++rtld=$1
++test_program=$2
++test_wrapper_env=$3
++run_program_env=$4
++# Remove the last space to allow concatenate extra paths.
++library_path=$(echo $5)
++objpfx=$6
++
++test_binary=$(basename ${test_program})
++test_libpath=${test_binary}-x
++
++mkdir -p ${objpfx}/${test_libpath}
++mv ${objpfx}/tst-non-directory-mod.so ${objpfx}/${test_libpath}
++
++# Check with absolute paths.
++${test_wrapper_env} \
++${run_program_env} \
++$rtld --inhibit-cache \
++  --library-path \
++  "$library_path":"${objpfx}"tst-non-directory-invalid:"${objpfx}"${test_libpath} \
++  $test_program 2>&1 && rc=0 || rc=$?
++
++${test_wrapper_env} \
++${run_program_env} \
++$rtld --inhibit-cache \
++  --library-path \
++  "$library_path":"${objpfx}"${test_binary}:"${objpfx}"${test_libpath} \
++  $test_program 2>&1 && rc=0 || rc=$?
++
++# Relative paths along with non-existent path in search list.
++cd "$objpfx"
++${test_wrapper_env} \
++${run_program_env} \
++$rtld --inhibit-cache \
++  --library-path \
++  "$library_path":../elf/tst-non-directory-invalid::../elf/${test_libpath} \
++  $test_program 2>&1 && rc=0 || rc=$?
++
++# Relative paths along with component in the path is not a directory in search list.
++${test_wrapper_env} \
++${run_program_env} \
++$rtld --inhibit-cache \
++  --library-path \
++  "$library_path":../elf/${test_binary}:../elf/${test_libpath} \
++  $test_program 2>&1 && rc=0 || rc=$?
++
++# Relative paths along with non-existent path and a component in the path that is not a directory.
++${test_wrapper_env} \
++${run_program_env} \
++$rtld --inhibit-cache \
++  --library-path \
++  "$library_path":../elf/tst-non-directory-invalid:../elf/${test_binary}:../elf/${test_libpath} \
++  $test_program 2>&1 && rc=0 || rc=$?
++
++exit $rc
+-- 
+2.27.0
+
