@@ -67,7 +67,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.38
-Release: 	14
+Release: 	15
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -118,6 +118,7 @@ Patch29: 0002-Revert-elf-Always-call-destructors-in-reverse-constr.patch
 Patch30: 0003-Revert-elf-Move-l_init_called_next-to-old-place-of-l.patch
 Patch31: sysdeps-sem_open-Clear-O_CREAT-when-semaphore-file-i.patch
 Patch32: elf-Fix-wrong-break-removal-from-8ee878592c.patch
+Patch33: backport-elf-Handle-non-directory-name-in-search-path-BZ-3103.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
@@ -1331,6 +1332,9 @@ fi
 %endif
 
 %changelog
+* Thu Dec 14 shixuantong <shixuantong1@huawei.com> - 2.38-15
+- elf: Handle non-directory name in search path (BZ 31035)
+
 * Fri Dec 8 2023 Qingqing Li <liqingqing3@huawei.com> - 2.38-14
 - elf: Fix wrong break removal from 8ee878592c
 
