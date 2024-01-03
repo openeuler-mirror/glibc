@@ -67,7 +67,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.38
-Release: 	15
+Release: 	16
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -119,6 +119,15 @@ Patch30: 0003-Revert-elf-Move-l_init_called_next-to-old-place-of-l.patch
 Patch31: sysdeps-sem_open-Clear-O_CREAT-when-semaphore-file-i.patch
 Patch32: elf-Fix-wrong-break-removal-from-8ee878592c.patch
 Patch33: backport-elf-Handle-non-directory-name-in-search-path-BZ-3103.patch
+Patch34: LoongArch-Delete-excessively-allocated-memory.patch
+Patch35: elf-Fix-TLS-modid-reuse-generation-assignment-BZ-290.patch
+Patch36: elf-Add-TLS-modid-reuse-test-for-bug-29039.patch
+Patch37: x86-64-Fix-the-dtv-field-load-for-x32-BZ-31184.patch
+Patch38: x86-64-Fix-the-tcb-field-load-for-x32-BZ-31185.patch
+Patch39: NEWS-Mention-bug-fixes-for-29039-30694-30709-30721.patch
+Patch40: NEWS-Mention-bug-fixes-for-30745-30843.patch
+Patch41: getaddrinfo-translate-ENOMEM-to-EAI_MEMORY-bug-31163.patch
+Patch42: libio-Check-remaining-buffer-size-in-_IO_wdo_write-b.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
@@ -1332,6 +1341,9 @@ fi
 %endif
 
 %changelog
+* Wed Jan 3 Qingqing Li <liqingqing3@huawei.com> - 2.38-16
+- backport patches from glibc upstream 2.38 branch
+
 * Thu Dec 14 shixuantong <shixuantong1@huawei.com> - 2.38-15
 - elf: Handle non-directory name in search path (BZ 31035)
 
