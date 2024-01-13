@@ -128,6 +128,8 @@ Patch39: NEWS-Mention-bug-fixes-for-29039-30694-30709-30721.patch
 Patch40: NEWS-Mention-bug-fixes-for-30745-30843.patch
 Patch41: getaddrinfo-translate-ENOMEM-to-EAI_MEMORY-bug-31163.patch
 Patch42: libio-Check-remaining-buffer-size-in-_IO_wdo_write-b.patch
+Patch43: elf-Add-a-way-to-check-if-tunable-is-set-BZ-27069.patch
+Patch44: malloc-Improve-MAP_HUGETLB-with-glibc.malloc.hugetlb.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
@@ -1341,6 +1343,10 @@ fi
 %endif
 
 %changelog
+* Sat Jan 13 Qingqing Li <liqingqing3@huawei.com> - 2.38-17
+- elf: Add a way to check if tunable is set (BZ 27069)
+- malloc: Improve MAPE_HUGETLB with glibc.malloc.hugetlb=2
+
 * Wed Jan 3 Qingqing Li <liqingqing3@huawei.com> - 2.38-16
 - backport patches from glibc upstream 2.38 branch
 

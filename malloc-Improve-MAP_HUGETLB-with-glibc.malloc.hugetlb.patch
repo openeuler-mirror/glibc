@@ -1,0 +1,50 @@
+From bc6d79f4ae99206e7ec7d6a8c5abf26cdefc8bff Mon Sep 17 00:00:00 2001
+From: Adhemerval Zanella <adhemerval.zanella@linaro.org>
+Date: Thu, 23 Nov 2023 14:29:15 -0300
+Subject: [PATCH] malloc: Improve MAP_HUGETLB with glibc.malloc.hugetlb=2
+
+Even for explicit large page support, allocation might use mmap without
+the hugepage bit set if the requested size is smaller than
+mmap_threshold.  For this case where mmap is issued, MAP_HUGETLB is set
+iff the allocation size is larger than the used large page.
+
+To force such allocations to use large pages, also tune the mmap_threhold
+(if it is not explicit set by a tunable).  This forces allocation to
+follow the sbrk path, which will fall back to mmap (which will try large
+pages before galling back to default mmap).
+
+Checked on x86_64-linux-gnu.
+Reviewed-by: DJ Delorie <dj@redhat.com>
+Tested-by: Zhangfei Gao <zhangfei.gao@linaro.org>
+---
+ malloc/arena.c | 13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/malloc/arena.c b/malloc/arena.c
+index a1a75e5a2b..c73f68890d 100644
+--- a/malloc/arena.c
++++ b/malloc/arena.c
+@@ -312,10 +312,17 @@ ptmalloc_init (void)
+ # endif
+   TUNABLE_GET (mxfast, size_t, TUNABLE_CALLBACK (set_mxfast));
+   TUNABLE_GET (hugetlb, size_t, TUNABLE_CALLBACK (set_hugetlb));
++
+   if (mp_.hp_pagesize > 0)
+-    /* Force mmap for main arena instead of sbrk, so hugepages are explicitly
+-       used.  */
+-    __always_fail_morecore = true;
++    {
++      /* Force mmap for main arena instead of sbrk, so MAP_HUGETLB is always
++         tried.  Also tune the mmap threshold, so allocation smaller than the
++	 large page will also try to use large pages by falling back
++	 to sysmalloc_mmap_fallback on sysmalloc.  */
++      if (!TUNABLE_IS_INITIALIZED (mmap_threshold))
++	do_set_mmap_threshold (mp_.hp_pagesize);
++      __always_fail_morecore = true;
++    }
+ }
+ 
+ /* Managing heaps and arenas (for concurrent threads) */
+-- 
+2.27.0
+
