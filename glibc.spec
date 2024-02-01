@@ -67,7 +67,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.38
-Release: 	16
+Release: 	19
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -130,6 +130,9 @@ Patch41: getaddrinfo-translate-ENOMEM-to-EAI_MEMORY-bug-31163.patch
 Patch42: libio-Check-remaining-buffer-size-in-_IO_wdo_write-b.patch
 Patch43: elf-Add-a-way-to-check-if-tunable-is-set-BZ-27069.patch
 Patch44: malloc-Improve-MAP_HUGETLB-with-glibc.malloc.hugetlb.patch
+Patch45: 0001-syslog-Fix-heap-buffer-overflow-in-__vsyslog_interna.patch
+Patch46: 0002-syslog-Fix-heap-buffer-overflow-in-__vsyslog_interna.patch
+Patch47: 0003-syslog-Fix-integer-overflow-in-__vsyslog_internal-CV.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
@@ -1343,6 +1346,12 @@ fi
 %endif
 
 %changelog
+* Thu Feb 1 Hewenliang <hewenliang4@huawei.com> - 2.38-19
+- backport:fix CVE-2023-6779 CVE-2023-6780
+
+* Wed Jan 31 Qingqing Li <liqingqing3@huawei.com> - 2.38-18
+- backport:fix CVE-2023-6246.
+
 * Sat Jan 13 Qingqing Li <liqingqing3@huawei.com> - 2.38-17
 - elf: Add a way to check if tunable is set (BZ 27069)
 - malloc: Improve MAPE_HUGETLB with glibc.malloc.hugetlb=2
