@@ -67,7 +67,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.38
-Release: 	19
+Release: 	20
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -133,6 +133,12 @@ Patch44: malloc-Improve-MAP_HUGETLB-with-glibc.malloc.hugetlb.patch
 Patch45: 0001-syslog-Fix-heap-buffer-overflow-in-__vsyslog_interna.patch
 Patch46: 0002-syslog-Fix-heap-buffer-overflow-in-__vsyslog_interna.patch
 Patch47: 0003-syslog-Fix-integer-overflow-in-__vsyslog_internal-CV.patch
+Patch48: x86_64-Optimize-ffsll-function-code-size.patch
+Patch49: S390-Fix-building-with-disable-mutli-arch-BZ-31196.patch
+Patch50: sparc-Fix-broken-memset-for-sparc32-BZ-31068.patch
+Patch51: sparc64-Remove-unwind-information-from-signal-return.patch
+Patch52: sparc-Fix-sparc64-memmove-length-comparison-BZ-31266.patch
+Patch53: sparc-Remove-unwind-information-from-signal-return-s.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
@@ -1346,6 +1352,14 @@ fi
 %endif
 
 %changelog
+* Mon Feb 5 Qingqing Li <liqingqing3@huawei.com> - 2.38-20
+- x86_64: Optimize ffsll function code size
+- S390: Fix building with disable mutli arch (BZ 31196)
+- sparc: Fix broken memset for sparc32 (BZ 31068)
+- sparc: Remove unwind information from signal return
+- sparc: Fix sparc64 memmove length comparison (BZ 31266)
+- sparc: Remove unwind information from signal return stubs (BZ 31244)
+
 * Thu Feb 1 Hewenliang <hewenliang4@huawei.com> - 2.38-19
 - backport:fix CVE-2023-6779 CVE-2023-6780
 
