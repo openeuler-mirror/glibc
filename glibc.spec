@@ -67,7 +67,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.38
-Release: 	20
+Release: 	21
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -139,6 +139,7 @@ Patch50: sparc-Fix-broken-memset-for-sparc32-BZ-31068.patch
 Patch51: sparc64-Remove-unwind-information-from-signal-return.patch
 Patch52: sparc-Fix-sparc64-memmove-length-comparison-BZ-31266.patch
 Patch53: sparc-Remove-unwind-information-from-signal-return-s.patch
+Patch54: arm-Remove-wrong-ldr-from-_dl_start_user-BZ-31339.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
@@ -1352,6 +1353,9 @@ fi
 %endif
 
 %changelog
+* Tue Feb 6 Qingqing Li <liqingqing3@huawei.com> - 2.38-21
+- arm: Remove wrong ldr from _dl_start_user (BZ 31339)
+
 * Mon Feb 5 Qingqing Li <liqingqing3@huawei.com> - 2.38-20
 - x86_64: Optimize ffsll function code size
 - S390: Fix building with disable mutli arch (BZ 31196)
