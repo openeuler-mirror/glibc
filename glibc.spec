@@ -67,7 +67,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.38
-Release: 	21
+Release: 	22
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -140,6 +140,7 @@ Patch51: sparc64-Remove-unwind-information-from-signal-return.patch
 Patch52: sparc-Fix-sparc64-memmove-length-comparison-BZ-31266.patch
 Patch53: sparc-Remove-unwind-information-from-signal-return-s.patch
 Patch54: arm-Remove-wrong-ldr-from-_dl_start_user-BZ-31339.patch
+Patch55: malloc-Use-__get_nprocs-on-arena_get2-BZ-30945.patch
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
@@ -1353,6 +1354,9 @@ fi
 %endif
 
 %changelog
+* Fri Feb 23 Jingxiao Lu <lujingxiao@huawei.com> - 2.38-22
+- malloc: Use __get_nprocs on arena_get2 (BZ 30945)
+
 * Tue Feb 6 Qingqing Li <liqingqing3@huawei.com> - 2.38-21
 - arm: Remove wrong ldr from _dl_start_user (BZ 31339)
 
