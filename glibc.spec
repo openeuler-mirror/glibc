@@ -48,10 +48,14 @@
 %undefine with_valgrind
 %endif
 
+%ifarch loongarch64
+%global ENABLE_RELOC 0
+%else
 %global ENABLE_RELOC 1
+%endif
 
 # Only some architectures have static PIE support
-%define pie_arches %{ix86} x86_64 aarch64
+%define pie_arches %{ix86} x86_64 aarch64 loongarch64
 
 %define enablekernel 3.2
 %define target %{_target_cpu}-%{_vendor}-linux
@@ -67,7 +71,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.38
-Release: 	22
+Release: 	23
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -141,6 +145,36 @@ Patch52: sparc-Fix-sparc64-memmove-length-comparison-BZ-31266.patch
 Patch53: sparc-Remove-unwind-information-from-signal-return-s.patch
 Patch54: arm-Remove-wrong-ldr-from-_dl_start_user-BZ-31339.patch
 Patch55: malloc-Use-__get_nprocs-on-arena_get2-BZ-30945.patch
+Patch56: LoongArch-Redefine-macro-LEAF-ENTRY.patch
+Patch57: LoongArch-Add-minuimum-binutils-required-version.patch
+Patch58: Loongarch-Add-ifunc-support-and-add-different-versio.patch
+Patch59: elf-Add-new-LoongArch-reloc-types-101-to-108-into-el.patch
+Patch60: LoongArch-elf-Add-new-LoongArch-reloc-types-109-into.patch
+Patch61: Loongarch-Add-ifunc-support-for-strchr-aligned-lsx-l.patch
+Patch62: Loongarch-Add-ifunc-support-for-memcpy-aligned-unali.patch
+Patch63: LoongArch-Add-ifunc-support-for-strnlen-aligned-lsx-.patch
+Patch64: LoongArch-Add-ifunc-support-for-strcmp-aligned-lsx.patch
+Patch65: LoongArch-Add-ifunc-support-for-strncmp-aligned-lsx.patch
+Patch66: LoongArch-Remove-support-code-for-old-linker-in-star.patch
+Patch67: LoongArch-Micro-optimize-LD_PCREL.patch
+Patch68: LoongArch-Add-ifunc-support-for-rawmemchr-aligned-ls.patch
+Patch69: LoongArch-Add-ifunc-support-for-memchr-aligned-lsx-l.patch
+Patch70: LoongArch-Add-ifunc-support-for-memrchr-lsx-lasx.patch
+Patch71: LoongArch-Add-ifunc-support-for-memset-aligned-unali.patch
+Patch72: LoongArch-Add-ifunc-support-for-memcmp-aligned-lsx-l.patch
+Patch73: LoongArch-Change-loongarch-to-LoongArch-in-comments.patch
+Patch74: LoongArch-Add-lasx-lsx-support-for-_dl_runtime_profi.patch
+Patch75: LoongArch-Replace-deprecated-v0-with-a0-to-eliminate.patch
+Patch76: LoongArch-Add-ifunc-support-for-strcpy-stpcpy-aligne.patch
+Patch77: LoongArch-Add-ifunc-support-for-strrchr-aligned-lsx-.patch
+Patch78: LoongArch-Change-to-put-magic-number-to-.rodata-sect.patch
+Patch79: LoongArch-Add-glibc.cpu.hwcap-support.patch
+Patch80: Revert-LoongArch-Add-glibc.cpu.hwcap-support.patch
+Patch81: LoongArch-Unify-Register-Names.patch
+Patch82: LoongArch-Update-hwcap.h-to-sync-with-LoongArch-kern.patch
+Patch83: linux-Sync-Linux-6.6-elf.h.patch
+Patch84: Decrease-value-of-arch_minimum_kernel-with-LoongArch.patch
+
 
 Patch9000: turn-default-value-of-x86_rep_stosb_threshold_form_2K_to_1M.patch
 Patch9001: locale-delete-no-hard-link-to-avoid-all_language-pac.patch 
@@ -759,7 +793,9 @@ touch devel.filelist
 touch nscd.filelist
 touch nss_modules.filelist
 touch nss-devel.filelist
+%ifnarch loongarch64
 touch libnsl.filelist
+%endif
 touch debugutils.filelist
 touch benchtests.filelist
 touch help.filelist
@@ -818,7 +854,9 @@ cat master.filelist \
     -e '%{_prefix}/share' \
     -e '/var/db/Makefile' \
     -e '/libnss_.*\.so[0-9.]*$' \
+%ifnarch loongarch64
     -e '/libnsl' \
+%endif
     -e 'glibc-benchtests' \
     -e 'aux-cache' \
     > glibc.filelist
@@ -891,8 +929,10 @@ grep '/libnss_[a-z]*\.so$' master.filelist > nss-devel.filelist
 ##############################################################################
 # libnsl subpackage
 ##############################################################################
+%ifnarch loongarch64
 grep -E '/libnsl\.so\.[0-9]+$' master.filelist > libnsl.filelist
 test $(wc -l < libnsl.filelist) -eq 1
+%endif
 
 ##############################################################################
 # glibc debugutils sub-package
@@ -1331,8 +1371,10 @@ fi
 
 %files -f nss-devel.filelist nss-devel
 
+%ifnarch loongarch64
 %files -f libnsl.filelist -n libnsl
 /%{_lib}/libnsl.so.1
+%endif
 
 %files -f debugutils.filelist debugutils
 
@@ -1354,6 +1396,10 @@ fi
 %endif
 
 %changelog
+* Thu Feb 29 2024 Peng Fan <fanpeng@loongson.cn> - 2.38-23
+- LoongArch: sync patch from glibc upstream
+- Reduced kernel version requirements
+
 * Fri Feb 23 Jingxiao Lu <lujingxiao@huawei.com> - 2.38-22
 - malloc: Use __get_nprocs on arena_get2 (BZ 30945)
 
