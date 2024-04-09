@@ -48,11 +48,7 @@
 %undefine with_valgrind
 %endif
 
-%ifarch loongarch64
 %global ENABLE_RELOC 0
-%else
-%global ENABLE_RELOC 1
-%endif
 
 # Only some architectures have static PIE support
 %define pie_arches %{ix86} x86_64 aarch64 loongarch64
@@ -71,7 +67,7 @@
 ##############################################################################
 Name: 	 	glibc
 Version: 	2.38
-Release: 	23
+Release: 	24
 Summary: 	The GNU libc libraries
 License:	%{all_license}
 URL: 		http://www.gnu.org/software/glibc/
@@ -1396,6 +1392,9 @@ fi
 %endif
 
 %changelog
+* Tue Apr 9 2024 yangpan <yangpan51@huawei.com> - 2.38-24
+- disable sysboost
+
 * Thu Feb 29 2024 Peng Fan <fanpeng@loongson.cn> - 2.38-23
 - LoongArch: sync patch from glibc upstream
 - Reduced kernel version requirements
